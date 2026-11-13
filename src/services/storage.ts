@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const STATE_KEY = 'CoolTick.v4';
 export const THEME_KEY = 'tickdo.theme';
-export const TIP_KEY = 'tickdo.tip';
+/** Тон текста: обычный / пацанский. */
+export const TONE_KEY = 'openstreak.tone';
 
 // Используем AsyncStorage вместо MMKV для Expo Go
 export const storage = {

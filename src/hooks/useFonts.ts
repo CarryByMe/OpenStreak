@@ -1,28 +1,43 @@
 import {
-  useFonts as useManrope,
-  Manrope_500Medium,
-  Manrope_700Bold,
-  Manrope_800ExtraBold,
-} from '@expo-google-fonts/manrope';
+  useFonts as useRubik,
+  Rubik_400Regular,
+  Rubik_500Medium,
+  Rubik_600SemiBold,
+  Rubik_700Bold,
+} from '@expo-google-fonts/rubik';
 import {
-  useFonts as useGolos,
-  GolosText_400Regular,
-  GolosText_500Medium,
-  GolosText_600SemiBold,
-  GolosText_700Bold,
-} from '@expo-google-fonts/golos-text';
+  useFonts as useUnbounded,
+  Unbounded_600SemiBold,
+  Unbounded_700Bold,
+  Unbounded_800ExtraBold,
+} from '@expo-google-fonts/unbounded';
+import {
+  useFonts as useInter,
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
 
 export function useAppFonts() {
-  const [mLoaded] = useManrope({
-    Manrope_500Medium,
-    Manrope_700Bold,
-    Manrope_800ExtraBold,
+  // «Обычный»: Inter — всё.
+  const [iLoaded] = useInter({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
-  const [gLoaded] = useGolos({
-    GolosText_400Regular,
-    GolosText_500Medium,
-    GolosText_600SemiBold,
-    GolosText_700Bold,
+  // «Мульт»: Rubik — текст, Unbounded — заголовки и числа.
+  const [rLoaded] = useRubik({
+    Rubik_400Regular,
+    Rubik_500Medium,
+    Rubik_600SemiBold,
+    Rubik_700Bold,
   });
-  return mLoaded && gLoaded;
+  const [uLoaded] = useUnbounded({
+    Unbounded_600SemiBold,
+    Unbounded_700Bold,
+    Unbounded_800ExtraBold,
+  });
+  return rLoaded && uLoaded && iLoaded;
 }

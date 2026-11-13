@@ -1,55 +1,83 @@
 import React, { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { RootTabs } from '../navigation/RootTabs';
-import { SheetsHost } from '../components/SheetsHost';
-import { useAppStore } from '../store/appStore';
-import { useThemeStore } from '../store/themeStore';
-import { Toast } from '../components/ui/Toast';
-import { checkReminders } from '../utils/reminders';
+import { useDataStore } from '../core/store';
+import { NewSheet } from '../features/new/NewSheet';
+import { PlaceAccessSheet } from '../features/places/PlaceAccessSheet';
 import { useAppFonts } from '../hooks/useFonts';
+import { RootNavigator } from '../navigation/RootNavigator';
+import { usePrefsStore } from '../store/prefsStore';
+import { usePalette, useThemeStore } from '../store/themeStore';
+import { CatalogScreen } from '../ui/catalog/CatalogScreen';
+import { isCatalogRequested } from '../ui/catalog/isCatalog';
+import { TAB_BAR_SPACE } from '../ui/TabBar';
+import { ToastHost } from '../ui/ToastHost';
+import { bootstrap } from './bootstrap';
+import { WebFrame } from './WebFrame';
+
+// Системный сплэш (волк на луне) держим, пока не загрузятся шрифты и данные.
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export const App: React.FC = () => {
   const fontsLoaded = useAppFonts();
-  const loadState = useAppStore((s) => s.load);
-  const loadTheme = useThemeStore((s) => s.loadTheme);
-  const state = useAppStore((s) => s.state);
-  const setState = useAppStore((s) => s.setState);
-  const { currentTheme } = useThemeStore();
+  const ready = useDataStore((s) => s.ready);
+  const scheme = useThemeStore((s) => s.scheme);
+  const p = usePalette();
 
   useEffect(() => {
-    loadState();
-    loadTheme();
+    // Тема и тон с устройства — только для заставки; дальше их ведут настройки в данных.
+    void useThemeStore.getState().loadTheme();
+    void usePrefsStore.getState().loadPrefs();
+    void bootstrap();
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      checkReminders(state.tasks, state.habits, state.fired, (key) => {
-        setState((prev) => ({ ...prev, fired: { ...prev.fired, [key]: 1 } }));
-      });
-    }, 20000);
-    return () => clearInterval(interval);
-  }, [state.tasks, state.habits, state.fired, setState]);
+    if (fontsLoaded && ready) void SplashScreen.hideAsync().catch(() => {});
+  }, [fontsLoaded, ready]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !ready) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: currentTheme.colors.bg }}>
-        <ActivityIndicator size="large" color={currentTheme.colors.accent} />
+      <View
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: p.bg }}
+      >
+        <ActivityIndicator size="large" color={p.text} />
       </View>
     );
   }
 
+  const statusBar = <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />;
+
+  if (isCatalogRequested()) {
+    return (
+      <WebFrame>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            {statusBar}
+            <CatalogScreen />
+            <ToastHost />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </WebFrame>
+    );
+  }
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <NavigationContainer>
-          <RootTabs />
-        </NavigationContainer>
-        <SheetsHost />
-        <Toast />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <WebFrame>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          {statusBar}
+          <NavigationContainer>
+            <RootNavigator />
+          </NavigationContainer>
+          <NewSheet />
+          <PlaceAccessSheet />
+          <ToastHost bottom={TAB_BAR_SPACE} />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </WebFrame>
   );
 };
