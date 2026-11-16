@@ -14,9 +14,11 @@ type Store = {
   editGoalId: string | null;
   /** сфера по умолчанию для нового дела (например, выбранная в фильтре «Дел») */
   areaId: string | null;
+  /** день для нового дела (выбранный в календаре); null — сегодня */
+  date: string | null;
   /** номер открытия: форма монтируется заново и начинается с чистого листа */
   seq: number;
-  show: (kind?: NewKind, opts?: { areaId?: string | null }) => void;
+  show: (kind?: NewKind, opts?: { areaId?: string | null; date?: string | null }) => void;
   editTask: (id: string) => void;
   editHabit: (id: string) => void;
   editGoal: (id: string) => void;
@@ -32,6 +34,7 @@ export const useNewSheet = create<Store>((set) => {
       editHabitId: null,
       editGoalId: null,
       areaId: null,
+      date: null,
       seq: st.seq + 1,
       ...patch,
     }));
@@ -42,8 +45,10 @@ export const useNewSheet = create<Store>((set) => {
     editHabitId: null,
     editGoalId: null,
     areaId: null,
+    date: null,
     seq: 0,
-    show: (kind = 'task', opts) => open(kind, { areaId: opts?.areaId ?? null }),
+    show: (kind = 'task', opts) =>
+      open(kind, { areaId: opts?.areaId ?? null, date: opts?.date ?? null }),
     editTask: (id) => open('task', { editId: id }),
     editHabit: (id) => open('habit', { editHabitId: id }),
     editGoal: (id) => open('goal', { editGoalId: id }),

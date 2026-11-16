@@ -57,6 +57,7 @@ function NewSheetForm() {
     editHabitId,
     editGoalId,
     areaId: initialArea,
+    date: initialDate,
     hide,
   } = useNewSheet();
   const toast = useToast((s) => s.show);
@@ -87,7 +88,7 @@ function NewSheetForm() {
         ? editingGoal.deadline
         : initialKind === 'goal'
           ? null
-          : today
+          : (initialDate ?? today)
   );
   const [priority, setPriority] = useState<Priority>(editing?.priority ?? 0);
   const [remindAt, setRemindAt] = useState(editing?.remindAt ?? editingHabit?.remindAt ?? '');
@@ -116,7 +117,7 @@ function NewSheetForm() {
 
   const changeKind = (k: NewKind) => {
     setKind(k);
-    setDate(k === 'goal' ? null : today);
+    setDate(k === 'goal' ? null : (initialDate ?? today));
   };
 
   const tomorrow = addDays(today, 1);

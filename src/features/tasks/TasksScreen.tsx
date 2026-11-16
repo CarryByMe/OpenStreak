@@ -4,13 +4,15 @@
  * зачёркнутым до конца дня), тап по строке — правка, свайп влево — вычеркнуть с «Вернуть».
  */
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
 import { AreaSheet } from '../areas/AreaSheet';
 import { vibrateImpact } from '../../services/haptics';
+import { entryOf, indexByDay, type CalView } from '../../core/calendar';
 import { addDays } from '../../core/dates';
-import { live, type Task } from '../../core/model';
+import { live, type ISODate, type Task } from '../../core/model';
+import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { openTasksByArea, taskCounts, taskGroups, type TaskGroupKey } from '../../core/tasks';
 import type { MessageKey } from '../../i18n';
@@ -21,13 +23,16 @@ import { TYPE } from '../../theme/type';
 import { AddRow, IconButton } from '../../ui/Button';
 import { Card, type Tone } from '../../ui/Sticker';
 import { Chip } from '../../ui/Chip';
+import { Icon } from '../../ui/icons';
+import { Segmented } from '../../ui/Segmented';
 import { MoonRow } from '../../ui/MoonRow';
 import { PriorityMarks } from '../../ui/Priority';
 import { ScreenHeader, SectionTitle } from '../../ui/ScreenHeader';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { TextField } from '../../ui/TextField';
 import { useToast } from '../../ui/toast';
-import { dayMonth } from '../format';
+import { dayMonth, fullDate } from '../format';
+import { TaskCalendar } from './TaskCalendar';
 import { useNewSheet } from '../new/newSheetStore';
 import { designStyles } from '../../theme/design';
 
@@ -55,10 +60,15 @@ export function TasksScreen() {
   const data = useDataStore((s) => s.data);
   const today = useDataStore((s) => s.today);
   const toast = useToast((s) => s.show);
-  const { show, editTask } = useNewSheet();
+  const { show, editTask, editGoal } = useNewSheet();
   const [area, setArea] = useState<string | null>(null);
   const [areaSheet, setAreaSheet] = useState(0);
   const [query, setQuery] = useState('');
+  const [mode, setMode] = useState<'list' | 'calendar'>('list');
+  const [calView, setCalView] = useState<CalView>('month');
+  const [cursor, setCursor] = useState<ISODate>(today);
+  const [selected, setSelected] = useState<ISODate>(today);
+  const weekStart = effectiveSettings(data).weekStart;
 
   const areas = useMemo(
     () => live(data.areas).sort((a, b) => a.createdAt - b.createdAt),
@@ -78,6 +88,17 @@ export function TasksScreen() {
       .filter((g) => g.tasks.length > 0);
   }, [data, today, area, query]);
 
+  const needle = query.trim().toLocaleLowerCase();
+  const index = useMemo(() => indexByDay(data, area), [data, area]);
+  const dayEntry = entryOf(index, selected);
+  const dayTasks = needle
+    ? dayEntry.tasks.filter((x) => x.title.toLocaleLowerCase().includes(needle))
+    : dayEntry.tasks;
+  // Под календарём остаются дела без даты, как в списке.
+  const undated = groups.filter((g) => g.key === 'someday');
+
+  const list = mode === 'calendar' ? undated : groups;
+
   const kicker = [
     t('tasks.open', { count: counts.open }),
     counts.debts > 0 ? t('tasks.debts', { count: counts.debts }) : null,
@@ -93,6 +114,42 @@ export function TasksScreen() {
     });
   };
 
+  /** Наклейка со строками дел: луна — выполнить, тап — правка, свайп влево — вычеркнуть. */
+  const taskCard = (
+    tasks: Task[],
+    debt: (task: Task) => boolean,
+    head?: React.ReactNode,
+    tail?: boolean
+  ) => (
+    <Card padded={false}>
+      {/* Обрезка — во внутреннем блоке: подложка свайпа не вылезает за скругления,
+          а тень наклейки остаётся снаружи. */}
+      <View style={styles.clip}>
+        {head}
+        {tasks.map((task, i) => (
+          <SwipeRow key={task.id} label={t('tasks.swipe')} onSwipe={() => remove(task)}>
+            {(guard) => (
+              <MoonRow
+                title={task.title}
+                sub={metaOf(task, today, areaName, t)}
+                phase={task.doneOn ? 1 : 0}
+                done={task.doneOn !== null}
+                debt={debt(task)}
+                onToggle={guard(() => {
+                  if (!task.doneOn) vibrateImpact();
+                  A.toggleTask(task.id);
+                })}
+                onPress={guard(() => editTask(task.id))}
+                right={task.priority > 0 ? <PriorityMarks level={task.priority} /> : null}
+                last={tail === false ? false : i === tasks.length - 1}
+              />
+            )}
+          </SwipeRow>
+        ))}
+      </View>
+    </Card>
+  );
+
   return (
     <ScrollView
       style={{ backgroundColor: p.bg }}
@@ -107,9 +164,21 @@ export function TasksScreen() {
             icon="plus"
             variant="sun"
             label={t('tasks.add')}
-            onPress={() => show('task', { areaId: area })}
+            onPress={() =>
+              show('task', { areaId: area, date: mode === 'calendar' ? selected : null })
+            }
           />
         }
+      />
+
+      <Segmented<'list' | 'calendar'>
+        label={t('tab.tasks')}
+        value={mode}
+        onChange={setMode}
+        items={[
+          { value: 'list', label: t('cal.mode.list') },
+          { value: 'calendar', label: t('cal.mode.calendar') },
+        ]}
       />
 
       <TextField
@@ -161,7 +230,56 @@ export function TasksScreen() {
         />
       )}
 
-      {groups.length === 0 ? (
+      {mode === 'calendar' && (
+        <>
+          <TaskCalendar
+            view={calView}
+            cursor={cursor}
+            selected={selected}
+            today={today}
+            weekStart={weekStart}
+            index={index}
+            onView={setCalView}
+            onCursor={setCursor}
+            onSelect={(d) => {
+              setSelected(d);
+              setCursor(d);
+            }}
+          />
+
+          <View style={styles.group}>
+            <SectionTitle
+              title={selected === today ? t('when.today') : fullDate(t, selected)}
+              count={dayTasks.length}
+              tone={selected === today ? 'sun' : 'tag'}
+              tilt={selected === today ? TILT.slightRight : -1}
+            />
+            {dayTasks.length === 0 && dayEntry.goals.length === 0 ? (
+              <Text style={[TYPE.body, { color: p.muted }]}>{t('cal.empty')}</Text>
+            ) : (
+              taskCard(
+                dayTasks,
+                (task) => task.date !== null && task.date < today,
+                dayEntry.goals.map((g, i) => (
+                  <GoalDue
+                    key={g.id}
+                    text={g.text}
+                    done={g.doneOn !== null}
+                    last={dayTasks.length === 0 && i === dayEntry.goals.length - 1}
+                    onPress={() => editGoal(g.id)}
+                  />
+                ))
+              )
+            )}
+            <AddRow
+              label={t('cal.add')}
+              onPress={() => show('task', { areaId: area, date: selected })}
+            />
+          </View>
+        </>
+      )}
+
+      {mode === 'calendar' && list.length === 0 ? null : list.length === 0 ? (
         <View style={styles.empty}>
           <Text style={[TYPE.body, { color: p.muted }]}>
             {t(query.trim() ? 'tasks.notFound' : 'tasks.empty')}
@@ -171,7 +289,7 @@ export function TasksScreen() {
           )}
         </View>
       ) : (
-        groups.map((g) => (
+        list.map((g) => (
           <View key={g.key} style={styles.group}>
             <SectionTitle
               title={t(GROUP_LABEL[g.key])}
@@ -179,38 +297,52 @@ export function TasksScreen() {
               tone={GROUP_TONE[g.key][0]}
               tilt={GROUP_TONE[g.key][1]}
             />
-            <Card padded={false}>
-              {/* Обрезка — во внутреннем блоке: подложка свайпа не вылезает за скругления,
-                  а тень наклейки остаётся снаружи. */}
-              <View style={styles.clip}>
-                {g.tasks.map((task, i) => (
-                  <SwipeRow key={task.id} label={t('tasks.swipe')} onSwipe={() => remove(task)}>
-                    {(guard) => (
-                      <MoonRow
-                        title={task.title}
-                        sub={metaOf(task, today, areaName, t)}
-                        phase={task.doneOn ? 1 : 0}
-                        done={task.doneOn !== null}
-                        debt={g.key === 'debts'}
-                        onToggle={guard(() => {
-                          if (!task.doneOn) vibrateImpact();
-                          A.toggleTask(task.id);
-                        })}
-                        onPress={guard(() => editTask(task.id))}
-                        right={task.priority > 0 ? <PriorityMarks level={task.priority} /> : null}
-                        last={i === g.tasks.length - 1}
-                      />
-                    )}
-                  </SwipeRow>
-                ))}
-              </View>
-            </Card>
+            {taskCard(g.tasks, () => g.key === 'debts')}
           </View>
         ))
       )}
 
-      {groups.length > 0 && <Text style={[TYPE.meta, { color: p.muted }]}>{t('tasks.hint')}</Text>}
+      {mode === 'list' && groups.length > 0 && (
+        <Text style={[TYPE.meta, { color: p.muted }]}>{t('tasks.hint')}</Text>
+      )}
     </ScrollView>
+  );
+}
+
+/** Срок цели в списке дня: флажок и текст цели; тап — открыть цель. */
+function GoalDue({
+  text,
+  done,
+  last,
+  onPress,
+}: {
+  text: string;
+  done: boolean;
+  last: boolean;
+  onPress: () => void;
+}) {
+  const p = usePalette();
+  const t = useT();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${t('cal.goal')}: ${text}`}
+      onPress={onPress}
+      style={[
+        styles.goalRow,
+        { backgroundColor: p.surface, borderBottomColor: p.divider },
+        !last && { borderBottomWidth: STROKE.thin },
+      ]}
+    >
+      <Icon name="goals" size={22} tone="text" />
+      <View style={styles.goalText}>
+        <Text style={[TYPE.item, { color: p.text }]} numberOfLines={2}>
+          {text}
+        </Text>
+        <Text style={[TYPE.meta, { color: p.muted }]}>{t('cal.goal')}</Text>
+      </View>
+      {done && <Icon name="check" size={20} tone="teal" />}
+    </Pressable>
   );
 }
 
@@ -235,5 +367,14 @@ const styles = designStyles(() =>
     group: { marginTop: SPACE.xs, gap: SPACE.md },
     clip: { overflow: 'hidden', borderRadius: RADIUS.lg - STROKE.outline },
     empty: { gap: SPACE.md, paddingTop: SPACE.sm },
+    goalRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: SPACE.md,
+      minHeight: 56,
+      paddingHorizontal: SPACE.lg,
+      paddingVertical: SPACE.sm,
+    },
+    goalText: { flex: 1, gap: 2 },
   })
 );

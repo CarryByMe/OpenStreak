@@ -18,6 +18,21 @@ export function addDays(d: ISODate, n: number): ISODate {
   return fromUtc(toUtc(d) + n * DAY_MS);
 }
 
+/** Сдвиг на `n` месяцев; день месяца сохраняется, а если такого нет (31 → февраль), берётся последний. */
+export function addMonths(d: ISODate, n: number): ISODate {
+  const total = Number(d.slice(0, 4)) * 12 + (Number(d.slice(5, 7)) - 1) + n;
+  const year = Math.floor(total / 12);
+  const month = total - year * 12;
+  const last = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const day = Math.min(Number(d.slice(8, 10)), last);
+  return fromUtc(Date.UTC(year, month, day));
+}
+
+/** Первое число месяца, в котором лежит `d`. */
+export function startOfMonth(d: ISODate): ISODate {
+  return `${d.slice(0, 7)}-01`;
+}
+
 /** Сколько дней от `from` до `to` (to − from). */
 export function diffDays(from: ISODate, to: ISODate): number {
   return Math.round((toUtc(to) - toUtc(from)) / DAY_MS);
