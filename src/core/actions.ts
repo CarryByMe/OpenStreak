@@ -285,6 +285,12 @@ export type HabitInput = {
   placeTrigger?: PlaceTrigger;
 };
 
+/** Дни недели привычки: по порядку, без повторов; пусто или все семь — каждый день (null). */
+export function normalizeDays(days: number[] | null | undefined): number[] | null {
+  const set = [...new Set((days ?? []).filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))];
+  return set.length === 0 || set.length === 7 ? null : set.sort();
+}
+
 function habitFields(input: HabitInput) {
   const numeric = input.measure === 'numeric';
   return {
@@ -292,7 +298,7 @@ function habitFields(input: HabitInput) {
     kind: input.kind,
     icon: input.icon,
     color: input.color,
-    days: input.days && input.days.length ? [...input.days].sort() : null,
+    days: normalizeDays(input.days),
     question: input.question,
     remindAt: input.remindAt,
     areaId: input.areaId,
@@ -323,6 +329,8 @@ export function createQuickHabit(input: {
   kind: HabitKind;
   /** ключ значка из набора; по умолчанию — «цель» */
   icon?: string;
+  /** дни недели (0 = вс … 6 = сб); null — каждый день */
+  days?: number[] | null;
   remindAt: string;
   placeId?: string | null;
   placeTrigger?: PlaceTrigger;
@@ -333,7 +341,7 @@ export function createQuickHabit(input: {
     icon: input.icon || 'target',
     // Цвет нужен только старым экранам; в «Мульте» цвет плитки берётся из иконки.
     color: '#2f7cf6',
-    days: null,
+    days: input.days ?? null,
     question: '',
     remindAt: input.kind === 'bad' ? '' : input.remindAt,
     areaId: null,
@@ -353,6 +361,8 @@ export function editHabitBasics(
     kind: HabitKind;
     /** новый значок; без него значок не меняется */
     icon?: string;
+    /** новое расписание; undefined — не меняется, null — каждый день */
+    days?: number[] | null;
     remindAt: string;
     placeId?: string | null;
     placeTrigger?: PlaceTrigger;
@@ -366,6 +376,7 @@ export function editHabitBasics(
         name,
         kind: input.kind,
         ...(input.icon ? { icon: input.icon } : {}),
+        ...(input.days !== undefined ? { days: normalizeDays(input.days) } : {}),
         remindAt: input.kind === 'bad' ? '' : input.remindAt,
         ...placePair(input.kind === 'bad' ? { placeId: null } : input),
       }),

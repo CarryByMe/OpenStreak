@@ -203,6 +203,7 @@ export const en: Record<MessageKey, Message> = {
   'area.name': 'name',
   'area.icon': 'icon',
   'habit.icon': 'icon',
+  'habit.days': 'days',
   'habit.deleteConfirm': "The habit's check-ins and history will be deleted. Tap again to confirm",
   'habit.deleteSure': 'Delete for sure',
   'toast.habitDeleted': 'Habit deleted',

@@ -12,6 +12,7 @@ import { live, type ISODate, type PlaceTrigger, type Priority } from '../../core
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
+import { settingsOf } from '../../core/settings';
 import { usePalette, usePlain } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { FONT } from '../../theme/fonts';
@@ -28,6 +29,7 @@ import { Sheet } from '../../ui/Sheet';
 import { NO_WEB_OUTLINE, TextField } from '../../ui/TextField';
 import { useToast } from '../../ui/toast';
 import { dayMonth } from '../format';
+import { scheduleLabel } from '../habits/habitText';
 import { AreaSheet } from '../areas/AreaSheet';
 import { usePlaceAccess } from '../places/placeAccessStore';
 import { PlaceSheet } from '../places/PlaceSheet';
@@ -95,6 +97,14 @@ function NewSheetForm() {
   const [areaId, setAreaId] = useState<string | null>(editing ? editing.areaId : initialArea);
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
   const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
+  const [days, setDays] = useState<number[] | null>(editingHabit?.days ?? null);
+  const weekStart = settingsOf(useDataStore((s) => s.data)).weekStart;
+  // Как в монолите: «Каждый день» или набор дней; пусто и все семь — снова «каждый день».
+  const toggleDay = (d: number) =>
+    setDays((cur) => {
+      const next = cur === null ? [d] : cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d];
+      return next.length === 0 || next.length === 7 ? null : next;
+    });
   const [criterion, setCriterion] = useState(editingGoal?.criterion ?? '');
   const [reward, setReward] = useState(editingGoal?.reward ?? '');
   const [penalty, setPenalty] = useState(editingGoal?.penalty ?? '');
@@ -133,6 +143,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
+        days,
         remindAt,
         placeId,
         placeTrigger,
@@ -146,6 +157,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
+        days,
         remindAt,
         placeId,
         placeTrigger,
@@ -381,6 +393,24 @@ function NewSheetForm() {
                 onPress={() => setBad(true)}
               />
             </View>
+          </FormRow>
+        )}
+
+        {kind === 'habit' && (
+          <FormRow
+            icon="calendar"
+            label={cap(t('habit.days'))}
+            value={scheduleLabel(t, days, weekStart)}
+            set={days !== null}
+            open={openRow === 'days'}
+            onPress={() => toggleRow('days')}
+          >
+            <DaysPicker
+              days={days}
+              weekStart={weekStart}
+              onToggle={toggleDay}
+              onAll={() => setDays(null)}
+            />
           </FormRow>
         )}
 
@@ -624,6 +654,17 @@ function NewSheetForm() {
           )}
 
           {kind === 'habit' && (
+            <Group title={t('habit.days')}>
+              <DaysPicker
+                days={days}
+                weekStart={weekStart}
+                onToggle={toggleDay}
+                onAll={() => setDays(null)}
+              />
+            </Group>
+          )}
+
+          {kind === 'habit' && (
             <Group title={t('habit.icon')}>
               <IconPicker value={icon} onChange={setIcon} />
             </Group>
@@ -834,6 +875,42 @@ function NewSheetForm() {
         />
       )}
     </Sheet>
+  );
+}
+
+/** «Каждый день» и семь дней недели в порядке недели пользователя; дни — переключатели. */
+function DaysPicker({
+  days,
+  weekStart,
+  onToggle,
+  onAll,
+}: {
+  days: number[] | null;
+  weekStart: 0 | 1;
+  onToggle: (d: number) => void;
+  onAll: () => void;
+}) {
+  const t = useT();
+  return (
+    <View style={styles.chips}>
+      <Chip
+        size="md"
+        role="radio"
+        icon="history"
+        label={t('habits.everyDay')}
+        selected={days === null}
+        onPress={onAll}
+      />
+      {Array.from({ length: 7 }, (_, i) => (i + weekStart) % 7).map((d) => (
+        <Chip
+          key={d}
+          size="md"
+          label={t(`day.short.${d}` as MessageKey)}
+          selected={days !== null && days.includes(d)}
+          onPress={() => onToggle(d)}
+        />
+      ))}
+    </View>
   );
 }
 

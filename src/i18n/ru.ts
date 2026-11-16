@@ -228,6 +228,7 @@ export const ru = {
   'area.name': 'название',
   'area.icon': 'значок',
   'habit.icon': 'значок',
+  'habit.days': 'дни',
   'habit.deleteConfirm': 'Удалятся отметки и история привычки. Нажми ещё раз, чтобы подтвердить',
   'habit.deleteSure': 'Точно удалить',
   'toast.habitDeleted': 'Привычка удалена',

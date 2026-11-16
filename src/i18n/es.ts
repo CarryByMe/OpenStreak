@@ -203,6 +203,7 @@ export const es: Record<MessageKey, Message> = {
   'area.name': 'nombre',
   'area.icon': 'icono',
   'habit.icon': 'icono',
+  'habit.days': 'días',
   'habit.deleteConfirm':
     'Se borrarán las marcas y el historial del hábito. Toca otra vez para confirmar',
   'habit.deleteSure': 'Borrar seguro',
