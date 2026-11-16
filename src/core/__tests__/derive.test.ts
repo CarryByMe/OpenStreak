@@ -422,6 +422,25 @@ describe('настройки и новые операции', () => {
     ).toMatchObject({ theme: 'system', weekStart: 1, reviewAt: '', quotes: true });
   });
 
+  test('оформление: старое `plain` читается как «Минималистичный», по умолчанию — «Обычный»', () => {
+    expect(DEFAULT_SETTINGS.design).toBe('normal');
+    expect(cleanSettings({ design: 'plain' }, NOW)?.design).toBe('minimal');
+    expect(cleanSettings({ design: 'minimal' }, NOW)?.design).toBe('minimal');
+    expect(cleanSettings({ design: 'auf' }, NOW)?.design).toBe('auf');
+    expect(cleanSettings({ design: 'neon' }, NOW)?.design).toBe('normal');
+    // Запись, сохранённая прежней версией, тоже читается по-новому.
+    const saved = {
+      ...DEFAULT_SETTINGS,
+      id: SETTINGS_ID,
+      createdAt: 1,
+      updatedAt: 1,
+      deletedAt: null,
+      design: 'plain',
+    };
+    const snap = { settings: { [SETTINGS_ID]: saved } };
+    expect(settingsOf(snap as never).design).toBe('minimal');
+  });
+
   test('выполнение дела запоминает момент; возврат — сбрасывает', () => {
     const id = A.createTask({ title: 'x' });
     A.toggleTask(id);

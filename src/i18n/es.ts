@@ -234,9 +234,11 @@ export const es: Record<MessageKey, Message> = {
   'settings.general': 'General',
   'settings.view': 'Aspecto',
   'settings.design': 'Aspecto',
-  'design.plain': 'Sencillo',
+  'design.normal': 'Normal',
+  'design.minimal': 'Minimalista',
   'design.auf': 'AUF',
-  'settings.designHint': '«Sencillo» es el aspecto serio. «AUF» trae el lobo, citas y rangos.',
+  'settings.designHint':
+    '«Normal» es el aspecto habitual. «Minimalista» es serio, con un solo acento. «AUF» trae el lobo, citas y rangos.',
   'settings.character': 'Carácter',
   'settings.tone': 'Modo calle',
   'settings.toneHint': 'desactivado — lenguaje neutro',

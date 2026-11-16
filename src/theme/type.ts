@@ -97,7 +97,7 @@ function plainFamily(family: string): string {
   return FONT.inter.semibold;
 }
 
-/** Шкала «Обычного» (design/serious): тот же набор вариантов, но Inter и плотный трекинг у крупных. */
+/** Шкала «Минималистичного» (design/serious): тот же набор вариантов, но Inter и плотный трекинг у крупных. */
 function plainVariant(v: Variant): Variant {
   const size = v.fontSize ?? 15;
   const big = size >= 28;
@@ -114,10 +114,40 @@ const TYPE_PLAIN = Object.fromEntries(
   Object.entries(TYPE_AUF).map(([k, v]) => [k, plainVariant(v)])
 ) as Record<TypeVariant, Variant>;
 
+/** Шрифт «Обычного» (монолит): Manrope вместо Unbounded, Golos Text вместо Rubik. */
+function normalFamily(family: string): string {
+  if (family.startsWith('Unbounded')) {
+    return family.includes('SemiBold') ? FONT.manrope.bold : FONT.manrope.extrabold;
+  }
+  if (family.includes('Regular')) return FONT.golos.regular;
+  if (family.includes('Medium')) return FONT.golos.medium;
+  if (family.includes('Bold') && !family.includes('Semi')) return FONT.golos.bold;
+  return FONT.golos.semibold;
+}
+
+/** Шкала «Обычного»: те же варианты, шрифты монолита, плотный трекинг у крупных. */
+function normalVariant(v: Variant): Variant {
+  const size = v.fontSize ?? 15;
+  return {
+    ...v,
+    fontFamily: normalFamily(v.fontFamily ?? ''),
+    letterSpacing: size >= 28 ? Math.round(size * -0.02 * 100) / 100 : 0,
+  };
+}
+
+const TYPE_NORMAL = Object.fromEntries(
+  Object.entries(TYPE_AUF).map(([k, v]) => [k, normalVariant(v)])
+) as Record<TypeVariant, Variant>;
+
 /** Шкала текста текущего оформления (читается в момент отрисовки). */
 export const TYPE: Record<TypeVariant, Variant> = new Proxy(
   TYPE_AUF as Record<TypeVariant, Variant>,
   {
-    get: (_t, key) => (currentDesign() === 'auf' ? TYPE_AUF : TYPE_PLAIN)[key as TypeVariant],
+    get: (_t, key) => {
+      const d = currentDesign();
+      return (d === 'auf' ? TYPE_AUF : d === 'normal' ? TYPE_NORMAL : TYPE_PLAIN)[
+        key as TypeVariant
+      ];
+    },
   }
 );

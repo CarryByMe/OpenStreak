@@ -5,7 +5,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useT } from '../store/prefsStore';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { SIZE, SPACE, STROKE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
 import { Moon } from './Moon';
@@ -21,6 +21,8 @@ type Props = {
   shape?: 'circle' | 'square';
   /** красное кольцо — долг, просрочено */
   debt?: boolean;
+  /** цвет сферы или привычки: в «Обычном» отметка рисуется им */
+  tint?: string;
   /** выполнено: название приглушено и зачёркнуто */
   done?: boolean;
   /** нажатие на луну */
@@ -38,6 +40,7 @@ type Props = {
 export function MoonRow(props: Props) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   const t = useT();
   const { title, done = false } = props;
   return (
@@ -45,7 +48,9 @@ export function MoonRow(props: Props) {
       style={[
         styles.row,
         plain
-          ? { backgroundColor: 'transparent', paddingLeft: 0, paddingRight: 4 }
+          ? soft
+            ? { backgroundColor: 'transparent', paddingLeft: SPACE.tight, paddingRight: 14 }
+            : { backgroundColor: 'transparent', paddingLeft: 0, paddingRight: 4 }
           : { backgroundColor: p.surface },
         !props.last &&
           (plain
@@ -71,6 +76,7 @@ export function MoonRow(props: Props) {
                 shape={props.shape}
                 fill={done ? 1 : props.phase}
                 debt={props.debt && !done}
+                tint={props.tint}
               />
             ) : (
               <Moon

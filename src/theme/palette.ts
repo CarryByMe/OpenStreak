@@ -5,12 +5,15 @@
 import palettes from './palettes.json';
 
 export type Scheme = 'light' | 'dark';
-/** Оформление: «Обычный» (строгий) или «АУФ» (мульт с волком). */
-export type Design = 'plain' | 'auf';
-export const DESIGNS: readonly Design[] = ['plain', 'auf'];
+/**
+ * Оформление: «Обычный» (`normal`, как в монолите CoolTick: мягкие карточки, синий акцент),
+ * «Минималистичный» (`minimal`, строгий: линии и один акцент) или «АУФ» (`auf`, мульт с волком).
+ */
+export type Design = 'normal' | 'minimal' | 'auf';
+export const DESIGNS: readonly Design[] = ['normal', 'minimal', 'auf'];
 
 export function isDesign(v: unknown): v is Design {
-  return v === 'plain' || v === 'auf';
+  return v === 'normal' || v === 'minimal' || v === 'auf';
 }
 /** Что выбрал пользователь: конкретная тема или «как в системе». */
 export type ThemeMode = Scheme | 'system';
@@ -69,12 +72,13 @@ export type Palette = {
   star: string;
 };
 
-type ThemeKey = Scheme | 'plainLight' | 'plainDark';
+type ThemeKey = Scheme | 'minimalLight' | 'minimalDark' | 'normalLight' | 'normalDark';
 const themes = palettes.themes as Record<ThemeKey, Palette>;
 
 export function themeKey(scheme: Scheme, design: Design): ThemeKey {
   if (design === 'auf') return scheme;
-  return scheme === 'dark' ? 'plainDark' : 'plainLight';
+  const prefix = design === 'normal' ? 'normal' : 'minimal';
+  return `${prefix}${scheme === 'dark' ? 'Dark' : 'Light'}`;
 }
 
 export function resolvePalette(scheme: Scheme, design: Design = 'auf'): Palette {

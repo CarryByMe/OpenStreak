@@ -1,11 +1,11 @@
 import React from 'react';
 import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { useDesign, usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { RADIUS, STROKE } from '../../theme/metrics';
-import type { Palette } from '../../theme/palette';
+import type { Design, Palette } from '../../theme/palette';
+import { readableOn } from '../../theme/readable';
 import { HABIT_ICONS, UI_ICONS, type IconSpec, type UiIconName } from './paths';
-import { PLAIN_HABIT_ICONS, PLAIN_UI_ICONS } from './plainPaths';
 
 /** Цвет иконки: на фоне экрана или поверх цветной подложки (`on*`). */
 export type IconTone = 'text' | 'muted' | 'red' | 'teal' | 'onSun' | 'onTeal' | 'onToast';
@@ -14,17 +14,33 @@ type Props = {
   /** размер в точках; сетка иконки — 24 */
   size?: number;
   tone?: IconTone;
+  /** свой цвет вместо тона палитры: значок на плитке цвета сферы или привычки */
+  color?: string;
   /** подпись для чтения с экрана; без неё иконка декоративная */
   label?: string;
 };
 
-function Glyph({ spec, size = 24, tone = 'text', label }: Props & { spec: IconSpec }) {
+/**
+ * Один набор рисунков на все оформления; меняется только линия. «АУФ» — толстая, со скруглёнными
+ * концами; «Обычный» — чуть тоньше; «Минималистичный» — тонкая, с прямыми концами и острыми
+ * углами. Мелкие иконки рисуем чуть толще, чтобы линия не терялась.
+ */
+function lineStyle(design: Design, size: number) {
+  const small = size <= 20;
+  if (design === 'minimal') {
+    return { width: small ? 1.9 : 1.75, cap: 'square' as const, join: 'miter' as const };
+  }
+  if (design === 'normal') {
+    return { width: small ? 2.2 : 2, cap: 'round' as const, join: 'round' as const };
+  }
+  return { width: small ? 2.4 : 2.2, cap: 'round' as const, join: 'round' as const };
+}
+
+function Glyph({ spec, size = 24, tone = 'text', color: own, label }: Props & { spec: IconSpec }) {
   const p = usePalette();
-  const plain = usePlain();
-  const color = p[tone];
-  // Мелкие иконки рисуем чуть толще, чтобы линия не терялась. «Обычный» — тонкая линия
-  // с прямыми концами и острыми углами.
-  const width = plain ? (size <= 20 ? 1.9 : 1.75) : size <= 20 ? 2.4 : 2.2;
+  const design = useDesign();
+  const color = own ?? p[tone];
+  const line = lineStyle(design, size);
   const svg = (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       {!!spec.d && (
@@ -32,9 +48,9 @@ function Glyph({ spec, size = 24, tone = 'text', label }: Props & { spec: IconSp
           d={spec.d}
           fill="none"
           stroke={color}
-          strokeWidth={width}
-          strokeLinecap={plain ? 'square' : 'round'}
-          strokeLinejoin={plain ? 'miter' : 'round'}
+          strokeWidth={line.width}
+          strokeLinecap={line.cap}
+          strokeLinejoin={line.join}
         />
       )}
       {!!spec.dots && <Path d={spec.dots} fill={color} />}
@@ -50,28 +66,13 @@ function Glyph({ spec, size = 24, tone = 'text', label }: Props & { spec: IconSp
 }
 
 export function Icon({ name, ...rest }: Props & { name: UiIconName }) {
-  const plain = usePlain();
-  const spec: IconSpec = plain
-    ? ((PLAIN_UI_ICONS as Record<string, IconSpec>)[name] ?? UI_ICONS[name])
-    : UI_ICONS[name];
-  return <Glyph spec={spec} {...rest} />;
-}
-
-function habitSpec(icon: string, plain: boolean): IconSpec {
-  if (plain) {
-    return (
-      (PLAIN_HABIT_ICONS as Record<string, IconSpec>)[icon] ??
-      (HABIT_ICONS as Record<string, IconSpec>)[icon] ??
-      PLAIN_UI_ICONS.habits
-    );
-  }
-  return (HABIT_ICONS as Record<string, IconSpec>)[icon] ?? UI_ICONS.habits;
+  return <Glyph spec={UI_ICONS[name]} {...rest} />;
 }
 
 /** Иконка привычки или сферы по ключу из `Habit.icon`; незнакомый ключ — общая «привычки». */
 export function HabitGlyph({ icon, ...rest }: Props & { icon: string }) {
-  const plain = usePlain();
-  return <Glyph spec={habitSpec(icon, plain)} {...rest} />;
+  const spec = (HABIT_ICONS as Record<string, IconSpec>)[icon] ?? UI_ICONS.habits;
+  return <Glyph spec={spec} {...rest} />;
 }
 
 type Tile = { bg: keyof Palette; tone: IconTone };
@@ -89,22 +90,47 @@ export function tileFor(icon: string): Tile {
   return TILES[h % TILES.length];
 }
 
-/** Иконка привычки на цветной плитке-наклейке (список привычек, карточка). */
+/**
+ * Иконка привычки на плитке. «АУФ» — цветная наклейка с обводкой; «Обычный» — круг цвета сферы
+ * или привычки (`color`), значок на нём тёмный или светлый, как лучше читается;
+ * «Минималистичный» — значок в рамке.
+ */
 export function IconTile({
   icon,
   size = 46,
   tilt = 0,
+  color,
 }: {
   icon: string;
   size?: number;
   /** наклон в градусах — для карточки привычки */
   tilt?: number;
+  /** цвет сферы или привычки — для «Обычного» */
+  color?: string;
 }) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   const tile = tileFor(icon);
+  if (soft) {
+    const bg = color ?? p.sun;
+    return (
+      <View
+        style={{
+          width: size,
+          height: size,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: bg,
+          borderRadius: RADIUS.pill,
+        }}
+      >
+        <HabitGlyph icon={icon} size={Math.round(size * 0.55)} color={readableOn(bg)} />
+      </View>
+    );
+  }
   if (plain) {
-    // «Обычный»: значок в рамке, без цветной плитки.
+    // «Минималистичный»: значок в рамке, без цветной плитки.
     return (
       <View
         style={{

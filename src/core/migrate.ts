@@ -9,7 +9,7 @@
  * пропущенные поля получают значения по умолчанию.
  */
 import { newId } from './ids';
-import { DEFAULT_SETTINGS } from './settings';
+import { DEFAULT_SETTINGS, designOf } from './settings';
 import {
   COLLECTIONS,
   SETTINGS_ID,
@@ -211,7 +211,7 @@ export function cleanSettings(x: unknown, now: number): Settings | null {
   return {
     ...m,
     theme: x.theme === 'dark' || x.theme === 'light' || x.theme === 'system' ? x.theme : d.theme,
-    design: x.design === 'plain' || x.design === 'auf' ? x.design : d.design,
+    design: designOf(x.design, d.design),
     tone: x.tone === 'plain' || x.tone === 'bro' ? x.tone : d.tone,
     quotes: typeof x.quotes === 'boolean' ? x.quotes : d.quotes,
     ranks: typeof x.ranks === 'boolean' ? x.ranks : d.ranks,

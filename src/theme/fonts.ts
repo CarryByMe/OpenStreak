@@ -13,7 +13,19 @@ export const FONT = {
     bold: 'Unbounded_700Bold',
     extrabold: 'Unbounded_800ExtraBold',
   },
-  /** «Обычный»: единый нейтральный шрифт */
+  /** «Обычный» (монолит): заголовки и числа */
+  manrope: {
+    bold: 'Manrope_700Bold',
+    extrabold: 'Manrope_800ExtraBold',
+  },
+  /** «Обычный» (монолит): текст */
+  golos: {
+    regular: 'GolosText_400Regular',
+    medium: 'GolosText_500Medium',
+    semibold: 'GolosText_600SemiBold',
+    bold: 'GolosText_700Bold',
+  },
+  /** «Минималистичный»: единый нейтральный шрифт */
   inter: {
     regular: 'Inter_400Regular',
     medium: 'Inter_500Medium',

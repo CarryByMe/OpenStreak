@@ -1,7 +1,7 @@
 /** Сегменты-пилюли на подложке: «Все / Полезные / Вредные», «Дело / Привычка / Цель». */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, STROKE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
 import { designStyles } from '../theme/design';
@@ -27,8 +27,9 @@ export function Segmented<T extends string>({
 }: Props<T>) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   if (plain) {
-    // «Обычный»: одна рамка, выбранный сегмент залит целиком — без коробок внутри коробки.
+    // «Минималистичный»: одна рамка, выбранный сегмент залит целиком — без коробок внутри коробки.
     return (
       <View
         accessibilityRole="radiogroup"
@@ -53,14 +54,16 @@ export function Segmented<T extends string>({
                 height: 40,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: sel ? p.text : 'transparent',
+                backgroundColor: sel ? (soft ? p.sun : p.text) : 'transparent',
                 borderRadius: RADIUS.sm,
               }}
             >
               <Text
                 style={[
                   TYPE.control,
-                  sel ? { color: p.bg } : { color: p.text, fontFamily: TYPE.item.fontFamily },
+                  sel
+                    ? { color: soft ? p.onSun : p.bg }
+                    : { color: p.text, fontFamily: TYPE.item.fontFamily },
                 ]}
               >
                 {it.label}

@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, STROKE } from '../theme/metrics';
 import { hardShadow } from '../theme/sticker';
 import { TYPE } from '../theme/type';
@@ -34,8 +34,9 @@ export function Chip({
 }: Props) {
   const p = usePalette();
   const plain = usePlain();
-  if (plain && dashed) {
-    // «Обычный»: действие («+ Сфера», «Дата…») — подчёркнутый текст, не рамка.
+  const soft = useSoft();
+  if (plain && !soft && dashed) {
+    // «Минималистичный»: действие («+ Сфера», «Дата…») — подчёркнутый текст, не рамка.
     return (
       <Pressable
         accessibilityRole="button"
@@ -60,9 +61,9 @@ export function Chip({
           height: size === 'sm' ? 38 : 44,
           paddingHorizontal: 14,
           justifyContent: 'center',
-          borderWidth: plain ? 0 : STROKE.thin,
+          borderWidth: soft ? 1.5 : plain ? 0 : STROKE.thin,
           borderStyle: dashed ? 'dashed' : 'solid',
-          borderColor: p.line,
+          borderColor: soft ? (selected ? p.sun : p.line) : p.line,
           borderRadius: RADIUS.pill,
           backgroundColor: selected
             ? p.sun
@@ -74,7 +75,7 @@ export function Chip({
                   : p.tag
                 : p.surface,
         },
-        selected && hardShadow(p, 'sm'),
+        selected && !soft && hardShadow(p, 'sm'),
       ]}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

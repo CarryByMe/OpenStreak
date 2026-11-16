@@ -17,7 +17,16 @@ export type MoonDay = {
   today?: boolean;
 };
 
-export function WeekMoons({ days, size = 28 }: { days: MoonDay[]; size?: number }) {
+export function WeekMoons({
+  days,
+  size = 28,
+  tint,
+}: {
+  days: MoonDay[];
+  size?: number;
+  /** цвет привычки для «Обычного» */
+  tint?: string;
+}) {
   const p = usePalette();
   const plain = usePlain();
   const t = useT();
@@ -28,7 +37,7 @@ export function WeekMoons({ days, size = 28 }: { days: MoonDay[]; size?: number 
         return (
           <View key={i} style={styles.day}>
             {plain ? (
-              <PlainDay state={d.state} part={d.part} today={d.today} size={size} />
+              <PlainDay state={d.state} part={d.part} today={d.today} size={size} tint={tint} />
             ) : (
               <Moon size={size} {...look} />
             )}

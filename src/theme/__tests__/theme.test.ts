@@ -12,11 +12,11 @@ jest.mock('../../services/storage', () => ({
 }));
 
 const SCHEMES: Scheme[] = ['dark', 'light'];
-const DESIGNS: Design[] = ['plain', 'auf'];
+const DESIGNS: Design[] = ['normal', 'minimal', 'auf'];
 const ALL = DESIGNS.flatMap((d) => SCHEMES.map((s) => [s, d] as const));
 
 describe('palette', () => {
-  test('all four themes have the same keys, all hex', () => {
+  test('all six themes have the same keys, all hex', () => {
     const keys = Object.keys(resolvePalette('dark', 'auf')).sort();
     for (const [scheme, design] of ALL) {
       expect(Object.keys(resolvePalette(scheme, design)).sort()).toEqual(keys);
@@ -35,9 +35,9 @@ describe('palette', () => {
     }
   });
 
-  test('plain design has one accent for action, selection and done; no shadow', () => {
+  test('minimal design has one accent for action, selection and done; no shadow', () => {
     for (const scheme of SCHEMES) {
-      const p = resolvePalette(scheme, 'plain');
+      const p = resolvePalette(scheme, 'minimal');
       expect(p.sun).toBe(p.teal);
       expect(p.sun).not.toBe(p.text);
       expect(p.shadow).toBe(p.bg);
@@ -79,7 +79,7 @@ describe('themeStore', () => {
     mockStore.set('theme', 'light');
     const s = (await load()).getState();
     expect(s.scheme).toBe('light');
-    expect(s.palette.bg).toBe(palettes.themes.plainLight.bg);
+    expect(s.palette.bg).toBe(palettes.themes.normalLight.bg);
   });
 
   test('garbage in storage is ignored', async () => {
@@ -91,23 +91,26 @@ describe('themeStore', () => {
     const st = await load();
     await st.getState().setMode('dark');
     expect(mockStore.get('theme')).toBe('dark');
-    expect(st.getState().palette.text).toBe(palettes.themes.plainDark.text);
+    expect(st.getState().palette.text).toBe(palettes.themes.normalDark.text);
     await st.getState().setMode('light');
     expect(st.getState().scheme).toBe('light');
-    expect(st.getState().palette.bg).toBe(palettes.themes.plainLight.bg);
+    expect(st.getState().palette.bg).toBe(palettes.themes.normalLight.bg);
   });
 
   test('applyDesign switches the palette and the live metrics', async () => {
     const { RADIUS } = jest.requireActual<typeof import('../metrics')>('../metrics');
     const st = await load();
     await st.getState().setMode('light');
-    expect(st.getState().design).toBe('plain');
-    expect(RADIUS.md).toBe(12);
+    expect(st.getState().design).toBe('normal');
+    expect(RADIUS.md).toBe(14);
     st.getState().applyDesign('auf');
     expect(st.getState().palette.bg).toBe(palettes.themes.light.bg);
     expect(RADIUS.md).toBe(16);
-    st.getState().applyDesign('plain');
-    expect(st.getState().palette.bg).toBe(palettes.themes.plainLight.bg);
+    st.getState().applyDesign('minimal');
+    expect(st.getState().palette.bg).toBe(palettes.themes.minimalLight.bg);
     expect(RADIUS.md).toBe(12);
+    st.getState().applyDesign('normal');
+    expect(st.getState().palette.bg).toBe(palettes.themes.normalLight.bg);
+    expect(RADIUS.md).toBe(14);
   });
 });

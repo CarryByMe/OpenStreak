@@ -10,7 +10,7 @@ import { packWeek } from '../../core/points';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
-import { usePalette } from '../../store/themeStore';
+import { usePalette, useSoft } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { ScreenHeader, SectionTitle } from '../../ui/ScreenHeader';
@@ -20,6 +20,7 @@ const BAR_MAX = 96;
 
 export function StatsScreen() {
   const p = usePalette();
+  const soft = useSoft();
   const t = useT();
   const insets = useSafeAreaInsets();
   const data = useDataStore((s) => s.data);
@@ -44,7 +45,19 @@ export function StatsScreen() {
         title={t('tab.stats')}
       />
 
-      <View style={[styles.numbers, { borderColor: p.divider }]}>
+      <View
+        style={[
+          styles.numbers,
+          soft
+            ? {
+                borderWidth: 0,
+                backgroundColor: p.surface,
+                borderRadius: 18,
+                paddingHorizontal: 16,
+              }
+            : { borderColor: p.divider },
+        ]}
+      >
         {numbers.map((n, i) => (
           <View
             key={n.label}
@@ -76,9 +89,17 @@ export function StatsScreen() {
                     styles.bar,
                     {
                       height: Math.max(4, Math.round((d.marks / maxMarks) * BAR_MAX)),
-                      backgroundColor: isToday ? 'transparent' : p.line,
-                      borderWidth: isToday ? 2 : 0,
+                      backgroundColor: soft
+                        ? d.marks === 0
+                          ? p.track
+                          : p.sun
+                        : isToday
+                          ? 'transparent'
+                          : p.line,
+                      borderWidth: isToday && !soft ? 2 : 0,
                       borderColor: p.line,
+                      borderTopLeftRadius: soft ? 8 : 0,
+                      borderTopRightRadius: soft ? 8 : 0,
                     },
                   ]}
                 />

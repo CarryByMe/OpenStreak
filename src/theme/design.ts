@@ -5,7 +5,7 @@
  */
 import type { Design } from './palette';
 
-let current: Design = 'plain';
+let current: Design = 'normal';
 
 export const currentDesign = (): Design => current;
 export function setCurrentDesign(d: Design): void {

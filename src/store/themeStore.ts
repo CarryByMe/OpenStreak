@@ -21,7 +21,7 @@ type ThemeStore = {
   system: Scheme | null;
   /** тема, которая реально показывается */
   scheme: Scheme;
-  /** оформление: «Обычный» или «АУФ» */
+  /** оформление: «Обычный», «Минималистичный» или «АУФ» */
   design: Design;
   /** палитра текущего оформления и темы */
   palette: Palette;
@@ -50,7 +50,7 @@ function derive(mode: ThemeMode, system: Scheme | null, design: Design) {
 }
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
-  ...derive('system', systemScheme(), 'plain'),
+  ...derive('system', systemScheme(), 'normal'),
 
   setMode: async (mode) => {
     set(derive(mode, get().system, get().design));
@@ -90,5 +90,14 @@ Appearance.addChangeListener(({ colorScheme }) => {
 /** Палитра «Мульта» текущей темы. */
 export const usePalette = (): Palette => useThemeStore((s) => s.palette);
 
-/** «Обычное» оформление включено? */
-export const usePlain = (): boolean => useThemeStore((s) => s.design === 'plain');
+/** Текущее оформление. */
+export const useDesign = (): Design => useThemeStore((s) => s.design);
+
+/**
+ * Не «АУФ»? Тогда нет наклеек, волка, луны и званий: действует «Обычный» или «Минималистичный».
+ * Чем они различаются между собой, решает `useSoft`.
+ */
+export const usePlain = (): boolean => useThemeStore((s) => s.design !== 'auf');
+
+/** «Обычный» (монолит): карточки с мягкой тенью, цвет сферы в отметках и плитках. */
+export const useSoft = (): boolean => useThemeStore((s) => s.design === 'normal');

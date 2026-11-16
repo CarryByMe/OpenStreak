@@ -4,10 +4,10 @@
  */
 import React from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../theme/metrics';
 import type { Palette } from '../theme/palette';
-import { hardShadow, tilt as tiltStyle, type ShadowSize } from '../theme/sticker';
+import { hardShadow, softShadow, tilt as tiltStyle, type ShadowSize } from '../theme/sticker';
 import { TYPE } from '../theme/type';
 import { Wolf, type WolfMood } from './icons';
 import { designStyles } from '../theme/design';
@@ -47,8 +47,24 @@ export function Card({
 }: CardProps) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
+  if (soft) {
+    // «Обычный» (монолит): карточка с мягкой тенью, без рамки. Цветной блок — заливкой.
+    return (
+      <View
+        style={[
+          { backgroundColor: p[tone], borderRadius: radius },
+          softShadow(p),
+          padded && styles.padded,
+          style,
+        ]}
+      >
+        {children}
+      </View>
+    );
+  }
   if (plain) {
-    // «Обычный»: рамок вокруг блоков нет — иначе внутри них кнопки и поля выглядят как коробка
+    // «Минималистичный»: рамок вокруг блоков нет — иначе внутри них кнопки и поля выглядят как коробка
     // в коробке. Блок отделяется линией сверху; цветной блок (tag, red…) — заливкой без рамки.
     return (
       <View
@@ -121,8 +137,39 @@ export function Tag({
 }: TagProps) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
+  if (soft && font === 'label') {
+    // «Обычный» (монолит): подпись раздела прописными, число — в округлой метке.
+    return (
+      <View
+        accessibilityRole={header ? 'header' : undefined}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: SPACE.sm }}
+      >
+        <Text
+          style={[
+            TYPE.label,
+            { color: alert ? p.red : p.muted, textTransform: 'uppercase', letterSpacing: 0.7 },
+          ]}
+        >
+          {label}
+        </Text>
+        {count !== undefined && (
+          <View
+            style={{
+              backgroundColor: p.tag,
+              borderRadius: RADIUS.pill,
+              paddingHorizontal: 9,
+              paddingVertical: 1,
+            }}
+          >
+            <Text style={[TYPE.mark, { color: alert ? p.red : p.muted }]}>{count}</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
   if (plain) {
-    // «Обычный»: плашки нет — подпись раздела или даты обычным текстом.
+    // «Минималистичный»: плашки нет — подпись раздела или даты обычным текстом.
     const text = count !== undefined ? `${label} · ${count}` : label;
     return (
       <Text

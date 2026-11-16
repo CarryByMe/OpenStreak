@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
-import { live, type DesignChoice } from '../../core/model';
+import { live } from '../../core/model';
 import { settingsOf } from '../../core/settings';
 import { replaceAll, useDataStore } from '../../core/store';
 import { exportData, importData } from '../../services/exportImport';
@@ -66,7 +66,7 @@ export function SettingsScreen({
   const scheme = useThemeStore((st) => st.scheme);
   const toast = useToast((st) => st.show);
   const [picker, setPicker] = useState(false);
-  const plain = s.design === 'plain';
+  const plain = s.design !== 'auf';
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [importArmed, setImportArmed] = useState(false);
 
@@ -127,7 +127,7 @@ export function SettingsScreen({
               onPress={() => setOpenRow((cur) => (cur === 'design' ? null : 'design'))}
             >
               <View style={styles.chipRow} accessibilityRole="radiogroup">
-                {(['plain', 'auf'] as const).map((d) => (
+                {(['normal', 'minimal', 'auf'] as const).map((d) => (
                   <Chip
                     key={d}
                     size="md"
@@ -166,21 +166,24 @@ export function SettingsScreen({
         <>
           <View style={styles.group}>
             <SectionTitle title={t('settings.design')} tone="sun" tilt={TILT.slightLeft} />
-            <Segmented<DesignChoice>
-              label={t('settings.design')}
-              value={s.design}
-              onChange={(design) => A.updateSettings({ design })}
-              items={[
-                { value: 'plain', label: t('design.plain') },
-                { value: 'auf', label: t('design.auf') },
-              ]}
-            />
+            <View style={styles.chipRow} accessibilityRole="radiogroup">
+              {(['normal', 'minimal', 'auf'] as const).map((d) => (
+                <Chip
+                  key={d}
+                  size="md"
+                  role="radio"
+                  label={t(`design.${d}`)}
+                  selected={s.design === d}
+                  onPress={() => A.updateSettings({ design: d })}
+                />
+              ))}
+            </View>
             <Text style={[TYPE.meta, { color: p.muted }]}>{t('settings.designHint')}</Text>
           </View>
 
           <View style={styles.group}>
             <SectionTitle title={t('settings.theme')} tone="sun" tilt={TILT.slightLeft} />
-            {s.design === 'plain' ? (
+            {plain ? (
               <Segmented<ThemeMode>
                 label={t('settings.theme')}
                 value={s.theme}

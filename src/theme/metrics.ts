@@ -1,16 +1,20 @@
 /**
  * Метрики. «АУФ» (design/mult): наклейки с обводкой и жёсткой тенью, мягкие скругления,
- * наклон — только у украшений (плашки, бейджи). «Обычный» (design/serious): тонкие линии,
- * скругление 8, без тени и наклона. Зоны нажатия не меньше 44 в обоих.
+ * наклон — только у украшений (плашки, бейджи). «Минималистичный» (design/serious): тонкие
+ * линии, скругление 12, без тени и наклона. «Обычный» (монолит): крупные скругления и мягкая
+ * тень карточек (`softShadow`), обводки нет. Зоны нажатия не меньше 44 везде.
  *
  * STROKE, RADIUS, SHADOW и TILT — «живые» объекты: значение берётся для текущего оформления
  * в момент чтения, поэтому их можно использовать как раньше.
  */
 import { currentDesign } from './design';
 
-function live<T extends object>(auf: T, plain: T): T {
+function live<T extends object>(auf: T, minimal: T, normal: T = minimal): T {
   return new Proxy(auf, {
-    get: (_t, key) => (currentDesign() === 'auf' ? auf : plain)[key as keyof T],
+    get: (_t, key) => {
+      const d = currentDesign();
+      return (d === 'auf' ? auf : d === 'normal' ? normal : minimal)[key as keyof T];
+    },
   });
 }
 
@@ -21,6 +25,7 @@ export const STROKE = live(
     /** обводка чипов и мелких плашек, пунктир между строками */
     thin: 2,
   },
+  { outline: 1.5, thin: 1 },
   { outline: 1.5, thin: 1 }
 );
 
@@ -41,7 +46,8 @@ export const RADIUS = live(
     /** чипы, сегменты, кнопки-кружки */
     pill: 999,
   },
-  { tag: 4, sm: 10, md: 12, lg: 12, xl: 12, sheet: 20, pill: 10 }
+  { tag: 4, sm: 10, md: 12, lg: 12, xl: 12, sheet: 20, pill: 10 },
+  { tag: 8, sm: 12, md: 14, lg: 18, xl: 20, sheet: 26, pill: 999 }
 );
 
 /** Сдвиг жёсткой тени (без размытия) по x и y. */

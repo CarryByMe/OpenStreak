@@ -21,7 +21,7 @@ import { checkId, type Snapshot } from '../../core/model';
 import { settingsOf } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { useT } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SHADOW, SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton } from '../../ui/Button';
@@ -53,6 +53,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
   const today = useDataStore((s) => s.today);
   const show = useNewSheet((s) => s.show);
   const plain = usePlain();
+  const soft = useSoft();
   const [filter, setFilter] = useState<Filter>('all');
   const { weekStart } = settingsOf(data);
 
@@ -118,7 +119,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
         </View>
       )}
 
-      {plain && (
+      {plain && !soft && (
         <View>
           {shown.map(({ habit: h, stats, week, value, slippedYesterday }) => {
             const full = fullValue(h);
@@ -169,6 +170,58 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
           })}
         </View>
       )}
+
+      {soft &&
+        shown.map(({ habit: h, stats, week, value, slippedYesterday }) => {
+          const full = fullValue(h);
+          const done = h.kind === 'bad' ? !slippedToday(data, h.id, today) : value >= full;
+          return (
+            <Card key={h.id} padded style={styles.card}>
+              <View style={styles.head}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={h.name}
+                  onPress={() => onOpen(h.id)}
+                  style={[styles.head, styles.titles]}
+                >
+                  <IconTile icon={h.icon} size={40} color={h.color} />
+                  <View style={styles.titles}>
+                    <Text style={[TYPE.itemStrong, { color: p.text }]}>{h.name}</Text>
+                    <Text style={[TYPE.meta, { color: p.muted }]}>
+                      {habitMeta(t, h, value, weekStart)}
+                    </Text>
+                  </View>
+                  <View style={styles.plainStreak}>
+                    <Text style={[TYPE.numberL, { color: p.text }]}>{stats.streak}</Text>
+                    <Text style={[TYPE.tiny, { color: p.muted }]}>
+                      {streakLabel(t, h, stats.streak)}
+                    </Text>
+                  </View>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: done }}
+                  accessibilityLabel={t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })}
+                  disabled={h.kind === 'bad'}
+                  onPress={() => A.setCheckValue(h.id, today, done ? 0 : full)}
+                  style={styles.softMark}
+                >
+                  <PlainMark
+                    shape="circle"
+                    size={28}
+                    fill={done ? 1 : Math.min(1, value / full)}
+                    debt={h.kind === 'bad' && !done}
+                    tint={h.color}
+                  />
+                </Pressable>
+              </View>
+              <WeekMoons days={week} tint={h.color} />
+              {slippedYesterday && (
+                <Text style={[TYPE.meta, { color: p.red }]}>{t('habits.slipNote')}</Text>
+              )}
+            </Card>
+          );
+        })}
 
       {!plain &&
         shown.map(({ habit: h, stats, week, value, slippedYesterday }, i) => (
@@ -243,5 +296,6 @@ const styles = designStyles(() =>
     plainBody: { flex: 1, gap: 10, paddingTop: 2 },
     plainHead: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md },
     plainStreak: { alignItems: 'flex-end', paddingTop: 2 },
+    softMark: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   })
 );

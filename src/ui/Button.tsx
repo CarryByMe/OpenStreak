@@ -5,9 +5,9 @@
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, SHADOW, SIZE, SPACE, STROKE } from '../theme/metrics';
-import { hardShadow, type ShadowSize } from '../theme/sticker';
+import { hardShadow, softShadow, withAlpha, type ShadowSize } from '../theme/sticker';
 import { TYPE } from '../theme/type';
 import { Icon, type UiIconName } from './icons';
 import { designStyles } from '../theme/design';
@@ -29,11 +29,20 @@ type ButtonProps = {
 export function Button({ label, onPress, variant = 'primary', disabled, style }: ButtonProps) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   const primary = variant === 'primary';
   const danger = variant === 'danger';
   const bg = primary ? (disabled ? p.track : p.sun) : p.surface;
   const fg = primary ? (disabled ? p.muted : p.onSun) : danger ? p.red : p.text;
   const shadow = primary ? 'lg' : 'sm';
+  // «Обычный»: главная кнопка с цветной тенью, остальные — белые карточки с мягкой тенью.
+  const softStyle: ViewStyle | null = soft
+    ? primary
+      ? disabled
+        ? {}
+        : { boxShadow: `0px 8px 18px 0px ${withAlpha(p.sun, 0.3)}` }
+      : softShadow(p)
+    : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -49,7 +58,9 @@ export function Button({ label, onPress, variant = 'primary', disabled, style }:
           borderWidth: plain ? 0 : STROKE.outline,
           borderRadius: primary && !plain ? 18 : RADIUS.md,
         },
-        !danger && !disabled && (down ? pressed(shadow) : hardShadow(p, shadow)),
+        !danger && !disabled && !soft && (down ? pressed(shadow) : hardShadow(p, shadow)),
+        softStyle,
+        soft && down && { transform: [{ scale: 0.98 }] },
         style,
       ]}
     >
@@ -80,6 +91,7 @@ export function IconButton({
 }: IconButtonProps) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   if (variant === 'bare') {
     return (
       <Pressable
@@ -106,7 +118,9 @@ export function IconButton({
         styles.round,
         { backgroundColor: sun ? p.sun : p[on], borderColor: p.line },
         plain && !sun && { borderWidth: 0, backgroundColor: p.surface },
-        down ? pressed('sm') : on === 'surface' && hardShadow(p, 'sm'),
+        soft && { borderWidth: 0 },
+        soft && (sun ? { boxShadow: `0px 8px 18px 0px ${withAlpha(p.sun, 0.3)}` } : softShadow(p)),
+        !soft && (down ? pressed('sm') : on === 'surface' && hardShadow(p, 'sm')),
       ]}
     >
       <Icon name={icon} size={20} tone={sun ? 'onSun' : tone} />
@@ -118,6 +132,31 @@ export function IconButton({
 export function AddRow({ label, onPress }: { label: string; onPress?: () => void }) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
+  if (soft) {
+    // «Обычный» (монолит): пунктирная рамка, плюс и подпись по центру.
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed: down }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          minHeight: 54,
+          borderWidth: 2,
+          borderStyle: 'dashed',
+          borderColor: p.line,
+          borderRadius: RADIUS.md,
+          backgroundColor: down ? p.tag : 'transparent',
+        })}
+      >
+        <Icon name="plus" size={20} tone="muted" />
+        <Text style={[TYPE.control, { color: p.muted }]}>{label}</Text>
+      </Pressable>
+    );
+  }
   if (plain) {
     // «Обычный»: строка списка с плюсом, без рамки.
     return (
@@ -173,6 +212,33 @@ export function LinkRow({
 }) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
+  if (soft) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        onPress={onPress}
+        style={({ pressed: down }) => [
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            minHeight: 60,
+            paddingHorizontal: SPACE.lg,
+            borderRadius: RADIUS.lg,
+            backgroundColor: down ? p.tag : p.surface,
+          },
+          softShadow(p),
+        ]}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={[TYPE.itemStrong, { color: p.text }]}>{title}</Text>
+          {!!sub && <Text style={[TYPE.meta, { color: p.muted }]}>{sub}</Text>}
+        </View>
+        <Icon name="arrow" size={20} tone="text" />
+      </Pressable>
+    );
+  }
   if (plain) {
     return (
       <Pressable

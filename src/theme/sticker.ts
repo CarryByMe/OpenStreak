@@ -15,6 +15,19 @@ export function hardShadow(p: Palette, size: ShadowSize = 'lg'): ViewStyle {
   return { boxShadow: `${o}px ${o}px 0px 0px ${p.shadow}` };
 }
 
+/** `#RRGGBB` + прозрачность → `rgba(...)`. */
+export function withAlpha(hex: string, alpha: number): string {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Мягкая тень карточек «Обычного» (монолит): большое размытие, низкая плотность. */
+export function softShadow(p: Palette, strong = false): ViewStyle {
+  return {
+    boxShadow: `0px ${strong ? 12 : 8}px ${strong ? 30 : 24}px 0px ${withAlpha(p.shadow, strong ? 0.16 : 0.1)}`,
+  };
+}
+
 /** Обводка и (по желанию) тень наклейки. */
 export function sticker(
   p: Palette,

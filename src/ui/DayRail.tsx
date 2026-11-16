@@ -4,12 +4,13 @@
  */
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { usePalette } from '../store/themeStore';
+import { usePalette, useSoft } from '../store/themeStore';
 
 export type RailState = 'done' | 'open' | 'debt';
 
 export function DayRail({ items, label }: { items: RailState[]; label: string }) {
   const p = usePalette();
+  const soft = useSoft();
   return (
     <View accessible accessibilityRole="progressbar" accessibilityLabel={label} style={styles.row}>
       {items.map((state, i) => (
@@ -19,7 +20,15 @@ export function DayRail({ items, label }: { items: RailState[]; label: string })
             styles.seg,
             state === 'done'
               ? { backgroundColor: p.sun }
-              : { borderWidth: 1.5, borderColor: state === 'debt' ? p.red : p.text },
+              : soft
+                ? {
+                    backgroundColor: p.track,
+                    borderRadius: 4,
+                    borderWidth: state === 'debt' ? 1.5 : 0,
+                    borderColor: p.red,
+                  }
+                : { borderWidth: 1.5, borderColor: state === 'debt' ? p.red : p.text },
+            soft && state === 'done' && { borderRadius: 4 },
           ]}
         />
       ))}

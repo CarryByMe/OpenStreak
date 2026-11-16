@@ -260,9 +260,11 @@ export const ru = {
   'settings.general': 'Общие',
   'settings.view': 'Вид',
   'settings.design': 'Оформление',
-  'design.plain': 'Обычный',
+  'design.normal': 'Обычный',
+  'design.minimal': 'Минималистичный',
   'design.auf': 'АУФ',
-  'settings.designHint': '«Обычный» — строгий вид. «АУФ» — с волком, цитатами и званиями.',
+  'settings.designHint':
+    '«Обычный» — привычный вид. «Минималистичный» — строгий, один акцент. «АУФ» — с волком, цитатами и званиями.',
   'settings.character': 'Характер',
   'settings.tone': 'Пацанский тон',
   'settings.toneHint': 'выкл — обычные формулировки',

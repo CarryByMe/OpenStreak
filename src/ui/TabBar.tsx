@@ -5,7 +5,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePalette, usePlain } from '../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { SIZE, SPACE, STROKE } from '../theme/metrics';
 import { hardShadow } from '../theme/sticker';
 import { TYPE } from '../theme/type';
@@ -28,9 +28,63 @@ type Props<K extends string> = {
 export function TabBar<K extends string>({ items, active, onSelect, label }: Props<K>) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
   const insets = useSafeAreaInsets();
+  if (soft) {
+    // «Обычный» (монолит): белая панель с линией сверху; активная вкладка — значок в мягкой пилюле.
+    return (
+      <View
+        accessibilityRole="tablist"
+        accessibilityLabel={label}
+        style={{
+          flexDirection: 'row',
+          backgroundColor: p.surface,
+          borderTopWidth: 1,
+          borderTopColor: p.divider,
+          paddingBottom: insets.bottom + 4,
+          paddingHorizontal: 4,
+        }}
+      >
+        {items.map((it) => {
+          const on = it.key === active;
+          return (
+            <Pressable
+              key={it.key}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: on }}
+              onPress={() => onSelect(it.key)}
+              style={{ flex: 1, alignItems: 'center', gap: 3, paddingTop: 6, paddingBottom: 4 }}
+            >
+              <View
+                style={{
+                  width: 46,
+                  height: 28,
+                  borderRadius: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: on ? p.tag : 'transparent',
+                }}
+              >
+                <Icon name={it.icon} size={22} tone="muted" color={on ? p.sun : undefined} />
+              </View>
+              <Text
+                style={[
+                  TYPE.tab,
+                  on && { fontFamily: TYPE.label.fontFamily },
+                  { color: on ? p.sun : p.muted },
+                ]}
+                numberOfLines={1}
+              >
+                {it.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }
   if (plain) {
-    // «Обычный»: плоская панель с линией сверху; активная вкладка — полоска над значком.
+    // «Минималистичный»: плоская панель с линией сверху; активная вкладка — полоска над значком.
     return (
       <View
         accessibilityRole="tablist"

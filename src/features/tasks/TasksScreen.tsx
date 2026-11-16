@@ -65,6 +65,7 @@ export function TasksScreen() {
     [data.areas]
   );
   const areaName = useMemo(() => new Map(areas.map((a) => [a.id, a.name])), [areas]);
+  const areaColor = useMemo(() => new Map(areas.map((a) => [a.id, a.color])), [areas]);
   const perArea = useMemo(() => openTasksByArea(data), [data]);
   const counts = taskCounts(data, today);
 
@@ -192,6 +193,7 @@ export function TasksScreen() {
                         phase={task.doneOn ? 1 : 0}
                         done={task.doneOn !== null}
                         debt={g.key === 'debts'}
+                        tint={task.areaId ? areaColor.get(task.areaId) : undefined}
                         onToggle={guard(() => {
                           if (!task.doneOn) vibrateImpact();
                           A.toggleTask(task.id);

@@ -250,6 +250,7 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
         sub={sub}
         phase={0}
         debt={item.debt}
+        tint={task.areaId ? data.areas[task.areaId]?.color : undefined}
         right={right}
         last={last}
         onToggle={() => {
@@ -288,6 +289,7 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
       sub={sub}
       phase={item.fraction}
       shape="square"
+      tint={habit.color}
       last={last}
       right={meta ? <Text style={[TYPE.badge, { color: p.text }]}>{meta}</Text> : null}
       onToggle={() => {

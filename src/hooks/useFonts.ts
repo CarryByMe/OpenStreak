@@ -19,8 +19,29 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 
+import {
+  useFonts as useManrope,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+} from '@expo-google-fonts/manrope';
+import {
+  useFonts as useGolos,
+  GolosText_400Regular,
+  GolosText_500Medium,
+  GolosText_600SemiBold,
+  GolosText_700Bold,
+} from '@expo-google-fonts/golos-text';
+
 export function useAppFonts() {
-  // «Обычный»: Inter — всё.
+  // «Обычный»: Manrope — заголовки и числа, Golos Text — текст.
+  const [mLoaded] = useManrope({ Manrope_700Bold, Manrope_800ExtraBold });
+  const [gLoaded] = useGolos({
+    GolosText_400Regular,
+    GolosText_500Medium,
+    GolosText_600SemiBold,
+    GolosText_700Bold,
+  });
+  // «Минималистичный»: Inter — всё.
   const [iLoaded] = useInter({
     Inter_400Regular,
     Inter_500Medium,
@@ -39,5 +60,5 @@ export function useAppFonts() {
     Unbounded_700Bold,
     Unbounded_800ExtraBold,
   });
-  return rLoaded && uLoaded && iLoaded;
+  return rLoaded && uLoaded && iLoaded && mLoaded && gLoaded;
 }

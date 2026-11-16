@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { usePalette } from '../store/themeStore';
+import { useDesign, usePalette } from '../store/themeStore';
 import { SPACE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
 import { Icon, type UiIconName } from './icons';
@@ -25,8 +25,15 @@ type Props = {
 
 export function FormRow({ icon, label, value, set = false, open, onPress, children }: Props) {
   const p = usePalette();
+  const design = useDesign();
   return (
-    <View style={[styles.wrap, { borderBottomColor: p.divider }]}>
+    <View
+      style={[
+        styles.wrap,
+        { borderBottomColor: p.divider },
+        design !== 'minimal' && { paddingHorizontal: SPACE.lg },
+      ]}
+    >
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
@@ -36,7 +43,14 @@ export function FormRow({ icon, label, value, set = false, open, onPress, childr
       >
         {icon && <Icon name={icon} size={22} tone="muted" />}
         <Text style={[TYPE.item, styles.label, { color: p.text }]}>{label}</Text>
-        <Text numberOfLines={1} style={[TYPE.row, styles.value, { color: set ? p.sun : p.muted }]}>
+        <Text
+          numberOfLines={1}
+          style={[
+            TYPE.row,
+            styles.value,
+            { color: set ? (design === 'normal' ? p.sun : p.teal) : p.muted },
+          ]}
+        >
           {value}
         </Text>
         <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>

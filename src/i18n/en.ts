@@ -234,9 +234,11 @@ export const en: Record<MessageKey, Message> = {
   'settings.general': 'General',
   'settings.view': 'Look',
   'settings.design': 'Look',
-  'design.plain': 'Plain',
+  'design.normal': 'Normal',
+  'design.minimal': 'Minimal',
   'design.auf': 'AUF',
-  'settings.designHint': '“Plain” is the strict look. “AUF” has the wolf, quotes and ranks.',
+  'settings.designHint':
+    '“Normal” is the familiar look. “Minimal” is strict, with one accent. “AUF” has the wolf, quotes and ranks.',
   'settings.character': 'Character',
   'settings.tone': 'Street talk',
   'settings.toneHint': 'off — plain wording',

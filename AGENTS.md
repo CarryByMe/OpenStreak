@@ -23,7 +23,11 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   ≥ 3 for large text and for icons, moons and other non-text marks) in **both** themes (День and Вечерний мульт). Colours live in
   `src/theme/palettes.json`; add any new pair to `checks` there and run `npm run check:contrast`.
   No `opacity` on elements that carry text — use a solid colour token instead.
-- **Design is «Мульт»** (`design/mult`, rules in `ROADMAP.md` → «Принятые решения»): stickers with a
+- **Three designs, one icon set.** `Design` = `normal` (monolith look: soft cards, blue accent, area/habit
+  colour), `minimal` (strict lines, one accent; was `plain`) and `auf` («Мульт»). Icons come only from
+  `ui/icons/paths.ts` in all three. `usePlain()` = not `auf`; `useSoft()` = `normal`. Wolf, quotes and
+  ranks exist only in `auf`. Stored `design: 'plain'` is read as `minimal` (`core/settings.ts#designOf`).
+- **Design `auf` is «Мульт»** (`design/mult`, rules in `ROADMAP.md` → «Принятые решения»): stickers with a
   2.5 outline and a hard shadow (`theme/sticker.ts`), tilt only on decorations (tags, badges), colour
   with meaning (sun — moon and main action, teal — done/on, red — only slips and debts). Screens use
   only `src/ui` components, tokens from `src/theme` and string keys from `src/i18n`.
