@@ -34,6 +34,19 @@ function mix(hex: string, to: 0 | 255, amount: number): string {
   return `#${part(1)}${part(3)}${part(5)}`.toUpperCase();
 }
 
+/** Смешать два `#RRGGBB`: `amount` 0…1 — доля `to`. Для декоративных оттенков (не для текста). */
+export function mixWith(hex: string, to: string, amount: number): string {
+  if (!HEX.test(hex) || !HEX.test(to)) return hex;
+  const part = (i: number) => {
+    const a = parseInt(hex.slice(i, i + 2), 16);
+    const b = parseInt(to.slice(i, i + 2), 16);
+    return Math.round(a + (b - a) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${part(1)}${part(3)}${part(5)}`.toUpperCase();
+}
+
 /**
  * Цвет сферы или привычки для отметки (рамка, заливка, точка): если он слишком бледный на фоне
  * экрана или карточки, затемняем (на тёмной теме — осветляем), пока контраст не станет не ниже
@@ -50,17 +63,4 @@ export function ensureContrast(color: string, backgrounds: string[], min = 3): s
     if (ok(next)) return next;
   }
   return light ? '#000000' : '#FFFFFF';
-}
-
-/** Смешать `#RRGGBB` с фоном: `amount` — доля цвета (0…1). Не hex — вернём цвет как есть. */
-export function blend(color: string, bg: string, amount: number): string {
-  if (!HEX.test(color) || !HEX.test(bg)) return color;
-  const part = (i: number) => {
-    const c = parseInt(color.slice(i, i + 2), 16);
-    const b = parseInt(bg.slice(i, i + 2), 16);
-    return Math.round(b + (c - b) * amount)
-      .toString(16)
-      .padStart(2, '0');
-  };
-  return `#${part(1)}${part(3)}${part(5)}`.toUpperCase();
 }

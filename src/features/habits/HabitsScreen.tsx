@@ -17,7 +17,6 @@ import {
   habitDays,
   habitStats,
   indexHabits,
-  isResting,
 } from '../../core/habits';
 import { checkId, live, type Snapshot } from '../../core/model';
 import { settingsOf } from '../../core/settings';
@@ -31,7 +30,6 @@ import { Chip } from '../../ui/Chip';
 import { HabitGlyph, IconTile } from '../../ui/icons';
 import { ScreenHeader } from '../../ui/ScreenHeader';
 import { Segmented } from '../../ui/Segmented';
-import { HabitDoButton, RestButton } from '../../ui/HabitDo';
 import { PlainMark } from '../../ui/PlainMark';
 import { Badge, Card, Tag } from '../../ui/Sticker';
 import { WeekMoons } from '../../ui/WeekMoons';
@@ -72,8 +70,6 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
         stats: habitStats(h, hd, today),
         week: moonDays(habitDays(h, hd, addDays(today, -6), today, today), h, today),
         value: data.checks[checkId(h.id, today)]?.value ?? 0,
-        resting: isResting(hd, today),
-        off: habitDay(h, hd, today, today).mark === 'off',
         slippedYesterday: h.kind === 'good' && habitDay(h, hd, yesterday, today).mark === 'slip',
       };
     });
@@ -211,12 +207,9 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
       )}
 
       {soft &&
-        shown.map(({ habit: h, stats, week, value, resting, off, slippedYesterday }) => {
+        shown.map(({ habit: h, stats, week, value, slippedYesterday }) => {
           const full = fullValue(h);
-          const bad = h.kind === 'bad';
-          const tint = habitColor(h, data.areas);
-          const done = bad ? slippedToday(data, h.id, today) : value >= full;
-          const numeric = !bad && h.measure === 'numeric';
+          const done = h.kind === 'bad' ? !slippedToday(data, h.id, today) : value >= full;
           return (
             <Card key={h.id} padded style={styles.card}>
               <View style={styles.head}>
@@ -226,40 +219,42 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                   onPress={() => onOpen(h.id)}
                   style={[styles.head, styles.titles]}
                 >
-                  <IconTile icon={h.icon} size={40} color={tint} />
+                  <IconTile icon={h.icon} size={40} color={habitColor(h, data.areas)} />
                   <View style={styles.titles}>
                     <Text style={[TYPE.itemStrong, { color: p.text }]}>{h.name}</Text>
                     <Text style={[TYPE.meta, { color: p.muted }]}>
                       {habitMeta(t, h, value, weekStart)}
                     </Text>
+                  </View>
+                  <View style={styles.plainStreak}>
+                    <Text style={[TYPE.numberL, { color: p.text }]}>{stats.streak}</Text>
                     <Text style={[TYPE.tiny, { color: p.muted }]}>
-                      {stats.streak} {streakLabel(t, h, stats.streak)}
+                      {streakLabel(t, h, stats.streak)}
                     </Text>
                   </View>
                 </Pressable>
-                <RestButton
-                  tint={tint}
-                  on={resting}
-                  label={t(resting ? 'habit.restOff' : 'habit.rest')}
-                  onPress={() => A.toggleRestDay(h.id, today)}
-                />
-                <HabitDoButton
-                  tint={tint}
-                  on={done}
-                  bad={bad}
-                  resting={resting || off}
-                  progress={numeric ? `${Math.min(value, full)}/${full}` : undefined}
-                  label={
-                    bad
-                      ? t(done ? 'habit.slipOff' : 'habit.slip')
-                      : t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })
-                  }
-                  onPress={() =>
-                    bad ? A.toggleCheck(h.id, today) : A.setCheckValue(h.id, today, done ? 0 : full)
-                  }
-                />
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: done }}
+                  accessibilityLabel={t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })}
+                  disabled={h.kind === 'bad'}
+                  onPress={() => A.setCheckValue(h.id, today, done ? 0 : full)}
+                  style={styles.softMark}
+                >
+                  <PlainMark
+                    habit
+                    fill={done ? 1 : Math.min(1, value / full)}
+                    debt={h.kind === 'bad' && !done}
+                    tint={habitColor(h, data.areas)}
+                    label={
+                      h.measure === 'numeric'
+                        ? t('row.numeric', { value, target: h.target })
+                        : undefined
+                    }
+                  />
+                </Pressable>
               </View>
-              <WeekMoons days={week} tint={tint} />
+              <WeekMoons days={week} tint={habitColor(h, data.areas)} />
               {slippedYesterday && (
                 <Text style={[TYPE.meta, { color: p.red }]}>{t('habits.slipNote')}</Text>
               )}
@@ -341,5 +336,6 @@ const styles = designStyles(() =>
     plainBody: { flex: 1, gap: 10, paddingTop: 2 },
     plainHead: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md },
     plainStreak: { alignItems: 'flex-end', paddingTop: 2 },
+    softMark: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   })
 );

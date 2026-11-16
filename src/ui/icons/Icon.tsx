@@ -1,12 +1,12 @@
 import React from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { useDesign, usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { RADIUS, STROKE } from '../../theme/metrics';
 import type { Design, Palette } from '../../theme/palette';
 import { readableOn } from '../../theme/readable';
 import { useTint } from '../useTint';
-import { HABIT_ICONS, PALM, UI_ICONS, type IconSpec, type UiIconName } from './paths';
+import { HABIT_ICONS, UI_ICONS, type IconSpec, type UiIconName } from './paths';
 
 /** Цвет иконки: на фоне экрана или поверх цветной подложки (`on*`). */
 export type IconTone = 'text' | 'muted' | 'red' | 'teal' | 'onSun' | 'onTeal' | 'onToast';
@@ -165,22 +165,5 @@ export function IconTile({
     >
       <HabitGlyph icon={icon} size={Math.round(size * 0.55)} tone={tile.tone} />
     </View>
-  );
-}
-
-/** Пальма — выходной (рисунок из монолита). Цвета — токены `palm*`, одинаковы во всех оформлениях. */
-export function Palm({ size = 24 }: { size?: number }) {
-  const p = usePalette();
-  return (
-    <Svg width={size} height={size} viewBox={`0 0 ${PALM.viewBox} ${PALM.viewBox}`}>
-      <Ellipse {...PALM.sand} fill={p.palmSand} />
-      <Path d={PALM.trunk} stroke={p.palmTrunk} strokeWidth={4} fill="none" strokeLinecap="round" />
-      <G stroke={p.palmLeaf} strokeWidth={4} fill="none" strokeLinecap="round">
-        {PALM.leaves.map((d) => (
-          <Path key={d} d={d} />
-        ))}
-      </G>
-      <Circle {...PALM.nut} fill={p.palmNut} />
-    </Svg>
   );
 }

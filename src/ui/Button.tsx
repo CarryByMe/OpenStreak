@@ -129,26 +129,27 @@ export function AddRow({ label, onPress }: { label: string; onPress?: () => void
   const plain = usePlain();
   const soft = useSoft();
   if (soft) {
-    // «Обычный» (монолит): пунктирная рамка, плюс и подпись по центру.
+    // «Обычный» (монолит): карточка-поле с синим плюсом и подписью-подсказкой слева.
     return (
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={label}
         onPress={onPress}
-        style={({ pressed: down }) => ({
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          minHeight: 54,
-          borderWidth: 2,
-          borderStyle: 'dashed',
-          borderColor: p.line,
-          borderRadius: RADIUS.md,
-          backgroundColor: down ? p.tag : 'transparent',
-        })}
+        style={({ pressed: down }) => [
+          {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            minHeight: 50,
+            paddingHorizontal: 14,
+            borderRadius: 15,
+            backgroundColor: down ? p.tag : p.surface,
+          },
+          softShadow(p),
+        ]}
       >
-        <Icon name="plus" size={20} tone="muted" />
-        <Text style={[TYPE.control, { color: p.muted }]}>{label}</Text>
+        <Icon name="plus" size={20} color={p.sun} />
+        <Text style={[TYPE.body, { color: p.muted }]}>{label}</Text>
       </Pressable>
     );
   }

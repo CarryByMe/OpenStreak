@@ -1,6 +1,7 @@
 /**
  * Карточка «Итоги дня» вверху «Сегодня» (как «Вечерний обзор» в монолите): оценка дня или
  * подсказка, кнопка «Заполнить / Изменить» ведёт к итогам дня, сама карточка — к истории.
+ * Кнопка — соседка ссылки, а не вложена в неё: на web <button> внутри <button> недопустим.
  * Для «Обычного» и «Минималистичного»; в «АУФ» остаётся ссылка внизу экрана.
  */
 import React from 'react';
@@ -34,7 +35,7 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
           accessibilityRole="button"
           accessibilityLabel={`${t('review.link')}. ${t('review.history')}`}
           onPress={onOpenHistory}
-          style={styles.history}
+          style={styles.main}
         >
           <View style={styles.mark}>
             {review ? (
@@ -68,7 +69,7 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.md },
-  history: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
+  main: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   mark: { width: 44, alignItems: 'center' },
   empty: {
     width: 40,

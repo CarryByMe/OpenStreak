@@ -1,14 +1,22 @@
 /**
- * Отметка в «Обычном» оформлении: круг — дело, квадрат — привычка. Пустая — рамка,
- * сделанная — заливка с галочкой, числовая привычка в процессе — частичная заливка снизу.
- * Красная рамка — долг. Цвета: рамка и заливка — `line`, красный — только долг.
+ * Отметка дела или привычки. «Минималистичный»: круг — дело, квадрат — привычка; пустая — рамка,
+ * сделанная — заливка с галочкой, числовая в процессе — частичная заливка снизу, красная рамка — долг.
+ *
+ * «Обычный» — как в монолите, цветом сферы или привычки (`tint`):
+ * - дело — круг 23 с рамкой 2, сделано — заливка и белая (читаемая) жирная галочка;
+ * - привычка (`habit`) — большая круглая кнопка 46 с рамкой 2.5 и бледной галочкой внутри,
+ *   сделано — заливка и яркая галочка; у числовой вместо галочки — «3/5» (`label`).
+ * Бледная галочка — подсказка, а не носитель смысла: смысл несёт рамка (контраст ≥ 3).
  */
-import React from 'react';
-import { View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Text, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { usePalette, useSoft } from '../store/themeStore';
-import { readableOn } from '../theme/readable';
+import { TYPE } from '../theme/type';
+import { ensureContrast, mixWith, readableOn } from '../theme/readable';
 import { useTint } from './useTint';
 import { Icon } from './icons';
+import { UI_ICONS } from './icons/paths';
 
 type Props = {
   shape?: 'circle' | 'square';
@@ -18,15 +26,131 @@ type Props = {
   debt?: boolean;
   /** цвет сферы или привычки — только в «Обычном» (монолит): рамка и заливка берут его */
   tint?: string;
+  /** «Обычный»: отметка привычки — большая круглая кнопка с галочкой */
+  habit?: boolean;
+  /** «Обычный», привычка: текст вместо галочки (числовая — «3/5») */
+  label?: string;
 };
 
-export function PlainMark({ shape = 'circle', fill, size = 24, debt = false, tint }: Props) {
-  const p = usePalette();
+/** Галочка из общего набора, но с жирной линией, как в монолите. */
+function Check({ size, color, width }: { size: number; color: string; width: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d={UI_ICONS.check.d}
+        fill="none"
+        stroke={color}
+        strokeWidth={width}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * «Подпрыгивание» отметки привычки при выполнении (boxpop в монолите: 1 → 1,3 → 1 с отскоком).
+ * При первом показе и при снятии отметки не играет.
+ */
+function usePop(on: boolean): Animated.Value {
+  const [pop] = useState(() => new Animated.Value(1));
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    if (!on) return;
+    pop.setValue(1);
+    Animated.sequence([
+      Animated.timing(pop, {
+        toValue: 1.3,
+        duration: 200,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(pop, { toValue: 1, friction: 4, tension: 160, useNativeDriver: true }),
+    ]).start();
+  }, [on, pop]);
+  return pop;
+}
+
+export function PlainMark(props: Props) {
   const soft = useSoft();
+  return soft ? <SoftMark {...props} /> : <MinimalMark {...props} />;
+}
+
+function SoftMark({ fill, size, debt = false, tint, habit = false, label }: Props) {
+  const p = usePalette();
   const safe = useTint(tint);
-  const own = soft && !debt ? safe : undefined;
-  const ring = debt ? p.red : (own ?? (soft ? p.ring : p.text));
-  const color = debt ? p.red : (own ?? p.sun);
+  const color = debt ? p.red : (safe ?? p.sun);
+  const full = fill >= 1;
+  const pop = usePop(full && habit);
+  const side = size ?? (habit ? 46 : 23);
+  const on = readableOn(color);
+  if (!habit) {
+    return (
+      <View
+        style={{
+          width: side,
+          height: side,
+          borderRadius: side / 2,
+          borderWidth: 2,
+          borderColor: color,
+          backgroundColor: full ? color : 'transparent',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {full && <Check size={Math.round(side * 0.58)} color={on} width={3.6} />}
+      </View>
+    );
+  }
+  // Бледная галочка — сплошной цвет (смесь с карточкой), без opacity.
+  const hint = mixWith(color, p.surface, 0.7);
+  const text = full ? on : ensureContrast(color, [p.surface], 4.5);
+  return (
+    <Animated.View
+      style={{
+        transform: [{ scale: pop }],
+        width: side,
+        height: side,
+        borderRadius: side / 2,
+        borderWidth: 2.5,
+        borderColor: color,
+        backgroundColor: full ? color : 'transparent',
+        alignItems: 'center',
+        justifyContent: 'center',
+        overflow: 'hidden',
+      }}
+    >
+      {!full && fill > 0 && (
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: `${Math.round(fill * 100)}%`,
+            backgroundColor: hint,
+          }}
+        />
+      )}
+      {label ? (
+        <Text numberOfLines={1} style={[TYPE.badge, { color: text }]}>
+          {label}
+        </Text>
+      ) : (
+        <Check size={Math.round(side * 0.46)} color={full ? on : hint} width={3} />
+      )}
+    </Animated.View>
+  );
+}
+
+function MinimalMark({ shape = 'circle', fill, size = 24, debt = false }: Props) {
+  const p = usePalette();
+  const ring = debt ? p.red : p.text;
+  const color = debt ? p.red : p.sun;
   const radius = shape === 'circle' ? size / 2 : 5;
   const full = fill >= 1;
   return (
@@ -44,11 +168,7 @@ export function PlainMark({ shape = 'circle', fill, size = 24, debt = false, tin
       }}
     >
       {full ? (
-        <Icon
-          name="check"
-          size={Math.round(size * 0.6)}
-          {...(own ? { color: readableOn(own) } : { tone: 'onSun' as const })}
-        />
+        <Icon name="check" size={Math.round(size * 0.6)} tone="onSun" />
       ) : fill > 0 ? (
         <View
           style={{

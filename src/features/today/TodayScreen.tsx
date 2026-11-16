@@ -5,6 +5,7 @@
 import { habitColor } from '../../core/colors';
 import React, { useMemo } from 'react';
 import { ReviewCard } from './ReviewCard';
+import { HabitTodayRow, TaskTodayRow } from './TodayRows';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
@@ -14,11 +15,12 @@ import { closedStreak, dayNumber, dayView, isClosed, type DayItem } from '../../
 import { dataOf, fullValue, habitStats, indexHabits } from '../../core/habits';
 import { dayPoints } from '../../core/points';
 import { quoteOfDay } from '../../core/quotes';
-import { effectiveSettings } from '../../core/settings';
+import { effectiveSettings, settingsOf } from '../../core/settings';
+import type { Snapshot } from '../../core/model';
 import { useDataStore } from '../../core/store';
 import { quoteCount, type MessageKey } from '../../i18n';
 import { useT, type Translate } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { RADIUS, SIZE, SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton, LinkRow } from '../../ui/Button';
@@ -65,6 +67,7 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
   const number = dayNumber(data.profile.startedAt, today);
   const rest = day.total - day.done;
   const plain = usePlain();
+  const soft = useSoft();
   const rail: RailState[] = [
     ...Array.from({ length: day.done }, (): RailState => 'done'),
     ...day.left.map((i): RailState => (i.kind === 'task' && i.debt ? 'debt' : 'open')),
@@ -162,31 +165,44 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
         />
       )}
 
-      <AddRow label={t('common.addPrompt')} onPress={() => showNew('task')} />
+      <AddRow
+        label={t(soft ? 'today.addTask' : 'common.addPrompt')}
+        onPress={() => showNew('task')}
+      />
 
       {plain && <ReviewCard onOpenReview={onOpenReview} onOpenHistory={onOpenHistory} />}
 
-      {day.left.length > 0 && (
-        <View style={styles.section}>
-          <SectionTitle
-            title={t('today.left')}
-            count={day.left.length}
-            tone="sun"
-            tilt={TILT.left}
-          />
-          <Card padded={false}>
-            {day.left.map((item, i) => (
-              <LeftRow
-                key={`${item.kind}:${item.id}`}
-                item={item}
-                today={today}
-                view={view}
-                t={t}
-                last={i === day.left.length - 1}
-              />
-            ))}
-          </Card>
-        </View>
+      {soft ? (
+        <SoftLists
+          data={data}
+          today={today}
+          left={day.left}
+          habitsDone={day.log.some((i) => i.kind === 'habit')}
+          streakOf={view.streakOf}
+        />
+      ) : (
+        day.left.length > 0 && (
+          <View style={styles.section}>
+            <SectionTitle
+              title={t('today.left')}
+              count={day.left.length}
+              tone="sun"
+              tilt={TILT.left}
+            />
+            <Card padded={false}>
+              {day.left.map((item, i) => (
+                <LeftRow
+                  key={`${item.kind}:${item.id}`}
+                  item={item}
+                  today={today}
+                  view={view}
+                  t={t}
+                  last={i === day.left.length - 1}
+                />
+              ))}
+            </Card>
+          </View>
+        )
       )}
 
       {day.log.length > 0 && (
@@ -221,6 +237,83 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
         />
       )}
     </ScrollView>
+  );
+}
+
+/**
+ * «Обычный» (монолит): «Привычки на сегодня» и «Задачи на сегодня» — отдельными блоками,
+ * каждая строка в своей карточке.
+ */
+function SoftLists({
+  data,
+  today,
+  left,
+  habitsDone,
+  streakOf,
+}: {
+  data: Snapshot;
+  today: string;
+  left: DayItem[];
+  /** сегодня есть отмеченные привычки — когда открытых нет, пишем «все выполнены» */
+  habitsDone: boolean;
+  streakOf: (habitId: string) => number;
+}) {
+  const p = usePalette();
+  const t = useT();
+  const { weekStart } = settingsOf(data);
+  const habits = left.filter((i) => i.kind === 'habit');
+  const tasks = left.filter((i) => i.kind === 'task');
+  return (
+    <>
+      {habits.length > 0 ? (
+        <View style={styles.section}>
+          <SectionTitle
+            title={t('today.habitsTitle')}
+            count={habits.length}
+            tone="sun"
+            tilt={TILT.left}
+          />
+          <View style={styles.list}>
+            {habits.map((item) => {
+              const habit = data.habits[item.id];
+              if (!habit) return null;
+              return (
+                <HabitTodayRow
+                  key={item.id}
+                  habit={habit}
+                  today={today}
+                  value={data.checks[`${habit.id}|${today}`]?.value ?? 0}
+                  streak={streakOf(habit.id)}
+                  weekStart={weekStart}
+                />
+              );
+            })}
+          </View>
+        </View>
+      ) : (
+        habitsDone && (
+          <Text style={[TYPE.meta, styles.note, { color: p.muted }]}>
+            {t('today.habitsAllDone')}
+          </Text>
+        )
+      )}
+      {tasks.length > 0 && (
+        <View style={styles.section}>
+          <SectionTitle
+            title={t('today.tasksTitle')}
+            count={tasks.length}
+            tone="sun"
+            tilt={TILT.slightRight}
+          />
+          <View style={styles.list}>
+            {tasks.map((item) => {
+              const task = data.tasks[item.id];
+              return task ? <TaskTodayRow key={item.id} task={task} today={today} /> : null;
+            })}
+          </View>
+        </View>
+      )}
+    </>
   );
 }
 
@@ -321,6 +414,8 @@ const styles = StyleSheet.create({
   score: { flex: 1, gap: SPACE.xs },
   points: { position: 'absolute', top: -16, right: 14 },
   section: { gap: SPACE.md },
+  list: { gap: 9 },
+  note: { textAlign: 'center' },
   summary: { gap: SPACE.sm },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
 });

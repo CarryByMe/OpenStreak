@@ -42,6 +42,11 @@ export type Palette = {
   /** только слив и долги */
   red: string;
   onRed: string;
+  /** флажок и подпись приоритета задачи: низкий, средний (высокий — `red`) */
+  prioLow: string;
+  prioMid: string;
+  /** значок карточки «лучшая серия» в «Итогах» */
+  violet: string;
   /** плашки, пузырь цитаты, выбранная плитка */
   tag: string;
   /** плитки иконок привычек */
@@ -70,11 +75,6 @@ export type Palette = {
   tongue: string;
   drop: string;
   star: string;
-  /** пальма на кнопке «выходной»: тоже рисунок, в проверку контраста не входит */
-  palmSand: string;
-  palmTrunk: string;
-  palmLeaf: string;
-  palmNut: string;
 };
 
 type ThemeKey = Scheme | 'minimalLight' | 'minimalDark' | 'normalLight' | 'normalDark';
