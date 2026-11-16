@@ -51,14 +51,23 @@ export function WeekMoons({
   );
 }
 
-export function MoonGrid({ days, size = 26 }: { days: Omit<MoonDay, 'weekday'>[]; size?: number }) {
+export function MoonGrid({
+  days,
+  size = 26,
+  tint,
+}: {
+  days: Omit<MoonDay, 'weekday'>[];
+  size?: number;
+  /** цвет привычки для «Обычного» */
+  tint?: string;
+}) {
   const plain = usePlain();
   return (
     <View style={styles.grid}>
       {days.map((d, i) => (
         <View key={i} style={styles.cell}>
           {plain ? (
-            <PlainDay state={d.state} part={d.part} today={d.today} size={size} />
+            <PlainDay state={d.state} part={d.part} today={d.today} size={size} tint={tint} />
           ) : (
             <Moon size={size} {...moonLook(d.state, d.part)} />
           )}

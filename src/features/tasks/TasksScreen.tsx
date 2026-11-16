@@ -213,6 +213,7 @@ export function TasksScreen() {
                 key={a.id}
                 role="radio"
                 label={n ? t('tasks.areaCount', { name: a.name, count: n }) : a.name}
+                dot={a.color}
                 selected={area === a.id}
                 onPress={() => setArea(area === a.id ? null : a.id)}
               />

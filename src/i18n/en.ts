@@ -200,6 +200,8 @@ export const en: Record<MessageKey, Message> = {
   'areas.open': { one: '{count} task', other: '{count} tasks' },
   'area.add': 'New area',
   'area.edit': 'Area',
+  'color.title': 'Colour',
+  'color.label': 'Colour {n}',
   'area.name': 'name',
   'area.icon': 'icon',
   'habit.icon': 'icon',

@@ -200,6 +200,8 @@ export const es: Record<MessageKey, Message> = {
   'areas.open': { one: '{count} tarea', other: '{count} tareas' },
   'area.add': 'Nueva área',
   'area.edit': 'Área',
+  'color.title': 'Color',
+  'color.label': 'Color {n}',
   'area.name': 'nombre',
   'area.icon': 'icono',
   'habit.icon': 'icono',

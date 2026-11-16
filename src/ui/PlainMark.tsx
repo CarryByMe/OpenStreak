@@ -7,6 +7,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { usePalette, useSoft } from '../store/themeStore';
 import { readableOn } from '../theme/readable';
+import { useTint } from './useTint';
 import { Icon } from './icons';
 
 type Props = {
@@ -22,7 +23,8 @@ type Props = {
 export function PlainMark({ shape = 'circle', fill, size = 24, debt = false, tint }: Props) {
   const p = usePalette();
   const soft = useSoft();
-  const own = soft && !debt ? tint : undefined;
+  const safe = useTint(tint);
+  const own = soft && !debt ? safe : undefined;
   const ring = debt ? p.red : (own ?? (soft ? p.ring : p.text));
   const color = debt ? p.red : (own ?? p.sun);
   const radius = shape === 'circle' ? size / 2 : 5;
@@ -84,7 +86,8 @@ export function PlainDay({
 }) {
   const p = usePalette();
   const soft = useSoft();
-  const accent = soft && tint ? tint : p.sun;
+  const safe = useTint(tint);
+  const accent = soft && safe ? safe : p.sun;
   const box = {
     width: size,
     height: size,

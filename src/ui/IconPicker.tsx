@@ -12,9 +12,11 @@ type Props = {
   value: string;
   onChange: (key: string) => void;
   size?: number;
+  /** цвет плитки в «Обычном» */
+  color?: string;
 };
 
-export function IconPicker({ value, onChange, size = 44 }: Props) {
+export function IconPicker({ value, onChange, size = 44, color }: Props) {
   const p = usePalette();
   return (
     <View style={styles.grid} accessibilityRole="radiogroup">
@@ -29,7 +31,7 @@ export function IconPicker({ value, onChange, size = 44 }: Props) {
             onPress={() => onChange(key)}
             style={[styles.pick, { borderColor: on ? p.line : 'transparent' }]}
           >
-            <IconTile icon={key} size={size} />
+            <IconTile icon={key} size={size} color={color} />
           </Pressable>
         );
       })}

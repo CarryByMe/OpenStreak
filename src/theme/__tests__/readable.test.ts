@@ -1,5 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
-import { contrastRatio, readableOn } from '../readable';
+import { SWATCHES } from '../swatches';
+import { contrastRatio, ensureContrast, readableOn } from '../readable';
 
 describe('readableOn', () => {
   test('светлый на тёмной заливке, тёмный на светлой', () => {
@@ -35,5 +36,31 @@ describe('readableOn', () => {
   test('мусор вместо цвета не роняет отрисовку', () => {
     expect(readableOn('red')).toBe('#FFFFFF');
     expect(readableOn('')).toBe('#FFFFFF');
+  });
+});
+
+describe('ensureContrast', () => {
+  const light = ['#F4F6FA', '#FFFFFF'];
+  const dark = ['#0E1217', '#161C24'];
+
+  test('любой цвет набора проходит контраст 3 на светлой и тёмной теме', () => {
+    for (const c of SWATCHES) {
+      for (const bgs of [light, dark]) {
+        const out = ensureContrast(c, bgs);
+        for (const b of bgs) expect([c, contrastRatio(out, b) >= 3]).toEqual([c, true]);
+      }
+    }
+  });
+
+  test('достаточно контрастный цвет не меняется, бледный — темнеет с сохранением тона', () => {
+    expect(ensureContrast('#1D4FC4', light)).toBe('#1D4FC4');
+    const out = ensureContrast('#CDDC39', light);
+    expect(out).not.toBe('#CDDC39');
+    // жёлто-зелёный: красный и зелёный каналы остаются выше синего
+    expect(parseInt(out.slice(1, 3), 16)).toBeGreaterThan(parseInt(out.slice(5, 7), 16));
+  });
+
+  test('мусор вместо цвета возвращается как есть', () => {
+    expect(ensureContrast('red', light)).toBe('red');
   });
 });

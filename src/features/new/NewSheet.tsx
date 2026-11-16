@@ -13,13 +13,15 @@ import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
 import { settingsOf } from '../../core/settings';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { FONT } from '../../theme/fonts';
 import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
+import { ColorPicker } from '../../ui/ColorPicker';
 import { IconPicker } from '../../ui/IconPicker';
+import { DEFAULT_SWATCH } from '../../theme/swatches';
 import { HabitGlyph } from '../../ui/icons';
 import { FormRow } from '../../ui/FormRow';
 import { OptionTile } from '../../ui/OptionTile';
@@ -97,6 +99,7 @@ function NewSheetForm() {
   const [areaId, setAreaId] = useState<string | null>(editing ? editing.areaId : initialArea);
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
   const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
+  const [color, setColor] = useState<string>(editingHabit?.color ?? DEFAULT_SWATCH);
   const [days, setDays] = useState<number[] | null>(editingHabit?.days ?? null);
   const weekStart = settingsOf(useDataStore((s) => s.data)).weekStart;
   // Как в монолите: «Каждый день» или набор дней; пусто и все семь — снова «каждый день».
@@ -120,6 +123,7 @@ function NewSheetForm() {
   const [placeSheet, setPlaceSheet] = useState(false);
   const [areaSheet, setAreaSheet] = useState(false);
   const plain = usePlain();
+  const soft = useSoft();
   const [openRow, setOpenRow] = useState<string | null>(
     initialKind === 'goal' ? 'deadline' : initialKind === 'habit' ? 'kind' : 'when'
   );
@@ -143,6 +147,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
+        color,
         days,
         remindAt,
         placeId,
@@ -157,6 +162,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
+        color,
         days,
         remindAt,
         placeId,
@@ -358,6 +364,7 @@ function NewSheetForm() {
                     size="md"
                     role="radio"
                     label={a.name}
+                    dot={a.color}
                     selected={areaId === a.id}
                     onPress={() => setAreaId(a.id)}
                   />
@@ -424,7 +431,21 @@ function NewSheetForm() {
             open={openRow === 'icon'}
             onPress={() => toggleRow('icon')}
           >
-            <IconPicker value={icon} onChange={setIcon} />
+            <IconPicker value={icon} onChange={setIcon} color={soft ? color : undefined} />
+          </FormRow>
+        )}
+
+        {kind === 'habit' && soft && (
+          <FormRow
+            icon="habits"
+            label={cap(t('color.title'))}
+            value={t('color.title')}
+            valueNode={<View style={[styles.colorDot, { backgroundColor: color }]} />}
+            set
+            open={openRow === 'color'}
+            onPress={() => toggleRow('color')}
+          >
+            <ColorPicker value={color} onChange={setColor} />
           </FormRow>
         )}
 
@@ -928,6 +949,7 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', gap: SPACE.md },
   grow: { flex: 1 },
   group: { gap: SPACE.sm },
+  colorDot: { width: 24, height: 24, borderRadius: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, alignItems: 'center' },
   titleInput: {
     paddingVertical: 8,

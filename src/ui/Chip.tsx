@@ -9,6 +9,7 @@ import { RADIUS, STROKE } from '../theme/metrics';
 import { hardShadow } from '../theme/sticker';
 import { TYPE } from '../theme/type';
 import { Icon, type UiIconName } from './icons';
+import { useTint } from './useTint';
 
 type Props = {
   label: string;
@@ -21,6 +22,8 @@ type Props = {
   icon?: UiIconName;
   /** toggle — можно выбрать несколько; radio — один из группы */
   role?: 'toggle' | 'radio';
+  /** цвет сферы: в «Обычном» перед подписью рисуется точка этого цвета */
+  dot?: string;
 };
 
 export function Chip({
@@ -31,10 +34,12 @@ export function Chip({
   dashed,
   icon,
   role = 'toggle',
+  dot,
 }: Props) {
   const p = usePalette();
   const plain = usePlain();
   const soft = useSoft();
+  const dotColor = useTint(soft ? dot : undefined);
   if (plain && !soft && dashed) {
     // «Минималистичный»: действие («+ Сфера», «Дата…») — подчёркнутый текст, не рамка.
     return (
@@ -79,6 +84,18 @@ export function Chip({
       ]}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        {dotColor && (
+          <View
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: 6,
+              backgroundColor: dotColor,
+              borderWidth: selected ? 1.5 : 0,
+              borderColor: p.onSun,
+            }}
+          />
+        )}
         {icon && <Icon name={icon} size={18} tone={selected ? 'onSun' : 'text'} />}
         <Text style={[TYPE.control, { color: selected ? p.onSun : p.text }]}>{label}</Text>
       </View>

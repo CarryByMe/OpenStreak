@@ -5,6 +5,7 @@ import { useDesign, usePalette, usePlain, useSoft } from '../../store/themeStore
 import { RADIUS, STROKE } from '../../theme/metrics';
 import type { Design, Palette } from '../../theme/palette';
 import { readableOn } from '../../theme/readable';
+import { useTint } from '../useTint';
 import { HABIT_ICONS, UI_ICONS, type IconSpec, type UiIconName } from './paths';
 
 /** Цвет иконки: на фоне экрана или поверх цветной подложки (`on*`). */
@@ -111,9 +112,10 @@ export function IconTile({
   const p = usePalette();
   const plain = usePlain();
   const soft = useSoft();
+  const safe = useTint(color);
   const tile = tileFor(icon);
   if (soft) {
-    const bg = color ?? p.sun;
+    const bg = safe ?? p.sun;
     return (
       <View
         style={{

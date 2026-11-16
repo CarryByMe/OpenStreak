@@ -22,3 +22,32 @@ export function readableOn(bg: string, light = '#FFFFFF', dark = '#141A23'): str
   if (!HEX.test(bg)) return light;
   return contrastRatio(light, bg) >= contrastRatio(dark, bg) ? light : dark;
 }
+
+/** Смешать `#RRGGBB` с чёрным или белым: `amount` 0…1, `to` — цвет, к которому смешиваем. */
+function mix(hex: string, to: 0 | 255, amount: number): string {
+  const part = (i: number) => {
+    const c = parseInt(hex.slice(i, i + 2), 16);
+    return Math.round(c + (to - c) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${part(1)}${part(3)}${part(5)}`.toUpperCase();
+}
+
+/**
+ * Цвет сферы или привычки для отметки (рамка, заливка, точка): если он слишком бледный на фоне
+ * экрана или карточки, затемняем (на тёмной теме — осветляем), пока контраст не станет не ниже
+ * `min` (3 — для значков и отметок, WCAG 2.x). Тон сохраняется, цвет из набора не теряется.
+ */
+export function ensureContrast(color: string, backgrounds: string[], min = 3): string {
+  if (!HEX.test(color) || backgrounds.some((b) => !HEX.test(b))) return color;
+  const ok = (c: string) => backgrounds.every((b) => contrastRatio(c, b) >= min);
+  if (ok(color)) return color;
+  // Фон светлый — темним, фон тёмный — светлим.
+  const light = backgrounds.reduce((n, b) => n + luminance(b), 0) / backgrounds.length > 0.4;
+  for (let step = 1; step <= 20; step++) {
+    const next = mix(color, light ? 0 : 255, step * 0.05);
+    if (ok(next)) return next;
+  }
+  return light ? '#000000' : '#FFFFFF';
+}

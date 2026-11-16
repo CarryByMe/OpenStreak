@@ -14,7 +14,7 @@ import { settingsOf } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { PlainMark } from '../../ui/PlainMark';
 import { RADIUS, SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
@@ -26,6 +26,7 @@ import { Notches } from '../../ui/Notches';
 import { Card } from '../../ui/Sticker';
 import { useToast } from '../../ui/toast';
 import { MoonGrid } from '../../ui/WeekMoons';
+import { useTint } from '../../ui/useTint';
 import { useNewSheet } from '../new/newSheetStore';
 import { dayState, scheduleLabel, targetLabel } from './habitText';
 
@@ -45,6 +46,8 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
   const editHabit = useNewSheet((s) => s.editHabit);
   const { weekStart } = settingsOf(data);
   const h = data.habits[habitId];
+  const soft = useSoft();
+  const tint = useTint(h?.color);
 
   const view = useMemo(() => {
     if (!h || h.deletedAt !== null) return null;
@@ -145,7 +148,9 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
 
         <View style={styles.streakPlain}>
           <View>
-            <Text style={[TYPE.numberXL, styles.bigStreak, { color: p.sun }]}>{stats.streak}</Text>
+            <Text style={[TYPE.numberXL, styles.bigStreak, { color: soft && tint ? tint : p.sun }]}>
+              {stats.streak}
+            </Text>
             <Text style={[TYPE.note, { color: p.muted }]}>{t('habit.streak')}</Text>
           </View>
           <View style={styles.bestPlain}>
@@ -210,7 +215,7 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
               </Text>
             ))}
           </View>
-          <MoonGrid days={view.month} size={36} />
+          <MoonGrid days={view.month} size={36} tint={tint} />
         </View>
 
         <View>

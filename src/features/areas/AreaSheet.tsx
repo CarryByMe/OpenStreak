@@ -7,10 +7,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as A from '../../core/actions';
 import { useDataStore } from '../../core/store';
 import { useT } from '../../store/prefsStore';
-import { usePalette } from '../../store/themeStore';
+import { usePalette, useSoft } from '../../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
+import { ColorPicker } from '../../ui/ColorPicker';
 import { IconTile } from '../../ui/icons';
 import { Sheet } from '../../ui/Sheet';
 import { TextField } from '../../ui/TextField';
@@ -36,13 +37,15 @@ export function AreaSheet({ visible, editId, onClose, onSaved }: Props) {
   });
   const [name, setName] = useState(editing?.name ?? '');
   const [icon, setIcon] = useState(editing?.icon ?? AREA_ICONS[0]!);
+  const [color, setColor] = useState(editing?.color ?? AREA_COLOR);
+  const soft = useSoft();
   // Удаление уносит цели сферы, поэтому спрашиваем второй раз.
   const [armed, setArmed] = useState(false);
   const canSave = name.trim().length > 0;
 
   const save = () => {
     if (!canSave) return;
-    const input = { name, icon, color: editing?.color ?? AREA_COLOR };
+    const input = { name, icon, color };
     const id = editing ? editing.id : A.createArea(input);
     if (editing) A.updateArea(editing.id, input);
     onClose();
@@ -108,11 +111,17 @@ export function AreaSheet({ visible, editId, onClose, onSaved }: Props) {
                 { borderColor: icon === key ? p.line : 'transparent', borderStyle: 'solid' },
               ]}
             >
-              <IconTile icon={key} size={44} />
+              <IconTile icon={key} size={44} color={color} />
             </Pressable>
           ))}
         </View>
       </View>
+      {soft && (
+        <View style={styles.group}>
+          <Text style={[TYPE.meta, { color: p.muted }]}>{t('color.title')}</Text>
+          <ColorPicker value={color} onChange={setColor} />
+        </View>
+      )}
     </Sheet>
   );
 }

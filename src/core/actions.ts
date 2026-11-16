@@ -331,6 +331,8 @@ export function createQuickHabit(input: {
   icon?: string;
   /** дни недели (0 = вс … 6 = сб); null — каждый день */
   days?: number[] | null;
+  /** цвет привычки (`#RRGGBB`); по умолчанию — первый цвет набора */
+  color?: string;
   remindAt: string;
   placeId?: string | null;
   placeTrigger?: PlaceTrigger;
@@ -339,8 +341,8 @@ export function createQuickHabit(input: {
     name: input.name,
     kind: input.kind,
     icon: input.icon || 'target',
-    // Цвет нужен только старым экранам; в «Мульте» цвет плитки берётся из иконки.
-    color: '#2f7cf6',
+    // Цвет рисуется только в «Обычном» оформлении; в остальных плитка берётся из иконки.
+    color: input.color && /^#[0-9a-fA-F]{6}$/.test(input.color) ? input.color : '#2f7cf6',
     days: input.days ?? null,
     question: '',
     remindAt: input.kind === 'bad' ? '' : input.remindAt,
@@ -363,6 +365,8 @@ export function editHabitBasics(
     icon?: string;
     /** новое расписание; undefined — не меняется, null — каждый день */
     days?: number[] | null;
+    /** новый цвет (`#RRGGBB`); без него цвет не меняется */
+    color?: string;
     remindAt: string;
     placeId?: string | null;
     placeTrigger?: PlaceTrigger;
@@ -376,6 +380,7 @@ export function editHabitBasics(
         name,
         kind: input.kind,
         ...(input.icon ? { icon: input.icon } : {}),
+        ...(input.color && /^#[0-9a-fA-F]{6}$/.test(input.color) ? { color: input.color } : {}),
         ...(input.days !== undefined ? { days: normalizeDays(input.days) } : {}),
         remindAt: input.kind === 'bad' ? '' : input.remindAt,
         ...placePair(input.kind === 'bad' ? { placeId: null } : input),

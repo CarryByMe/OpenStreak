@@ -578,6 +578,26 @@ describe('правка привычки из шторки', () => {
     A.editHabitBasics(id, { name: '   ', kind: 'good', remindAt: '' });
     expect(useDataStore.getState().data.habits[id].name).toBe('Не курить');
   });
+
+  test('цвет: задаётся при создании и правке; мусор вместо цвета не принимается', () => {
+    const id = A.createQuickHabit({ name: 'Бег', kind: 'good', remindAt: '', color: '#a855f7' });
+    expect(useDataStore.getState().data.habits[id].color).toBe('#a855f7');
+    A.editHabitBasics(id, { name: 'Бег', kind: 'good', remindAt: '', color: '#1fb876' });
+    expect(useDataStore.getState().data.habits[id].color).toBe('#1fb876');
+    // без цвета в правке цвет не меняется; неверный цвет игнорируется
+    A.editHabitBasics(id, { name: 'Бег', kind: 'good', remindAt: '' });
+    A.editHabitBasics(id, { name: 'Бег', kind: 'good', remindAt: '', color: 'red' });
+    expect(useDataStore.getState().data.habits[id].color).toBe('#1fb876');
+    const plain = A.createQuickHabit({ name: 'Вода', kind: 'good', remindAt: '', color: 'oops' });
+    expect(useDataStore.getState().data.habits[plain].color).toBe('#2f7cf6');
+  });
+
+  test('цвет сферы сохраняется и меняется', () => {
+    const area = A.createArea({ name: 'Работа', icon: 'compass', color: '#ec4899' });
+    expect(useDataStore.getState().data.areas[area].color).toBe('#ec4899');
+    A.updateArea(area, { name: 'Работа', icon: 'compass', color: '#009688' });
+    expect(useDataStore.getState().data.areas[area].color).toBe('#009688');
+  });
 });
 
 describe('договор: правка, удаление и возврат', () => {

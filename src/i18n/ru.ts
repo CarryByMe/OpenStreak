@@ -226,6 +226,8 @@ export const ru = {
   'area.add': 'Новая сфера',
   'area.edit': 'Сфера',
   'area.name': 'название',
+  'color.title': 'Цвет',
+  'color.label': 'Цвет {n}',
   'area.icon': 'значок',
   'habit.icon': 'значок',
   'habit.days': 'дни',
