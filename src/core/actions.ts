@@ -321,6 +321,8 @@ export function createHabit(input: HabitInput): string {
 export function createQuickHabit(input: {
   name: string;
   kind: HabitKind;
+  /** ключ значка из набора; по умолчанию — «цель» */
+  icon?: string;
   remindAt: string;
   placeId?: string | null;
   placeTrigger?: PlaceTrigger;
@@ -328,7 +330,7 @@ export function createQuickHabit(input: {
   return createHabit({
     name: input.name,
     kind: input.kind,
-    icon: 'target',
+    icon: input.icon || 'target',
     // Цвет нужен только старым экранам; в «Мульте» цвет плитки берётся из иконки.
     color: '#2f7cf6',
     days: null,
@@ -349,6 +351,8 @@ export function editHabitBasics(
   input: {
     name: string;
     kind: HabitKind;
+    /** новый значок; без него значок не меняется */
+    icon?: string;
     remindAt: string;
     placeId?: string | null;
     placeTrigger?: PlaceTrigger;
@@ -361,6 +365,7 @@ export function editHabitBasics(
       draftPatch('habits', id, {
         name,
         kind: input.kind,
+        ...(input.icon ? { icon: input.icon } : {}),
         remindAt: input.kind === 'bad' ? '' : input.remindAt,
         ...placePair(input.kind === 'bad' ? { placeId: null } : input),
       }),

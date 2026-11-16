@@ -227,6 +227,7 @@ export const ru = {
   'area.edit': 'Сфера',
   'area.name': 'название',
   'area.icon': 'значок',
+  'habit.icon': 'значок',
   'area.delete': 'Удалить сферу',
   'area.deleteConfirm': 'Удалятся и цели этой сферы. Нажми ещё раз, чтобы подтвердить',
   'area.deleteSure': 'Точно удалить',
@@ -463,6 +464,16 @@ export const ru = {
     other: 'чистых дня подряд',
   },
   'pack.bestStreak': 'лучшая серия',
+  'mood.none': 'без оценки',
+  'mood.title': 'Настроение',
+  'mood.rated': {
+    one: '{count} день с оценкой',
+    few: '{count} дня с оценкой',
+    many: '{count} дней с оценкой',
+    other: '{count} дня с оценкой',
+  },
+  'mood.empty': 'Оценка появится, когда закроешь день в «Итоге дня»',
+  'mood.average': 'в среднем: {mood}',
   'pack.slips': {
     plain: {
       one: 'срыв за неделю',

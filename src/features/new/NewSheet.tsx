@@ -18,6 +18,8 @@ import { FONT } from '../../theme/fonts';
 import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
+import { IconPicker } from '../../ui/IconPicker';
+import { HabitGlyph } from '../../ui/icons';
 import { FormRow } from '../../ui/FormRow';
 import { OptionTile } from '../../ui/OptionTile';
 import { PriorityPicker } from '../../ui/Priority';
@@ -91,6 +93,7 @@ function NewSheetForm() {
   const [remindAt, setRemindAt] = useState(editing?.remindAt ?? editingHabit?.remindAt ?? '');
   const [areaId, setAreaId] = useState<string | null>(editing ? editing.areaId : initialArea);
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
+  const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
   const [criterion, setCriterion] = useState(editingGoal?.criterion ?? '');
   const [reward, setReward] = useState(editingGoal?.reward ?? '');
   const [penalty, setPenalty] = useState(editingGoal?.penalty ?? '');
@@ -128,6 +131,7 @@ function NewSheetForm() {
       A.editHabitBasics(editingHabit.id, {
         name: title,
         kind: bad ? 'bad' : 'good',
+        icon,
         remindAt,
         placeId,
         placeTrigger,
@@ -140,6 +144,7 @@ function NewSheetForm() {
       A.createQuickHabit({
         name: title,
         kind: bad ? 'bad' : 'good',
+        icon,
         remindAt,
         placeId,
         placeTrigger,
@@ -353,6 +358,20 @@ function NewSheetForm() {
                 onPress={() => setBad(true)}
               />
             </View>
+          </FormRow>
+        )}
+
+        {kind === 'habit' && (
+          <FormRow
+            icon="habits"
+            label={cap(t('habit.icon'))}
+            value={t('habit.icon')}
+            valueNode={<HabitGlyph icon={icon} size={24} tone="text" />}
+            set
+            open={openRow === 'icon'}
+            onPress={() => toggleRow('icon')}
+          >
+            <IconPicker value={icon} onChange={setIcon} />
           </FormRow>
         )}
 
@@ -570,6 +589,12 @@ function NewSheetForm() {
                   onPress={() => setBad(true)}
                 />
               </View>
+            </Group>
+          )}
+
+          {kind === 'habit' && (
+            <Group title={t('habit.icon')}>
+              <IconPicker value={icon} onChange={setIcon} />
             </Group>
           )}
 

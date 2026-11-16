@@ -20,6 +20,7 @@ import { Wolf } from '../../ui/icons';
 import { ScreenHeader } from '../../ui/ScreenHeader';
 import { Card, Tag, type Tone } from '../../ui/Sticker';
 import { groupDigits } from '../format';
+import { MoodCalendar } from '../stats/MoodCalendar';
 import { designStyles } from '../../theme/design';
 
 const BAR_MAX = 72;
@@ -163,6 +164,10 @@ export function PackScreen() {
             );
           })}
         </View>
+      </Card>
+
+      <Card radius={RADIUS.xl} style={styles.week}>
+        <MoodCalendar />
       </Card>
 
       <View style={styles.nums}>

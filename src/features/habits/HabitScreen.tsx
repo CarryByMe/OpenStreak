@@ -249,7 +249,7 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
       </View>
 
       <View style={styles.title}>
-        {!plain && <IconTile icon={h.icon} size={52} tilt={-4} />}
+        <IconTile icon={h.icon} size={52} tilt={-4} />
         <View style={styles.titles}>
           <Text accessibilityRole="header" style={[TYPE.heading, { color: p.text }]}>
             {h.name}
