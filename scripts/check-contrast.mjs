@@ -17,7 +17,7 @@ export function contrast(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const { themes, checks } = JSON.parse(
+const { themes, checks, mood } = JSON.parse(
   readFileSync(new URL('../src/theme/palettes.json', import.meta.url), 'utf8')
 );
 
@@ -36,6 +36,32 @@ for (const [name, t] of Object.entries(themes)) {
     console.log(
       `  ${ok ? 'ok  ' : 'FAIL'} ${ratio.toFixed(2).padStart(5)} ≥ ${MIN[kind]}  ${fg} (${t[fg]}) на ${bg} (${t[bg]})`
     );
+  }
+}
+
+// Лица оценки дня («Обычный»): каждая кайма видна на фоне экрана и на карточке,
+// черты лица читаются на заливке.
+for (const [scheme, theme] of [
+  ['light', 'normalLight'],
+  ['dark', 'normalDark'],
+]) {
+  console.log(`\nmood ${scheme} (${theme})`);
+  const t = themes[theme];
+  const m = mood[scheme];
+  for (let i = 0; i < 5; i++) {
+    const pairs = [
+      [`ring${i + 1}`, m.ring[i], 'bg', t.bg],
+      [`ring${i + 1}`, m.ring[i], 'surface', t.surface],
+      [`ink${i + 1}`, m.ink[i], `fill${i + 1}`, m.fill[i]],
+    ];
+    for (const [fn, fg, bn, bg] of pairs) {
+      const ratio = contrast(fg, bg);
+      const ok = ratio >= MIN.ui;
+      if (!ok) failed++;
+      console.log(
+        `  ${ok ? 'ok  ' : 'FAIL'} ${ratio.toFixed(2).padStart(5)} ≥ ${MIN.ui}  ${fn} (${fg}) на ${bn} (${bg})`
+      );
+    }
   }
 }
 

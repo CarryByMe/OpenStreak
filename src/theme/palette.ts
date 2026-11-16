@@ -85,6 +85,13 @@ export function resolvePalette(scheme: Scheme, design: Design = 'auf'): Palette 
   return themes[themeKey(scheme, design)];
 }
 
+/** Лица оценки дня 1…5 («Обычный»): заливка, кайма и черты каждого. */
+export type MoodScale = { fill: string[]; ring: string[]; ink: string[] };
+
+export function moodScale(scheme: Scheme): MoodScale {
+  return palettes.mood[scheme];
+}
+
 /** Тема, которая реально показывается. `system` — null, если система не сообщила свою. */
 export function resolveScheme(mode: ThemeMode, system: Scheme | null | undefined): Scheme {
   if (mode === 'system') return system ?? 'dark';

@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import palettes from '../palettes.json';
-import { isThemeMode, resolvePalette, resolveScheme, type Design, type Scheme } from '../palette';
+import {
+  isThemeMode,
+  moodScale,
+  resolvePalette,
+  resolveScheme,
+  type Design,
+  type Scheme,
+} from '../palette';
 
 const mockStore = new Map<string, string>();
 jest.mock('../../services/storage', () => ({
@@ -41,6 +48,16 @@ describe('palette', () => {
       expect(p.sun).toBe(p.teal);
       expect(p.sun).not.toBe(p.text);
       expect(p.shadow).toBe(p.bg);
+    }
+  });
+
+  test('шкала лиц настроения: пять цветов заливки, каймы и черт в обеих темах', () => {
+    for (const scheme of SCHEMES) {
+      const m = moodScale(scheme);
+      for (const part of [m.fill, m.ring, m.ink]) {
+        expect(part).toHaveLength(5);
+        for (const c of part) expect(c).toMatch(/^#[0-9A-F]{6}$/);
+      }
     }
   });
 

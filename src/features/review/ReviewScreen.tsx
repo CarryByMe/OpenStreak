@@ -11,11 +11,12 @@ import { dayView, moodPhase } from '../../core/day';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../../theme/metrics';
 import { hardShadow, tilt } from '../../theme/sticker';
 import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
+import { MoodFace } from '../../ui/MoodFace';
 import { Moon } from '../../ui/Moon';
 import { ScreenHeader } from '../../ui/ScreenHeader';
 import { Segmented } from '../../ui/Segmented';
@@ -38,6 +39,7 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
   const existing = data.reviews[today];
   const saved = existing && existing.deletedAt === null ? existing : undefined;
   const plain = usePlain();
+  const soft = useSoft();
   // Оценка дня питает календарь настроения; в «Обычном» по умолчанию — нейтральная.
   const [mood, setMood] = useState<number>(saved?.mood ?? (plain ? 3 : 4));
   const [note, setNote] = useState(saved?.note ?? '');
@@ -94,13 +96,40 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
             <Text accessibilityRole="header" style={[TYPE.control, { color: p.text }]}>
               {t('review.question')}
             </Text>
-            <Segmented<string>
-              label={t('review.mood')}
-              on="bg"
-              value={String(mood)}
-              onChange={(v) => setMood(Number(v))}
-              items={MOODS.map((m) => ({ value: String(m), label: String(m) }))}
-            />
+            {soft ? (
+              <View
+                style={styles.faces}
+                accessibilityRole="radiogroup"
+                accessibilityLabel={t('review.mood')}
+              >
+                {MOODS.map((m) => {
+                  const on = m === mood;
+                  return (
+                    <Pressable
+                      key={m}
+                      accessibilityRole="radio"
+                      accessibilityState={{ checked: on }}
+                      accessibilityLabel={t(`review.mood.${m}` as MessageKey)}
+                      onPress={() => setMood(m)}
+                      style={[
+                        styles.face,
+                        on && { backgroundColor: p.tag, borderColor: p.sun, borderWidth: 2 },
+                      ]}
+                    >
+                      <MoodFace mood={m} size={on ? 44 : 38} />
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : (
+              <Segmented<string>
+                label={t('review.mood')}
+                on="bg"
+                value={String(mood)}
+                onChange={(v) => setMood(Number(v))}
+                items={MOODS.map((m) => ({ value: String(m), label: String(m) }))}
+              />
+            )}
             <Text
               accessibilityLiveRegion="polite"
               style={[TYPE.item, styles.moodName, { color: p.text }]}
@@ -188,6 +217,16 @@ const styles = designStyles(() =>
     },
     moods: { flexDirection: 'row', gap: SPACE.sm },
     moodName: { textAlign: 'center' },
+    faces: { flexDirection: 'row', justifyContent: 'space-between' },
+    face: {
+      width: 58,
+      height: 64,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: 'transparent',
+      borderRadius: 16,
+    },
     mood: {
       flex: 1,
       height: 96,

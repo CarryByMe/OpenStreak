@@ -1,6 +1,7 @@
 /**
  * Календарь настроения: оценка дня из «Итога дня» за последние пять недель. В «Мульте» — луна
- * (от новолуния «слил» до полнолуния «красава»), в «Обычном» — квадрат с заливкой по оценке.
+ * (от новолуния «слил» до полнолуния «красава»), в «Минималистичном» — квадрат с заливкой по оценке,
+ * в «Обычном» — лицо (оттенки акцента).
  * Дни без итога — пунктир, будущие — пустое место.
  */
 import React, { useMemo } from 'react';
@@ -13,9 +14,10 @@ import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
+import { MoodFace } from '../../ui/MoodFace';
 import { Moon } from '../../ui/Moon';
 import { dayMonth } from '../format';
 
@@ -34,6 +36,23 @@ function MoodMark({
 }) {
   const p = usePalette();
   const plain = usePlain();
+  const soft = useSoft();
+  if (soft) {
+    // «Обычный»: лицо оценки; без оценки — пунктирный круг, сегодня — кольцо акцента.
+    if (mood !== null) return <MoodFace mood={mood} size={size} />;
+    return (
+      <View
+        style={{
+          width: size - 4,
+          height: size - 4,
+          borderRadius: size,
+          borderWidth: today ? 2.5 : 1.5,
+          borderStyle: today ? 'solid' : 'dashed',
+          borderColor: today ? p.sun : p.muted,
+        }}
+      />
+    );
+  }
   if (plain) {
     const box = { width: size, height: size, borderRadius: 5, overflow: 'hidden' as const };
     if (mood === null) {

@@ -233,5 +233,18 @@
     ["knobOn", "teal", "ui"],
     ["knobOff", "track", "ui"],
     ["knobOff", "surface", "ui"]
-  ]
+  ],
+  "mood": {
+    "$comment": "Лица оценки дня 1…5 в «Обычном»: оттенки синего акцента, чем насыщеннее, тем лучше день. fill — заливка, ring — кайма, ink — черты лица. Проверка: ring на bg и surface ≥ 3, ink на fill ≥ 3 (отметки, не текст).",
+    "light": {
+      "fill": ["#CFE0FC", "#A5C2F8", "#6F9BEF", "#3F72E6", "#1D4FC4"],
+      "ring": ["#6C8FCB", "#4F78C0", "#2F58A8", "#1D4FC4", "#12388F"],
+      "ink": ["#16284A", "#16284A", "#10213F", "#FFFFFF", "#FFFFFF"]
+    },
+    "dark": {
+      "fill": ["#2B4373", "#37599A", "#4A7AD0", "#6E9BF0", "#A5C4FF"],
+      "ring": ["#6E8FD0", "#7FA0DE", "#97B6EC", "#B4CBF7", "#D3E1FF"],
+      "ink": ["#EAF1FF", "#EAF1FF", "#FFFFFF", "#0A1B3D", "#0A1B3D"]
+    }
+  }
 }
