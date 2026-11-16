@@ -15,6 +15,8 @@ type Props = {
   icon?: UiIconName;
   label: string;
   value: string;
+  /** вместо текста значения — картинка (значок привычки); `value` остаётся подписью для чтения с экрана */
+  valueNode?: React.ReactNode;
   /** значение задано (не по умолчанию): рисуется акцентом */
   set?: boolean;
   open: boolean;
@@ -23,7 +25,16 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export function FormRow({ icon, label, value, set = false, open, onPress, children }: Props) {
+export function FormRow({
+  icon,
+  label,
+  value,
+  valueNode,
+  set = false,
+  open,
+  onPress,
+  children,
+}: Props) {
   const p = usePalette();
   const design = useDesign();
   return (
@@ -43,16 +54,18 @@ export function FormRow({ icon, label, value, set = false, open, onPress, childr
       >
         {icon && <Icon name={icon} size={22} tone="muted" />}
         <Text style={[TYPE.item, styles.label, { color: p.text }]}>{label}</Text>
-        <Text
-          numberOfLines={1}
-          style={[
-            TYPE.row,
-            styles.value,
-            { color: set ? (design === 'normal' ? p.sun : p.teal) : p.muted },
-          ]}
-        >
-          {value}
-        </Text>
+        {valueNode ?? (
+          <Text
+            numberOfLines={1}
+            style={[
+              TYPE.row,
+              styles.value,
+              { color: set ? (design === 'normal' ? p.sun : p.teal) : p.muted },
+            ]}
+          >
+            {value}
+          </Text>
+        )}
         <View style={{ transform: [{ rotate: open ? '90deg' : '0deg' }] }}>
           <Icon name="chevron" size={16} tone="muted" />
         </View>

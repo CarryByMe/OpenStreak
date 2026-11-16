@@ -116,7 +116,7 @@ export function CatalogShell() {
           label="Важность"
           value={prio}
           onChange={setPrio}
-          labels={['Без важности', 'Низкая', 'Средняя', 'Высокая']}
+          labels={['Без приоритета', 'Низкая', 'Средняя', 'Высокая']}
         />
         <View style={{ flexDirection: 'row', gap: 6 }}>
           <OptionTile icon="remind" label="По времени" />

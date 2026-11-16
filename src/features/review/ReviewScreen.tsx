@@ -18,6 +18,7 @@ import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
 import { Moon } from '../../ui/Moon';
 import { ScreenHeader } from '../../ui/ScreenHeader';
+import { Segmented } from '../../ui/Segmented';
 import { WolfQuote } from '../../ui/Sticker';
 import { TextField } from '../../ui/TextField';
 import { fullDate } from '../format';
@@ -37,7 +38,7 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
   const existing = data.reviews[today];
   const saved = existing && existing.deletedAt === null ? existing : undefined;
   const plain = usePlain();
-  // В «Обычном» оценки дня нет: сохраняем нейтральную, чтобы запись осталась совместимой.
+  // Оценка дня питает календарь настроения; в «Обычном» по умолчанию — нейтральная.
   const [mood, setMood] = useState<number>(saved?.mood ?? (plain ? 3 : 4));
   const [note, setNote] = useState(saved?.note ?? '');
 
@@ -85,6 +86,27 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
                 <Text style={[TYPE.numberM, { color: r.red ? p.red : p.text }]}>{r.value}</Text>
               </View>
             ))}
+          </View>
+        )}
+
+        {plain && (
+          <View style={styles.section}>
+            <Text accessibilityRole="header" style={[TYPE.control, { color: p.text }]}>
+              {t('review.question')}
+            </Text>
+            <Segmented<string>
+              label={t('review.mood')}
+              on="bg"
+              value={String(mood)}
+              onChange={(v) => setMood(Number(v))}
+              items={MOODS.map((m) => ({ value: String(m), label: String(m) }))}
+            />
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[TYPE.item, styles.moodName, { color: p.text }]}
+            >
+              {t(`review.mood.${mood}` as MessageKey)}
+            </Text>
           </View>
         )}
 
@@ -165,6 +187,7 @@ const styles = designStyles(() =>
       borderTopWidth: 1,
     },
     moods: { flexDirection: 'row', gap: SPACE.sm },
+    moodName: { textAlign: 'center' },
     mood: {
       flex: 1,
       height: 96,

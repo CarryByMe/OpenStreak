@@ -226,6 +226,8 @@
     ["ring", "bg", "ui"],
     ["ring", "surface", "ui"],
     ["red", "tag", "ui"],
+    ["teal", "tag", "ui"],
+    ["text", "tag", "ui"],
     ["muted", "track", "ui"],
     ["teal", "surface", "ui"],
     ["knobOn", "teal", "ui"],

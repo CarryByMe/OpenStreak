@@ -12,12 +12,15 @@ import { live, type ISODate, type PlaceTrigger, type Priority } from '../../core
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
+import { settingsOf } from '../../core/settings';
 import { usePalette, usePlain } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { FONT } from '../../theme/fonts';
 import { TYPE } from '../../theme/type';
 import { Button } from '../../ui/Button';
 import { Chip } from '../../ui/Chip';
+import { IconPicker } from '../../ui/IconPicker';
+import { HabitGlyph } from '../../ui/icons';
 import { FormRow } from '../../ui/FormRow';
 import { OptionTile } from '../../ui/OptionTile';
 import { PriorityPicker } from '../../ui/Priority';
@@ -26,6 +29,7 @@ import { Sheet } from '../../ui/Sheet';
 import { NO_WEB_OUTLINE, TextField } from '../../ui/TextField';
 import { useToast } from '../../ui/toast';
 import { dayMonth } from '../format';
+import { scheduleLabel } from '../habits/habitText';
 import { AreaSheet } from '../areas/AreaSheet';
 import { usePlaceAccess } from '../places/placeAccessStore';
 import { PlaceSheet } from '../places/PlaceSheet';
@@ -55,6 +59,7 @@ function NewSheetForm() {
     editHabitId,
     editGoalId,
     areaId: initialArea,
+    date: initialDate,
     hide,
   } = useNewSheet();
   const toast = useToast((s) => s.show);
@@ -85,12 +90,21 @@ function NewSheetForm() {
         ? editingGoal.deadline
         : initialKind === 'goal'
           ? null
-          : today
+          : (initialDate ?? today)
   );
   const [priority, setPriority] = useState<Priority>(editing?.priority ?? 0);
   const [remindAt, setRemindAt] = useState(editing?.remindAt ?? editingHabit?.remindAt ?? '');
   const [areaId, setAreaId] = useState<string | null>(editing ? editing.areaId : initialArea);
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
+  const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
+  const [days, setDays] = useState<number[] | null>(editingHabit?.days ?? null);
+  const weekStart = settingsOf(useDataStore((s) => s.data)).weekStart;
+  // Как в монолите: «Каждый день» или набор дней; пусто и все семь — снова «каждый день».
+  const toggleDay = (d: number) =>
+    setDays((cur) => {
+      const next = cur === null ? [d] : cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d];
+      return next.length === 0 || next.length === 7 ? null : next;
+    });
   const [criterion, setCriterion] = useState(editingGoal?.criterion ?? '');
   const [reward, setReward] = useState(editingGoal?.reward ?? '');
   const [penalty, setPenalty] = useState(editingGoal?.penalty ?? '');
@@ -113,7 +127,7 @@ function NewSheetForm() {
 
   const changeKind = (k: NewKind) => {
     setKind(k);
-    setDate(k === 'goal' ? null : today);
+    setDate(k === 'goal' ? null : (initialDate ?? today));
   };
 
   const tomorrow = addDays(today, 1);
@@ -128,6 +142,8 @@ function NewSheetForm() {
       A.editHabitBasics(editingHabit.id, {
         name: title,
         kind: bad ? 'bad' : 'good',
+        icon,
+        days,
         remindAt,
         placeId,
         placeTrigger,
@@ -140,6 +156,8 @@ function NewSheetForm() {
       A.createQuickHabit({
         name: title,
         kind: bad ? 'bad' : 'good',
+        icon,
+        days,
         remindAt,
         placeId,
         placeTrigger,
@@ -155,6 +173,28 @@ function NewSheetForm() {
         if (a === 'foreground' || a === 'denied') usePlaceAccess.getState().show();
       });
     }
+  };
+
+  const removeTask = () => {
+    if (!editing) return;
+    const id = editing.id;
+    A.deleteTask(id);
+    hide();
+    toast(t('toast.taskDeleted'), { label: t('common.return'), onPress: () => A.restoreTask(id) });
+  };
+
+  // Удаление привычки уносит историю отметок, поэтому спрашиваем второй раз.
+  const [armed, setArmed] = useState(false);
+  const removeHabit = () => {
+    if (!editingHabit) return;
+    if (!armed) {
+      setArmed(true);
+      toast(t('habit.deleteConfirm'));
+      return;
+    }
+    A.deleteHabit(editingHabit.id);
+    hide();
+    toast(t('toast.habitDeleted'));
   };
 
   const removeGoal = () => {
@@ -356,6 +396,38 @@ function NewSheetForm() {
           </FormRow>
         )}
 
+        {kind === 'habit' && (
+          <FormRow
+            icon="calendar"
+            label={cap(t('habit.days'))}
+            value={scheduleLabel(t, days, weekStart)}
+            set={days !== null}
+            open={openRow === 'days'}
+            onPress={() => toggleRow('days')}
+          >
+            <DaysPicker
+              days={days}
+              weekStart={weekStart}
+              onToggle={toggleDay}
+              onAll={() => setDays(null)}
+            />
+          </FormRow>
+        )}
+
+        {kind === 'habit' && (
+          <FormRow
+            icon="habits"
+            label={cap(t('habit.icon'))}
+            value={t('habit.icon')}
+            valueNode={<HabitGlyph icon={icon} size={24} tone="text" />}
+            set
+            open={openRow === 'icon'}
+            onPress={() => toggleRow('icon')}
+          >
+            <IconPicker value={icon} onChange={setIcon} />
+          </FormRow>
+        )}
+
         {kind === 'goal' && (
           <>
             <FormRow
@@ -516,6 +588,14 @@ function NewSheetForm() {
       )}
       footer={
         <View style={styles.footer}>
+          {editing && <Button label={t('edit.delete')} variant="danger" onPress={removeTask} />}
+          {editingHabit && (
+            <Button
+              label={t(armed ? 'habit.deleteSure' : 'edit.delete')}
+              variant="danger"
+              onPress={removeHabit}
+            />
+          )}
           {editingGoal && <Button label={t('edit.delete')} variant="danger" onPress={removeGoal} />}
           <Button
             label={t(editingAny ? 'edit.save' : 'new.save')}
@@ -570,6 +650,23 @@ function NewSheetForm() {
                   onPress={() => setBad(true)}
                 />
               </View>
+            </Group>
+          )}
+
+          {kind === 'habit' && (
+            <Group title={t('habit.days')}>
+              <DaysPicker
+                days={days}
+                weekStart={weekStart}
+                onToggle={toggleDay}
+                onAll={() => setDays(null)}
+              />
+            </Group>
+          )}
+
+          {kind === 'habit' && (
+            <Group title={t('habit.icon')}>
+              <IconPicker value={icon} onChange={setIcon} />
             </Group>
           )}
 
@@ -778,6 +875,42 @@ function NewSheetForm() {
         />
       )}
     </Sheet>
+  );
+}
+
+/** «Каждый день» и семь дней недели в порядке недели пользователя; дни — переключатели. */
+function DaysPicker({
+  days,
+  weekStart,
+  onToggle,
+  onAll,
+}: {
+  days: number[] | null;
+  weekStart: 0 | 1;
+  onToggle: (d: number) => void;
+  onAll: () => void;
+}) {
+  const t = useT();
+  return (
+    <View style={styles.chips}>
+      <Chip
+        size="md"
+        role="radio"
+        icon="history"
+        label={t('habits.everyDay')}
+        selected={days === null}
+        onPress={onAll}
+      />
+      {Array.from({ length: 7 }, (_, i) => (i + weekStart) % 7).map((d) => (
+        <Chip
+          key={d}
+          size="md"
+          label={t(`day.short.${d}` as MessageKey)}
+          selected={days !== null && days.includes(d)}
+          onPress={() => onToggle(d)}
+        />
+      ))}
+    </View>
   );
 }
 

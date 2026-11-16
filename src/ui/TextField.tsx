@@ -2,12 +2,20 @@
  * Поля ввода «Мульта» — наклейки с обводкой. title — главное поле шторки (крупно);
  * search — поиск со значком; note — многострочное. Метка над полем — всегда видимая.
  */
-import React, { useState } from 'react';
-import { Platform, Text, TextInput, View, type TextInputProps } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  Platform,
+  Text,
+  TextInput,
+  View,
+  type HostInstance,
+  type TextInputProps,
+} from 'react-native';
 import { usePalette, usePlain } from '../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
 import { Icon } from './icons';
+import { useSheetReveal } from './Sheet';
 
 type Props = Omit<TextInputProps, 'style'> & {
   /** метка над полем; у поиска — только для чтения с экрана */
@@ -26,6 +34,8 @@ export function TextField({ label, variant = 'title', showLabel = true, ...input
   const p = usePalette();
   const plain = usePlain();
   const [focused, setFocused] = useState(false);
+  const reveal = useSheetReveal();
+  const box = useRef<HostInstance>(null);
   // «Обычный»: поле — тихая заливка; рамка появляется только в фокусе (так видно, где ввод).
   const fieldLook = plain
     ? {
@@ -41,6 +51,7 @@ export function TextField({ label, variant = 'title', showLabel = true, ...input
     ...input,
     onFocus: (e: Parameters<NonNullable<TextInputProps['onFocus']>>[0]) => {
       setFocused(true);
+      reveal(box.current);
       input.onFocus?.(e);
     },
     onBlur: (e: Parameters<NonNullable<TextInputProps['onBlur']>>[0]) => {
@@ -52,6 +63,7 @@ export function TextField({ label, variant = 'title', showLabel = true, ...input
   if (variant === 'search') {
     return (
       <View
+        ref={box}
         style={{
           flexDirection: 'row',
           alignItems: 'center',
@@ -74,7 +86,7 @@ export function TextField({ label, variant = 'title', showLabel = true, ...input
   }
 
   return (
-    <View style={{ gap: SPACE.tight }}>
+    <View ref={box} style={{ gap: SPACE.tight }}>
       {showLabel && <Text style={[TYPE.meta, { color: p.muted }]}>{label}</Text>}
       {variant === 'title' ? (
         <TextInput

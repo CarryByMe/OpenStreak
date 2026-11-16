@@ -3,7 +3,7 @@
  * (или «Отметить»), серия зарубками, последние 4 недели лунами, «Выходной» и «Слил сегодня».
  * Для вредной привычки вместо «слил» — «Сорвался».
  */
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
@@ -57,6 +57,12 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
       month: month.map((d) => ({ state: dayState(d, h, today), part: d.fraction })),
     };
   }, [data, h, today, weekStart]);
+
+  // Привычку удалили из шторки правки — возвращаемся к списку.
+  const gone = !h || h.deletedAt !== null;
+  useEffect(() => {
+    if (gone) onBack();
+  }, [gone, onBack]);
 
   if (!h || !view) return null;
   const { day, stats } = view;
@@ -249,7 +255,7 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
       </View>
 
       <View style={styles.title}>
-        {!plain && <IconTile icon={h.icon} size={52} tilt={-4} />}
+        <IconTile icon={h.icon} size={52} tilt={-4} />
         <View style={styles.titles}>
           <Text accessibilityRole="header" style={[TYPE.heading, { color: p.text }]}>
             {h.name}

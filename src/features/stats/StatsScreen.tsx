@@ -15,6 +15,7 @@ import { SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { ScreenHeader, SectionTitle } from '../../ui/ScreenHeader';
 import { dayMonth } from '../format';
+import { MoodCalendar } from './MoodCalendar';
 
 const BAR_MAX = 96;
 
@@ -113,6 +114,8 @@ export function StatsScreen() {
           })}
         </View>
       </View>
+
+      <MoodCalendar />
 
       <View>
         {week.cleanStreak !== null && (

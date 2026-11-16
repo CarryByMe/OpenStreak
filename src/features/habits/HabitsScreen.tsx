@@ -25,7 +25,7 @@ import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SHADOW, SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton } from '../../ui/Button';
-import { IconTile } from '../../ui/icons';
+import { HabitGlyph, IconTile } from '../../ui/icons';
 import { ScreenHeader } from '../../ui/ScreenHeader';
 import { Segmented } from '../../ui/Segmented';
 import { PlainMark } from '../../ui/PlainMark';
@@ -147,6 +147,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                   style={styles.plainBody}
                 >
                   <View style={styles.plainHead}>
+                    <HabitGlyph icon={h.icon} size={26} tone="text" />
                     <View style={styles.titles}>
                       <Text style={[TYPE.item, { color: p.text }]}>{h.name}</Text>
                       <Text style={[TYPE.meta, { color: p.muted }]}>
