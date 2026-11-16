@@ -92,6 +92,7 @@ export const en: Record<MessageKey, Message> = {
   'row.streak': 'streak {count}',
   'row.streakShort': '{count} d',
   'row.numeric': '{value}/{target}',
+  'today.addTask': 'Add a task…',
   'today.habitsTitle': "Today's habits",
   'today.tasksTitle': "Today's tasks",
   'today.habitsAllDone': "All of today's habits are done",

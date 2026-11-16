@@ -105,6 +105,7 @@ export const ru = {
   'row.streak': 'серия {count}',
   'row.streakShort': '{count} дн',
   'row.numeric': '{value}/{target}',
+  'today.addTask': 'Добавить задачу…',
   'today.habitsTitle': 'Привычки на сегодня',
   'today.tasksTitle': 'Задачи на сегодня',
   'today.habitsAllDone': 'Все привычки на сегодня выполнены',

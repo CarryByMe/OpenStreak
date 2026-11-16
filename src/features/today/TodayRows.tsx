@@ -70,7 +70,7 @@ function RowButton({
         pressed && styles.pressed,
       ]}
     >
-      <Icon name={icon} size={17} color={armed ? p.red : p.muted} />
+      <Icon name={icon} size={19} color={armed ? p.red : p.muted} />
     </Pressable>
   );
 }

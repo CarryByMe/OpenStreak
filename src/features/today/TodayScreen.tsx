@@ -165,7 +165,10 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
         />
       )}
 
-      <AddRow label={t('common.addPrompt')} onPress={() => showNew('task')} />
+      <AddRow
+        label={t(soft ? 'today.addTask' : 'common.addPrompt')}
+        onPress={() => showNew('task')}
+      />
 
       {plain && <ReviewCard onOpenReview={onOpenReview} onOpenHistory={onOpenHistory} />}
 
