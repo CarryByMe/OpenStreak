@@ -17,7 +17,7 @@ import {
   habitStats,
   indexHabits,
 } from '../../core/habits';
-import { checkId, type Snapshot } from '../../core/model';
+import { checkId, live, type Snapshot } from '../../core/model';
 import { settingsOf } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { useT } from '../../store/prefsStore';
@@ -25,6 +25,7 @@ import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SHADOW, SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton } from '../../ui/Button';
+import { Chip } from '../../ui/Chip';
 import { HabitGlyph, IconTile } from '../../ui/icons';
 import { ScreenHeader } from '../../ui/ScreenHeader';
 import { Segmented } from '../../ui/Segmented';
@@ -55,6 +56,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
   const plain = usePlain();
   const soft = useSoft();
   const [filter, setFilter] = useState<Filter>('all');
+  const [area, setArea] = useState<string | null>(null);
   const { weekStart } = settingsOf(data);
 
   const all = useMemo(() => {
@@ -73,7 +75,17 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
   }, [data, today]);
 
   const badCount = all.filter((x) => x.habit.kind === 'bad').length;
-  const shown = all.filter((x) => filter === 'all' || x.habit.kind === filter);
+  const areas = useMemo(
+    () => live(data.areas).sort((a, b) => a.createdAt - b.createdAt),
+    [data.areas]
+  );
+  // Выбранную сферу могли удалить — тогда фильтр снова «все».
+  const areaId = area !== null && areas.some((a) => a.id === area) ? area : null;
+  const shown = all.filter(
+    (x) =>
+      (filter === 'all' || x.habit.kind === filter) &&
+      (areaId === null || x.habit.areaId === areaId)
+  );
   const kicker = [
     t('habits.active', { count: all.length }),
     badCount > 0 ? t('habits.bad', { count: badCount }) : null,
@@ -94,7 +106,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
             icon="plus"
             variant="sun"
             label={t('habits.add')}
-            onPress={() => show('habit')}
+            onPress={() => show('habit', { areaId })}
           />
         }
       />
@@ -112,10 +124,31 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
         />
       )}
 
+      {all.length > 0 && areas.length > 0 && (
+        <View style={styles.chips} accessibilityRole="radiogroup">
+          <Chip
+            role="radio"
+            label={t('tasks.all')}
+            selected={areaId === null}
+            onPress={() => setArea(null)}
+          />
+          {areas.map((a) => (
+            <Chip
+              key={a.id}
+              role="radio"
+              label={a.name}
+              dot={a.color}
+              selected={areaId === a.id}
+              onPress={() => setArea(areaId === a.id ? null : a.id)}
+            />
+          ))}
+        </View>
+      )}
+
       {all.length === 0 && (
         <View style={styles.empty}>
           <Text style={[TYPE.body, { color: p.muted }]}>{t('habits.empty')}</Text>
-          <AddRow label={t('habits.add')} onPress={() => show('habit')} />
+          <AddRow label={t('habits.add')} onPress={() => show('habit', { areaId })} />
         </View>
       )}
 
@@ -281,6 +314,7 @@ const styles = designStyles(() =>
     titles: { flex: 1, minWidth: 0 },
     note: { alignItems: 'flex-start' },
     empty: { gap: SPACE.md },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.tight },
     plainRow: {
       flexDirection: 'row',
       alignItems: 'flex-start',

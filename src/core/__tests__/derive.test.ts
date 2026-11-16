@@ -592,6 +592,18 @@ describe('правка привычки из шторки', () => {
     expect(useDataStore.getState().data.habits[plain].color).toBe('#2f7cf6');
   });
 
+  test('сфера привычки: задаётся при создании и правке, null убирает, без поля не меняется', () => {
+    const area = A.createArea({ name: 'Здоровье', icon: 'apple', color: '#1fb876' });
+    const id = A.createQuickHabit({ name: 'Зарядка', kind: 'good', remindAt: '', areaId: area });
+    expect(useDataStore.getState().data.habits[id].areaId).toBe(area);
+    A.editHabitBasics(id, { name: 'Зарядка', kind: 'good', remindAt: '' });
+    expect(useDataStore.getState().data.habits[id].areaId).toBe(area);
+    A.editHabitBasics(id, { name: 'Зарядка', kind: 'good', remindAt: '', areaId: null });
+    expect(useDataStore.getState().data.habits[id].areaId).toBeNull();
+    const bare = A.createQuickHabit({ name: 'Вода', kind: 'good', remindAt: '' });
+    expect(useDataStore.getState().data.habits[bare].areaId).toBeNull();
+  });
+
   test('цвет сферы сохраняется и меняется', () => {
     const area = A.createArea({ name: 'Работа', icon: 'compass', color: '#ec4899' });
     expect(useDataStore.getState().data.areas[area].color).toBe('#ec4899');

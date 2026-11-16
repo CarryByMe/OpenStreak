@@ -333,6 +333,8 @@ export function createQuickHabit(input: {
   days?: number[] | null;
   /** цвет привычки (`#RRGGBB`); по умолчанию — первый цвет набора */
   color?: string;
+  /** сфера; по умолчанию — без сферы */
+  areaId?: string | null;
   remindAt: string;
   placeId?: string | null;
   placeTrigger?: PlaceTrigger;
@@ -346,7 +348,7 @@ export function createQuickHabit(input: {
     days: input.days ?? null,
     question: '',
     remindAt: input.kind === 'bad' ? '' : input.remindAt,
-    areaId: null,
+    areaId: input.areaId ?? null,
     measure: 'boolean',
     unit: 'count',
     target: 1,
@@ -367,6 +369,8 @@ export function editHabitBasics(
     days?: number[] | null;
     /** новый цвет (`#RRGGBB`); без него цвет не меняется */
     color?: string;
+    /** новая сфера; undefined — не меняется, null — убрать сферу */
+    areaId?: string | null;
     remindAt: string;
     placeId?: string | null;
     placeTrigger?: PlaceTrigger;
@@ -381,6 +385,7 @@ export function editHabitBasics(
         kind: input.kind,
         ...(input.icon ? { icon: input.icon } : {}),
         ...(input.color && /^#[0-9a-fA-F]{6}$/.test(input.color) ? { color: input.color } : {}),
+        ...(input.areaId !== undefined ? { areaId: input.areaId } : {}),
         ...(input.days !== undefined ? { days: normalizeDays(input.days) } : {}),
         remindAt: input.kind === 'bad' ? '' : input.remindAt,
         ...placePair(input.kind === 'bad' ? { placeId: null } : input),

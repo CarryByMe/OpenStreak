@@ -96,10 +96,18 @@ function NewSheetForm() {
   );
   const [priority, setPriority] = useState<Priority>(editing?.priority ?? 0);
   const [remindAt, setRemindAt] = useState(editing?.remindAt ?? editingHabit?.remindAt ?? '');
-  const [areaId, setAreaId] = useState<string | null>(editing ? editing.areaId : initialArea);
+  const [areaId, setAreaId] = useState<string | null>(
+    editing ? editing.areaId : editingHabit ? editingHabit.areaId : initialArea
+  );
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
   const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
   const [color, setColor] = useState<string>(editingHabit?.color ?? DEFAULT_SWATCH);
+  // Пока цвет привычки не выбран вручную, он следует за цветом сферы.
+  const [colorTouched, setColorTouched] = useState(!!editingHabit);
+  const chooseColor = (c: string) => {
+    setColor(c);
+    setColorTouched(true);
+  };
   const [days, setDays] = useState<number[] | null>(editingHabit?.days ?? null);
   const weekStart = settingsOf(useDataStore((s) => s.data)).weekStart;
   // Как в монолите: «Каждый день» или набор дней; пусто и все семь — снова «каждый день».
@@ -148,6 +156,7 @@ function NewSheetForm() {
         kind: bad ? 'bad' : 'good',
         icon,
         color,
+        areaId,
         days,
         remindAt,
         placeId,
@@ -163,6 +172,7 @@ function NewSheetForm() {
         kind: bad ? 'bad' : 'good',
         icon,
         color,
+        areaId,
         days,
         remindAt,
         placeId,
@@ -223,6 +233,46 @@ function NewSheetForm() {
 
   const pal = usePalette();
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
+
+  const areaName = areaId ? areaList.find((a) => a.id === areaId)?.name : undefined;
+  const pickArea = (id: string | null) => {
+    setAreaId(id);
+    if (kind !== 'habit' || colorTouched) return;
+    setColor(areaList.find((a) => a.id === id)?.color ?? DEFAULT_SWATCH);
+  };
+
+  const areaRow = (
+    <FormRow
+      icon="habits"
+      label={cap(t('new.area'))}
+      value={areaName ?? t('area.none')}
+      set={areaId !== null}
+      open={openRow === 'area'}
+      onPress={() => toggleRow('area')}
+    >
+      <View style={styles.chips} accessibilityRole="radiogroup">
+        <Chip
+          size="md"
+          role="radio"
+          label={t('area.none')}
+          selected={areaId === null}
+          onPress={() => pickArea(null)}
+        />
+        {areaList.map((a) => (
+          <Chip
+            key={a.id}
+            size="md"
+            role="radio"
+            label={a.name}
+            dot={a.color}
+            selected={areaId === a.id}
+            onPress={() => pickArea(a.id)}
+          />
+        ))}
+        <Chip size="md" dashed label={t('area.add')} onPress={() => setAreaSheet(true)} />
+      </View>
+    </FormRow>
+  );
   const dateLabel =
     date === null
       ? t(kind === 'goal' ? 'deadline.none' : 'when.none')
@@ -232,7 +282,6 @@ function NewSheetForm() {
           ? t('when.tomorrow')
           : dayMonth(t, date);
   const placeName = placeId ? (placeList.find((x) => x.id === placeId)?.name ?? '') : '';
-  const areaName = areaId ? areaList.find((a) => a.id === areaId)?.name : undefined;
   const short = (x: string) => (x.length > 22 ? `${x.slice(0, 21)}…` : x);
   const titleKey = kind === 'task' ? 'new.task' : kind === 'habit' ? 'new.habit' : 'new.goal';
 
@@ -342,36 +391,7 @@ function NewSheetForm() {
                 ))}
               </View>
             </FormRow>
-            <FormRow
-              icon="habits"
-              label={cap(t('new.area'))}
-              value={areaName ?? t('area.none')}
-              set={areaId !== null}
-              open={openRow === 'area'}
-              onPress={() => toggleRow('area')}
-            >
-              <View style={styles.chips} accessibilityRole="radiogroup">
-                <Chip
-                  size="md"
-                  role="radio"
-                  label={t('area.none')}
-                  selected={areaId === null}
-                  onPress={() => setAreaId(null)}
-                />
-                {areaList.map((a) => (
-                  <Chip
-                    key={a.id}
-                    size="md"
-                    role="radio"
-                    label={a.name}
-                    dot={a.color}
-                    selected={areaId === a.id}
-                    onPress={() => setAreaId(a.id)}
-                  />
-                ))}
-                <Chip size="md" dashed label={t('area.add')} onPress={() => setAreaSheet(true)} />
-              </View>
-            </FormRow>
+            {areaRow}
           </>
         )}
 
@@ -435,6 +455,8 @@ function NewSheetForm() {
           </FormRow>
         )}
 
+        {kind === 'habit' && areaRow}
+
         {kind === 'habit' && soft && (
           <FormRow
             icon="habits"
@@ -445,7 +467,7 @@ function NewSheetForm() {
             open={openRow === 'color'}
             onPress={() => toggleRow('color')}
           >
-            <ColorPicker value={color} onChange={setColor} />
+            <ColorPicker value={color} onChange={chooseColor} />
           </FormRow>
         )}
 
@@ -751,7 +773,7 @@ function NewSheetForm() {
             </Group>
           )}
 
-          {kind === 'task' && (
+          {(kind === 'task' || kind === 'habit') && (
             <Group title={t('new.area')}>
               <View style={styles.chips} accessibilityRole="radiogroup">
                 <Chip
@@ -759,7 +781,7 @@ function NewSheetForm() {
                   role="radio"
                   label={t('area.none')}
                   selected={areaId === null}
-                  onPress={() => setAreaId(null)}
+                  onPress={() => pickArea(null)}
                 />
                 {areaList.map((a) => (
                   <Chip
@@ -768,7 +790,7 @@ function NewSheetForm() {
                     role="radio"
                     label={a.name}
                     selected={areaId === a.id}
-                    onPress={() => setAreaId(a.id)}
+                    onPress={() => pickArea(a.id)}
                   />
                 ))}
                 <Chip size="md" dashed label={t('area.add')} onPress={() => setAreaSheet(true)} />
@@ -868,7 +890,12 @@ function NewSheetForm() {
           visible
           editId={null}
           onClose={() => setAreaSheet(false)}
-          onSaved={(id) => setAreaId(id)}
+          onSaved={(id) => {
+            setAreaId(id);
+            // Новая сфера из формы привычки: цвет привычки следует за её цветом.
+            const created = useDataStore.getState().data.areas[id];
+            if (kind === 'habit' && !colorTouched && created) setColor(created.color);
+          }}
         />
       )}
 
