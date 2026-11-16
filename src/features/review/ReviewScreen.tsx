@@ -1,11 +1,14 @@
 /**
- * «Итог дня» (design/mult/M-Review): волк с вердиктом, оценка дня пятью лунами — от «Слил»
+ * «Итоги дня» (design/mult/M-Review): волк с вердиктом, оценка дня пятью лунами — от «Слил»
  * до «Красава», заметка по желанию, «Закрыть день». Если день уже закрыт — правка итога.
+ * С `date` открывается дневник за этот день (из календаря настроения или истории): оценка и
+ * заметка правятся, день не «закрывается».
  */
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
+import type { ISODate } from '../../core/model';
 import { vibrateSuccess } from '../../services/haptics';
 import { dayView, moodPhase } from '../../core/day';
 import { useDataStore } from '../../core/store';
@@ -28,15 +31,21 @@ import { designStyles } from '../../theme/design';
 const MOODS = [1, 2, 3, 4, 5] as const;
 const TILTS = [-2, 1.5, -1, 2, -1.5];
 
-type Props = { onBack: () => void; onClosed: () => void };
+type Props = {
+  onBack: () => void;
+  onClosed: () => void;
+  /** день дневника; по умолчанию сегодня */
+  date?: ISODate;
+};
 
-export function ReviewScreen({ onBack, onClosed }: Props) {
+export function ReviewScreen({ onBack, onClosed, date }: Props) {
   const p = usePalette();
   const t = useT();
   const insets = useSafeAreaInsets();
   const data = useDataStore((s) => s.data);
   const today = useDataStore((s) => s.today);
-  const existing = data.reviews[today];
+  const target = date ?? today;
+  const existing = data.reviews[target];
   const saved = existing && existing.deletedAt === null ? existing : undefined;
   const plain = usePlain();
   const soft = useSoft();
@@ -44,12 +53,15 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
   const [mood, setMood] = useState<number>(saved?.mood ?? (plain ? 3 : 4));
   const [note, setNote] = useState(saved?.note ?? '');
 
-  const day = useMemo(() => dayView(data, today, today), [data, today]);
+  const day = useMemo(() => dayView(data, target, today), [data, target, today]);
+  // Сегодняшний ещё не закрытый день закрывается; за другие дни — просто сохраняем.
+  const closing = target === today && !saved;
 
   const close = () => {
-    A.saveReview(today, mood, note);
+    A.saveReview(target, mood, note);
     vibrateSuccess();
-    onClosed();
+    if (closing) onClosed();
+    else onBack();
   };
 
   return (
@@ -61,7 +73,7 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
         <ScreenHeader
           onBack={onBack}
           kicker={t('review.kicker', {
-            date: fullDate(t, today),
+            date: fullDate(t, target),
             done: day.done,
             total: day.total,
           })}
@@ -197,7 +209,7 @@ export function ReviewScreen({ onBack, onClosed }: Props) {
         />
       </ScrollView>
       <View style={[styles.footer, { paddingBottom: insets.bottom + SPACE.lg }]}>
-        <Button label={t(saved ? 'review.save' : 'review.close')} onPress={close} />
+        <Button label={t(closing ? 'review.close' : 'review.save')} onPress={close} />
       </View>
     </View>
   );

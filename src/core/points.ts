@@ -116,11 +116,39 @@ export type PackWeek = {
   tasksDone: number;
   /** чистых дней подряд по всем вредным (наименьшая серия); null — вредных нет */
   cleanStreak: number | null;
+  /** идеальных дней подряд: все привычки по плану выполнены (см. `perfectStreak`) */
+  perfectStreak: number;
   /** лучшая серия среди привычек */
   bestStreak: number;
   /** сливов и срывов за неделю */
   slips: number;
 };
+
+/** Сколько дней назад искать начало серии идеальных дней. */
+const PERFECT_LOOKBACK = 366;
+
+/**
+ * Идеальных дней подряд: в день выполнены все привычки по плану (полезные — до нормы, вредные —
+ * без срыва). Дни без привычек по плану, выходные и ещё не закончившийся сегодняшний день
+ * серию не рвут и не продлевают; невыполненная привычка в прошлом — рвёт.
+ */
+export function perfectStreak(snap: Pick<Snapshot, 'habits' | 'checks' | 'rests'>, today: ISODate) {
+  const habits = activeHabits(snap);
+  if (habits.length === 0) return 0;
+  const idx = indexHabits(snap);
+  const first = habits.reduce((min, h) => (h.startDate < min ? h.startDate : min), today);
+  let streak = 0;
+  for (let i = 0, d = today; i < PERFECT_LOOKBACK && d >= first; i++, d = addDays(d, -1)) {
+    const marks = habits.map((h) => habitDay(h, dataOf(idx, h.id), d, today).mark);
+    const required = marks.filter(
+      (m) => m === 'full' || m === 'partial' || m === 'slip' || m === 'empty'
+    );
+    if (required.length === 0) continue;
+    if (required.every((m) => m === 'full')) streak++;
+    else if (d !== today) break;
+  }
+  return streak;
+}
 
 /** Неделя для «Стаи». */
 export function packWeek(snap: Data, today: ISODate): PackWeek {
@@ -159,6 +187,7 @@ export function packWeek(snap: Data, today: ISODate): PackWeek {
     marks: days.reduce((n, d) => n + d.marks, 0),
     tasksDone,
     cleanStreak,
+    perfectStreak: perfectStreak(snap, today),
     bestStreak,
     slips,
   };

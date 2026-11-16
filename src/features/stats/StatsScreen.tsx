@@ -19,7 +19,9 @@ import { MoodCalendar } from './MoodCalendar';
 
 const BAR_MAX = 96;
 
-export function StatsScreen() {
+type Props = { onOpenDay?: (date: string) => void; onOpenHistory?: () => void };
+
+export function StatsScreen({ onOpenDay, onOpenHistory }: Props) {
   const p = usePalette();
   const soft = useSoft();
   const t = useT();
@@ -115,15 +117,13 @@ export function StatsScreen() {
         </View>
       </View>
 
-      <MoodCalendar />
+      <MoodCalendar onOpenDay={onOpenDay} onOpenHistory={onOpenHistory} />
 
       <View>
-        {week.cleanStreak !== null && (
-          <Row
-            name={t('pack.cleanStreak', { count: week.cleanStreak })}
-            value={String(week.cleanStreak)}
-          />
-        )}
+        <Row
+          name={t('pack.perfectStreak', { count: week.perfectStreak })}
+          value={String(week.perfectStreak)}
+        />
         <Row
           name={t('pack.slips', { count: week.slips })}
           value={String(week.slips)}

@@ -16,7 +16,7 @@ import {
   type Snapshot,
   type Task,
 } from '../model';
-import { dayPoints, packWeek, POINTS, rankOf, totalPoints } from '../points';
+import { dayPoints, packWeek, perfectStreak, POINTS, rankOf, totalPoints } from '../points';
 import { quoteOfDay } from '../quotes';
 import { DEFAULT_SETTINGS, settingsOf } from '../settings';
 import { MemoryStorage } from '../storage/memory';
@@ -373,6 +373,40 @@ describe('очки и звания', () => {
     expect(w.days.map((d) => d.marks)).toEqual([1, 1, 1, 1, 1, 1, 1]); // 29 окт … 3 ноя — привычка, сегодня — дело
     expect(w).toMatchObject({ marks: 7, tasksDone: 1, cleanStreak: 3, bestStreak: 7, slips: 1 });
     expect(packWeek(snap({}), TODAY).cleanStreak).toBeNull();
+  });
+});
+
+describe('идеальные дни', () => {
+  test('считаются по всем привычкам плана; сегодняшний неоконченный день серию не рвёт', () => {
+    const s = snap({
+      habits: [habit('a', { startDate: '2026-10-29' }), habit('b', { startDate: '2026-10-29' })],
+      checks: [
+        ...daily('a', '2026-10-29', '2026-11-03'),
+        ...daily('b', '2026-10-29', '2026-11-03'),
+      ],
+    });
+    expect(perfectStreak(s, TODAY)).toBe(6);
+    // второй привычке не хватает одного дня — серия считается только после него
+    const gap = snap({
+      habits: [habit('a', { startDate: '2026-10-29' }), habit('b', { startDate: '2026-10-29' })],
+      checks: [
+        ...daily('a', '2026-10-29', '2026-11-03'),
+        ...daily('b', '2026-10-29', '2026-10-30'),
+        ...daily('b', '2026-11-01', '2026-11-03'),
+      ],
+    });
+    expect(perfectStreak(gap, TODAY)).toBe(3);
+    expect(perfectStreak(snap({}), TODAY)).toBe(0);
+  });
+
+  test('срыв вредной привычки рвёт серию', () => {
+    const s = snap({
+      habits: [habit('bad', { kind: 'bad', startDate: '2026-10-29' })],
+      checks: [check('bad', '2026-10-31')],
+    });
+    // после срыва 31 октября: 1, 2, 3 ноября и сегодня (срыва нет)
+    expect(perfectStreak(s, TODAY)).toBe(4);
+    expect(packWeek(s, TODAY).perfectStreak).toBe(4);
   });
 });
 

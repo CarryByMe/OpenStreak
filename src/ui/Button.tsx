@@ -7,7 +7,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, SHADOW, SIZE, SPACE, STROKE } from '../theme/metrics';
-import { hardShadow, softShadow, withAlpha, type ShadowSize } from '../theme/sticker';
+import { hardShadow, softShadow, type ShadowSize } from '../theme/sticker';
 import { TYPE } from '../theme/type';
 import { Icon, type UiIconName } from './icons';
 import { designStyles } from '../theme/design';
@@ -35,14 +35,9 @@ export function Button({ label, onPress, variant = 'primary', disabled, style }:
   const bg = primary ? (disabled ? p.track : p.sun) : p.surface;
   const fg = primary ? (disabled ? p.muted : p.onSun) : danger ? p.red : p.text;
   const shadow = primary ? 'lg' : 'sm';
-  // «Обычный»: главная кнопка с цветной тенью, остальные — белые карточки с мягкой тенью.
-  const softStyle: ViewStyle | null = soft
-    ? primary
-      ? disabled
-        ? {}
-        : { boxShadow: `0px 8px 18px 0px ${withAlpha(p.sun, 0.3)}` }
-      : softShadow(p)
-    : null;
+  // «Обычный»: главная кнопка плоская (без цветного свечения), остальные — белые карточки
+  // с мягкой нейтральной тенью.
+  const softStyle: ViewStyle | null = soft && !primary ? softShadow(p) : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -119,7 +114,7 @@ export function IconButton({
         { backgroundColor: sun ? p.sun : p[on], borderColor: p.line },
         plain && !sun && { borderWidth: 0, backgroundColor: p.surface },
         soft && { borderWidth: 0 },
-        soft && (sun ? { boxShadow: `0px 8px 18px 0px ${withAlpha(p.sun, 0.3)}` } : softShadow(p)),
+        soft && !sun && softShadow(p),
         !soft && (down ? pressed('sm') : on === 'surface' && hardShadow(p, 'sm')),
       ]}
     >

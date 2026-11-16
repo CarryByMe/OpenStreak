@@ -17,6 +17,7 @@ import { PackScreen } from '../features/pack/PackScreen';
 import { StatsScreen } from '../features/stats/StatsScreen';
 import { PlacesScreen } from '../features/places/PlacesScreen';
 import { ClosedScreen } from '../features/review/ClosedScreen';
+import { ReviewHistoryScreen } from '../features/review/ReviewHistoryScreen';
 import { ReviewScreen } from '../features/review/ReviewScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { TasksScreen } from '../features/tasks/TasksScreen';
@@ -32,7 +33,8 @@ export type RootStack = {
   places: undefined;
   areas: undefined;
   habit: { id: string };
-  review: undefined;
+  review: { date?: string } | undefined;
+  reviewHistory: undefined;
   closed: undefined;
 };
 
@@ -58,9 +60,11 @@ function LunaTabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-/** «Обычный» — «Итоги» (статистика), «АУФ» — «Стая» (звания и волк). */
-function PackOrStats() {
-  return usePlain() ? <StatsScreen /> : <PackScreen />;
+type DayLinks = { onOpenDay: (date: string) => void; onOpenHistory: () => void };
+
+/** «Обычный» и «Минималистичный» — «Итоги» (статистика), «АУФ» — «Стая» (звания и волк). */
+function PackOrStats(props: DayLinks) {
+  return usePlain() ? <StatsScreen {...props} /> : <PackScreen {...props} />;
 }
 
 function Tabs({ navigation }: NativeStackScreenProps<RootStack, 'tabs'>) {
@@ -75,6 +79,7 @@ function Tabs({ navigation }: NativeStackScreenProps<RootStack, 'tabs'>) {
           <TodayScreen
             onOpenSettings={() => navigation.navigate('settings')}
             onOpenReview={() => navigation.navigate('review')}
+            onOpenHistory={() => navigation.navigate('reviewHistory')}
           />
         )}
       </Tab.Screen>
@@ -83,7 +88,14 @@ function Tabs({ navigation }: NativeStackScreenProps<RootStack, 'tabs'>) {
         {() => <HabitsScreen onOpen={(id) => navigation.navigate('habit', { id })} />}
       </Tab.Screen>
       <Tab.Screen name="goals" component={GoalsScreen} />
-      <Tab.Screen name="pack" component={PackOrStats} />
+      <Tab.Screen name="pack">
+        {() => (
+          <PackOrStats
+            onOpenDay={(date) => navigation.navigate('review', { date })}
+            onOpenHistory={() => navigation.navigate('reviewHistory')}
+          />
+        )}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
@@ -107,10 +119,19 @@ export function RootNavigator() {
         )}
       </Stack.Screen>
       <Stack.Screen name="review">
-        {({ navigation }) => (
+        {({ navigation, route }) => (
           <ReviewScreen
+            date={route.params?.date}
             onBack={() => navigation.goBack()}
             onClosed={() => navigation.replace('closed')}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="reviewHistory">
+        {({ navigation }) => (
+          <ReviewHistoryScreen
+            onBack={() => navigation.goBack()}
+            onOpen={(date) => navigation.navigate('review', { date })}
           />
         )}
       </Stack.Screen>

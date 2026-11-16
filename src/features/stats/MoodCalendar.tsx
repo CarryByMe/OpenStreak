@@ -5,7 +5,7 @@
  * Дни без итога — пунктир, будущие — пустое место.
  */
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { weekday as weekdayOf } from '../../core/dates';
 import { moodPhase } from '../../core/day';
 import { moodCalendar, type MoodCell } from '../../core/mood';
@@ -14,7 +14,7 @@ import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
-import { usePalette, usePlain, useSoft } from '../../store/themeStore';
+import { useDesign, usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { MoodFace } from '../../ui/MoodFace';
@@ -25,7 +25,7 @@ const MOODS = [1, 2, 3, 4, 5] as const;
 const CELL = 30;
 
 /** Клетка одного дня; `mood` null — без оценки. */
-function MoodMark({
+export function MoodMark({
   mood,
   today,
   size = CELL,
@@ -85,8 +85,17 @@ function MoodMark({
   return <Moon phase={moodPhase(mood)} size={size} ring={mood === 1 ? 'red' : 'ring'} />;
 }
 
-export function MoodCalendar() {
+type CalendarProps = {
+  /** нажатие на день — открыть итоги этого дня (дневник) */
+  onOpenDay?: (date: ISODate) => void;
+  /** ссылка «История» */
+  onOpenHistory?: () => void;
+};
+
+export function MoodCalendar({ onOpenDay, onOpenHistory }: CalendarProps) {
   const p = usePalette();
+  // Ссылка акцентом; в «АУФ» жёлтый на кремовом не проходит контраст — там бирюзовый.
+  const link = useDesign() === 'auf' ? p.teal : p.sun;
   const t = useT();
   const data = useDataStore((s) => s.data);
   const today = useDataStore((s) => s.today);
@@ -102,6 +111,18 @@ export function MoodCalendar() {
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Text style={[TYPE.control, { color: p.text }]}>{t('mood.title')}</Text>
+        {onOpenHistory && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onOpenHistory}
+            hitSlop={8}
+            style={styles.history}
+          >
+            <Text style={[TYPE.control, { color: link }]}>{t('review.history')}</Text>
+          </Pressable>
+        )}
+      </View>
+      <View style={styles.head}>
         <Text style={[TYPE.meta, { color: p.muted }]}>
           {t('mood.rated', { count: cal.rated })}
           {cal.average !== null &&
@@ -119,11 +140,20 @@ export function MoodCalendar() {
       {cal.weeks.map((week) => (
         <View key={week[0]!.date} style={styles.row}>
           {week.map((c) => (
-            <View
+            <Pressable
               key={c.date}
               style={styles.cell}
+              disabled={c.future || !onOpenDay}
               accessible={!c.future}
-              accessibilityLabel={c.future ? undefined : describe(c)}
+              accessibilityRole={onOpenDay && !c.future ? 'button' : undefined}
+              accessibilityLabel={
+                c.future
+                  ? undefined
+                  : onOpenDay
+                    ? `${describe(c)}. ${t('review.dayOpen', { date: dayMonth(t, c.date) })}`
+                    : describe(c)
+              }
+              onPress={() => onOpenDay?.(c.date)}
             >
               {!c.future && <MoodMark mood={c.mood} today={c.today} />}
               {!c.future && (
@@ -133,7 +163,7 @@ export function MoodCalendar() {
                   {Number(c.date.slice(8, 10))}
                 </Text>
               )}
-            </View>
+            </Pressable>
           ))}
         </View>
       ))}
@@ -159,6 +189,7 @@ export function MoodCalendar() {
 const styles = StyleSheet.create({
   wrap: { gap: SPACE.sm },
   head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  history: { minHeight: 32, justifyContent: 'center' },
   row: { flexDirection: 'row' },
   cell: { flex: 1, alignItems: 'center', textAlign: 'center', gap: 2, minHeight: 0 },
   legend: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: SPACE.xs },

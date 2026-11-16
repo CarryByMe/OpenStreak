@@ -26,7 +26,9 @@ import { designStyles } from '../../theme/design';
 const BAR_MAX = 72;
 const RANK_TILT = [-3, 2, -2, 3, -1];
 
-export function PackScreen() {
+type Props = { onOpenDay?: (date: string) => void; onOpenHistory?: () => void };
+
+export function PackScreen({ onOpenDay, onOpenHistory }: Props) {
   const p = usePalette();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -167,7 +169,7 @@ export function PackScreen() {
       </Card>
 
       <Card radius={RADIUS.xl} style={styles.week}>
-        <MoodCalendar />
+        <MoodCalendar onOpenDay={onOpenDay} onOpenHistory={onOpenHistory} />
       </Card>
 
       <View style={styles.nums}>

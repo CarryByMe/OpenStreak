@@ -3,6 +3,7 @@
  * волк с цитатой, строка «Запиши…», «Осталось» лунами и журнал «Сделано» со временем.
  */
 import React, { useMemo } from 'react';
+import { ReviewCard } from './ReviewCard';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
@@ -30,9 +31,13 @@ import { useToast } from '../../ui/toast';
 import { dayMonth, fullDate } from '../format';
 import { useNewSheet } from '../new/newSheetStore';
 
-type Props = { onOpenSettings: () => void; onOpenReview: () => void };
+type Props = {
+  onOpenSettings: () => void;
+  onOpenReview: () => void;
+  onOpenHistory: () => void;
+};
 
-export function TodayScreen({ onOpenSettings, onOpenReview }: Props) {
+export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Props) {
   const p = usePalette();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -158,6 +163,8 @@ export function TodayScreen({ onOpenSettings, onOpenReview }: Props) {
 
       <AddRow label={t('common.addPrompt')} onPress={() => showNew('task')} />
 
+      {plain && <ReviewCard onOpenReview={onOpenReview} onOpenHistory={onOpenHistory} />}
+
       {day.left.length > 0 && (
         <View style={styles.section}>
           <SectionTitle
@@ -205,7 +212,7 @@ export function TodayScreen({ onOpenSettings, onOpenReview }: Props) {
         </View>
       )}
 
-      {day.total > 0 && (
+      {!plain && day.total > 0 && (
         <LinkRow
           title={t(closed ? 'review.linkClosed' : 'review.link')}
           sub={t(closed ? 'review.linkClosedSub' : 'review.linkSub')}
