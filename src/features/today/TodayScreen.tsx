@@ -18,12 +18,13 @@ import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { quoteCount, type MessageKey } from '../../i18n';
 import { useT, type Translate } from '../../store/prefsStore';
-import { usePalette, usePlain } from '../../store/themeStore';
+import { usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { RADIUS, SIZE, SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton, LinkRow } from '../../ui/Button';
 import { Moon } from '../../ui/Moon';
 import { DayRail, type RailState } from '../../ui/DayRail';
+import { IconTile } from '../../ui/icons';
 import { LogRow, MoonRow } from '../../ui/MoonRow';
 import { PriorityMarks } from '../../ui/Priority';
 import { SectionTitle } from '../../ui/ScreenHeader';
@@ -234,6 +235,7 @@ type RowProps = {
 
 function LeftRow({ item, today, view, t, last }: RowProps) {
   const p = usePalette();
+  const soft = useSoft();
   const data = useDataStore((s) => s.data);
   const toast = useToast((s) => s.show);
 
@@ -286,11 +288,10 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
         .filter(Boolean)
         .join(' · ')
     : undefined;
-  const meta = numeric
-    ? t('row.numeric', { value, target: habit.target })
-    : streak > 0
-      ? t('row.streakShort', { count: streak })
-      : '';
+  const counter = numeric ? t('row.numeric', { value, target: habit.target }) : undefined;
+  // «Обычный»: счёт числовой привычки — в самой кнопке, как в монолите.
+  const meta =
+    numeric && !soft ? counter : streak > 0 ? t('row.streakShort', { count: streak }) : '';
   return (
     <MoonRow
       title={item.title}
@@ -298,6 +299,8 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
       phase={item.fraction}
       shape="square"
       tint={habitColor(habit, data.areas)}
+      lead={<IconTile icon={habit.icon} size={30} color={habitColor(habit, data.areas)} />}
+      markLabel={counter}
       last={last}
       right={meta ? <Text style={[TYPE.badge, { color: p.text }]}>{meta}</Text> : null}
       onToggle={() => {

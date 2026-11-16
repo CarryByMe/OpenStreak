@@ -1,6 +1,7 @@
 /**
  * Строка дела или привычки внутри наклейки-списка: луна-отметка слева, название, подпись,
  * справа — пометка. Выполненное — приглушено и зачёркнуто. Между строками — пунктир.
+ * В «Обычном» (монолит) у привычки (`shape="square"`) отметка — большая круглая кнопка справа.
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -27,6 +28,10 @@ type Props = {
   done?: boolean;
   /** нажатие на луну */
   onToggle?: () => void;
+  /** «Обычный», привычка: значок слева (плитка цвета привычки) */
+  lead?: React.ReactNode;
+  /** «Обычный», привычка: текст в кнопке вместо галочки (числовая — «3/5») */
+  markLabel?: string;
   /** свой текст луны для чтения с экрана (например, «Добавить подходы: …») */
   toggleLabel?: string;
   /** нажатие на строку (открыть) */
@@ -43,14 +48,47 @@ export function MoonRow(props: Props) {
   const soft = useSoft();
   const t = useT();
   const { title, done = false } = props;
+  const trailing = soft && props.shape === 'square';
+  const mark = (
+    <Pressable
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: done }}
+      accessibilityLabel={props.toggleLabel ?? t(done ? 'a11y.uncheck' : 'a11y.check', { title })}
+      onPress={props.onToggle}
+      style={trailing ? styles.big : styles.moon}
+    >
+      {({ pressed }) => (
+        <View style={pressed && styles.pressed}>
+          {plain ? (
+            <PlainMark
+              shape={props.shape}
+              habit={trailing}
+              label={trailing ? props.markLabel : undefined}
+              fill={done ? 1 : props.phase}
+              debt={props.debt && !done}
+              tint={props.tint}
+            />
+          ) : (
+            <Moon
+              phase={props.phase}
+              size={SIZE.moonRow}
+              ring={props.debt && !done ? 'red' : 'ring'}
+            />
+          )}
+        </View>
+      )}
+    </Pressable>
+  );
   return (
     <View
       style={[
         styles.row,
         plain
-          ? soft
-            ? { backgroundColor: 'transparent', paddingLeft: SPACE.tight, paddingRight: 14 }
-            : { backgroundColor: 'transparent', paddingLeft: 0, paddingRight: 4 }
+          ? trailing
+            ? { backgroundColor: 'transparent', paddingLeft: 14, paddingRight: SPACE.sm }
+            : soft
+              ? { backgroundColor: 'transparent', paddingLeft: SPACE.tight, paddingRight: 14 }
+              : { backgroundColor: 'transparent', paddingLeft: 0, paddingRight: 4 }
           : { backgroundColor: p.surface },
         !props.last &&
           (plain
@@ -62,32 +100,7 @@ export function MoonRow(props: Props) {
               }),
       ]}
     >
-      <Pressable
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: done }}
-        accessibilityLabel={props.toggleLabel ?? t(done ? 'a11y.uncheck' : 'a11y.check', { title })}
-        onPress={props.onToggle}
-        style={styles.moon}
-      >
-        {({ pressed }) => (
-          <View style={pressed && styles.pressed}>
-            {plain ? (
-              <PlainMark
-                shape={props.shape}
-                fill={done ? 1 : props.phase}
-                debt={props.debt && !done}
-                tint={props.tint}
-              />
-            ) : (
-              <Moon
-                phase={props.phase}
-                size={SIZE.moonRow}
-                ring={props.debt && !done ? 'red' : 'ring'}
-              />
-            )}
-          </View>
-        )}
-      </Pressable>
+      {trailing ? props.lead : mark}
       <Pressable
         style={styles.body}
         onPress={props.onPress}
@@ -105,6 +118,7 @@ export function MoonRow(props: Props) {
         {!!props.sub && <Text style={[TYPE.meta, { color: p.muted }]}>{props.sub}</Text>}
       </Pressable>
       {props.right}
+      {trailing && mark}
     </View>
   );
 }
@@ -147,6 +161,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  big: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   pressed: { transform: [{ scale: 0.88 }] },
   body: { flex: 1, minWidth: 0, paddingVertical: SPACE.sm },
   log: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, minHeight: 36 },

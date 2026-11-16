@@ -242,11 +242,15 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                   style={styles.softMark}
                 >
                   <PlainMark
-                    shape="circle"
-                    size={28}
+                    habit
                     fill={done ? 1 : Math.min(1, value / full)}
                     debt={h.kind === 'bad' && !done}
                     tint={habitColor(h, data.areas)}
+                    label={
+                      h.measure === 'numeric'
+                        ? t('row.numeric', { value, target: h.target })
+                        : undefined
+                    }
                   />
                 </Pressable>
               </View>
@@ -332,6 +336,6 @@ const styles = designStyles(() =>
     plainBody: { flex: 1, gap: 10, paddingTop: 2 },
     plainHead: { flexDirection: 'row', alignItems: 'flex-start', gap: SPACE.md },
     plainStreak: { alignItems: 'flex-end', paddingTop: 2 },
-    softMark: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    softMark: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   })
 );

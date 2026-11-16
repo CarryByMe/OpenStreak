@@ -1,6 +1,7 @@
 /**
  * Карточка «Итоги дня» вверху «Сегодня» (как «Вечерний обзор» в монолите): оценка дня или
  * подсказка, кнопка «Заполнить / Изменить» ведёт к итогам дня, сама карточка — к истории.
+ * Кнопка — соседка ссылки, а не вложена в неё: на web <button> внутри <button> недопустим.
  * Для «Обычного» и «Минималистичного»; в «АУФ» остаётся ссылка внизу экрана.
  */
 import React from 'react';
@@ -29,27 +30,29 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
 
   return (
     <Card padded={false}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${t('review.link')}. ${t('review.history')}`}
-        onPress={onOpenHistory}
-        style={styles.row}
-      >
-        <View style={styles.mark}>
-          {review ? (
-            <MoodMark mood={review.mood} size={40} />
-          ) : (
-            <View style={[styles.empty, { backgroundColor: p.tag }]}>
-              <Icon name="history" size={22} tone="muted" />
-            </View>
-          )}
-        </View>
-        <View style={styles.text}>
-          <Text style={[TYPE.itemStrong, { color: p.text }]}>{t('review.link')}</Text>
-          <Text numberOfLines={1} style={[TYPE.meta, { color: p.muted }]}>
-            {sub}
-          </Text>
-        </View>
+      <View style={styles.row}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('review.link')}. ${t('review.history')}`}
+          onPress={onOpenHistory}
+          style={styles.main}
+        >
+          <View style={styles.mark}>
+            {review ? (
+              <MoodMark mood={review.mood} size={40} />
+            ) : (
+              <View style={[styles.empty, { backgroundColor: p.tag }]}>
+                <Icon name="history" size={22} tone="muted" />
+              </View>
+            )}
+          </View>
+          <View style={styles.text}>
+            <Text style={[TYPE.itemStrong, { color: p.text }]}>{t('review.link')}</Text>
+            <Text numberOfLines={1} style={[TYPE.meta, { color: p.muted }]}>
+              {sub}
+            </Text>
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={onOpenReview}
@@ -59,13 +62,14 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
             {t(review ? 'review.card.edit' : 'review.card.fill')}
           </Text>
         </Pressable>
-      </Pressable>
+      </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.md },
+  main: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   mark: { width: 44, alignItems: 'center' },
   empty: {
     width: 40,
