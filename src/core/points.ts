@@ -116,38 +116,51 @@ export type PackWeek = {
   tasksDone: number;
   /** чистых дней подряд по всем вредным (наименьшая серия); null — вредных нет */
   cleanStreak: number | null;
-  /** идеальных дней подряд: все привычки по плану выполнены (см. `perfectStreak`) */
+  /** идеальных дней подряд: все привычки по плану выполнены (см. `perfectRecord`) */
   perfectStreak: number;
+  /** самая длинная серия идеальных дней за всё время */
+  perfectBest: number;
   /** лучшая серия среди привычек */
   bestStreak: number;
   /** сливов и срывов за неделю */
   slips: number;
 };
 
-/** Сколько дней назад искать начало серии идеальных дней. */
-const PERFECT_LOOKBACK = 366;
+/** Сколько дней назад смотреть при поиске серий идеальных дней (10 лет). */
+const PERFECT_LOOKBACK = 3660;
 
 /**
- * Идеальных дней подряд: в день выполнены все привычки по плану (полезные — до нормы, вредные —
+ * Серии идеальных дней: в день выполнены все привычки по плану (полезные — до нормы, вредные —
  * без срыва). Дни без привычек по плану, выходные и ещё не закончившийся сегодняшний день
  * серию не рвут и не продлевают; невыполненная привычка в прошлом — рвёт.
+ * `current` — серия, идущая сейчас; `best` — самая длинная за всё время.
  */
-export function perfectStreak(snap: Pick<Snapshot, 'habits' | 'checks' | 'rests'>, today: ISODate) {
+export function perfectRecord(
+  snap: Pick<Snapshot, 'habits' | 'checks' | 'rests'>,
+  today: ISODate
+): { current: number; best: number } {
   const habits = activeHabits(snap);
-  if (habits.length === 0) return 0;
+  if (habits.length === 0) return { current: 0, best: 0 };
   const idx = indexHabits(snap);
-  const first = habits.reduce((min, h) => (h.startDate < min ? h.startDate : min), today);
-  let streak = 0;
-  for (let i = 0, d = today; i < PERFECT_LOOKBACK && d >= first; i++, d = addDays(d, -1)) {
+  const earliest = habits.reduce((min, h) => (h.startDate < min ? h.startDate : min), today);
+  const limit = addDays(today, -(PERFECT_LOOKBACK - 1));
+  let run = 0;
+  let best = 0;
+  for (const d of daysBetween(earliest > limit ? earliest : limit, today)) {
     const marks = habits.map((h) => habitDay(h, dataOf(idx, h.id), d, today).mark);
     const required = marks.filter(
       (m) => m === 'full' || m === 'partial' || m === 'slip' || m === 'empty'
     );
     if (required.length === 0) continue;
-    if (required.every((m) => m === 'full')) streak++;
-    else if (d !== today) break;
+    if (required.every((m) => m === 'full')) best = Math.max(best, ++run);
+    else if (d !== today) run = 0;
   }
-  return streak;
+  return { current: run, best };
+}
+
+/** Идеальных дней подряд сейчас (см. `perfectRecord`). */
+export function perfectStreak(snap: Pick<Snapshot, 'habits' | 'checks' | 'rests'>, today: ISODate) {
+  return perfectRecord(snap, today).current;
 }
 
 /** Неделя для «Стаи». */
@@ -182,12 +195,14 @@ export function packWeek(snap: Data, today: ISODate): PackWeek {
   }
 
   const days = dates.map((date) => ({ date, marks: marks.get(date)! }));
+  const perfect = perfectRecord(snap, today);
   return {
     days,
     marks: days.reduce((n, d) => n + d.marks, 0),
     tasksDone,
     cleanStreak,
-    perfectStreak: perfectStreak(snap, today),
+    perfectStreak: perfect.current,
+    perfectBest: perfect.best,
     bestStreak,
     slips,
   };

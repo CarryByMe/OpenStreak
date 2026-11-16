@@ -16,6 +16,7 @@ import { TYPE } from '../../theme/type';
 import { ScreenHeader, SectionTitle } from '../../ui/ScreenHeader';
 import { dayMonth } from '../format';
 import { MoodCalendar } from './MoodCalendar';
+import { StatCards } from './StatCards';
 
 const BAR_MAX = 96;
 
@@ -31,6 +32,8 @@ export function StatsScreen({ onOpenDay, onOpenHistory }: Props) {
   const week = useMemo(() => packWeek(data, today), [data, today]);
   const maxMarks = Math.max(1, ...week.days.map((d) => d.marks));
   const from = addDays(today, -6);
+  // отметки за неделю — дела и нормы привычек; карточка показывает только привычки
+  const habitMarks = week.marks - week.tasksDone;
 
   const numbers = [
     { value: String(week.tasksDone), label: t('pack.tasksDone', { count: week.tasksDone }) },
@@ -48,32 +51,65 @@ export function StatsScreen({ onOpenDay, onOpenHistory }: Props) {
         title={t('tab.stats')}
       />
 
-      <View
-        style={[
-          styles.numbers,
-          soft
-            ? {
-                borderWidth: 0,
-                backgroundColor: p.surface,
-                borderRadius: 18,
-                paddingHorizontal: 16,
-              }
-            : { borderColor: p.divider },
-        ]}
-      >
-        {numbers.map((n, i) => (
-          <View
-            key={n.label}
-            style={[
-              styles.number,
-              i > 0 && { borderLeftWidth: 1, borderLeftColor: p.divider, paddingLeft: 14 },
-            ]}
-          >
-            <Text style={[TYPE.numberL, { color: p.text }]}>{n.value}</Text>
-            <Text style={[TYPE.caption, { color: p.muted }]}>{n.label}</Text>
-          </View>
-        ))}
-      </View>
+      {soft ? (
+        <StatCards
+          cards={[
+            {
+              icon: 'check',
+              color: p.teal,
+              value: week.tasksDone,
+              label: t('stats.tasksWeek', { count: week.tasksDone }),
+            },
+            {
+              icon: 'repeat',
+              color: p.prioLow,
+              value: habitMarks,
+              label: t('stats.habitMarks', { count: habitMarks }),
+            },
+            {
+              icon: 'star',
+              color: p.prioMid,
+              value: week.perfectStreak,
+              label: t('pack.perfectStreak', { count: week.perfectStreak }),
+              note: t('stats.now'),
+            },
+            {
+              icon: 'trophy',
+              color: p.violet,
+              value: week.perfectBest,
+              label: t('pack.perfectStreak', { count: week.perfectBest }),
+              note: t('stats.best'),
+            },
+          ]}
+        />
+      ) : (
+        <View
+          style={[
+            styles.numbers,
+            soft
+              ? {
+                  borderWidth: 0,
+                  backgroundColor: p.surface,
+                  borderRadius: 18,
+                  paddingHorizontal: 16,
+                }
+              : { borderColor: p.divider },
+          ]}
+        >
+          {numbers.map((n, i) => (
+            <View
+              key={n.label}
+              style={[
+                styles.number,
+                i > 0 && { borderLeftWidth: 1, borderLeftColor: p.divider, paddingLeft: 14 },
+              ]}
+            >
+              <Text style={[TYPE.numberL, { color: p.text }]}>{n.value}</Text>
+              <Text style={[TYPE.caption, { color: p.muted }]}>{n.label}</Text>
+            </View>
+          ))}
+        </View>
+      )}
 
       <View style={styles.section}>
         <SectionTitle title={t('pack.week')} />
@@ -120,10 +156,12 @@ export function StatsScreen({ onOpenDay, onOpenHistory }: Props) {
       <MoodCalendar onOpenDay={onOpenDay} onOpenHistory={onOpenHistory} />
 
       <View>
-        <Row
-          name={t('pack.perfectStreak', { count: week.perfectStreak })}
-          value={String(week.perfectStreak)}
-        />
+        {!soft && (
+          <Row
+            name={t('pack.perfectStreak', { count: week.perfectStreak })}
+            value={String(week.perfectStreak)}
+          />
+        )}
         <Row
           name={t('pack.slips', { count: week.slips })}
           value={String(week.slips)}

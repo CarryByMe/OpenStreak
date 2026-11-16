@@ -16,7 +16,15 @@ import {
   type Snapshot,
   type Task,
 } from '../model';
-import { dayPoints, packWeek, perfectStreak, POINTS, rankOf, totalPoints } from '../points';
+import {
+  dayPoints,
+  packWeek,
+  perfectRecord,
+  perfectStreak,
+  POINTS,
+  rankOf,
+  totalPoints,
+} from '../points';
 import { quoteOfDay } from '../quotes';
 import { DEFAULT_SETTINGS, settingsOf } from '../settings';
 import { MemoryStorage } from '../storage/memory';
@@ -397,6 +405,20 @@ describe('идеальные дни', () => {
     });
     expect(perfectStreak(gap, TODAY)).toBe(3);
     expect(perfectStreak(snap({}), TODAY)).toBe(0);
+  });
+
+  test('лучшая серия — самая длинная за всё время, даже если сейчас серия короче', () => {
+    // 29 окт – 1 ноя идеально (4 дня), 2 ноября пропуск, 3 ноября идеально, сегодня не отмечено
+    const s = snap({
+      habits: [habit('a', { startDate: '2026-10-29' })],
+      checks: [
+        ...daily('a', '2026-10-29', '2026-11-01'),
+        ...daily('a', '2026-11-03', '2026-11-03'),
+      ],
+    });
+    expect(perfectRecord(s, TODAY)).toEqual({ current: 1, best: 4 });
+    expect(packWeek(s, TODAY)).toMatchObject({ perfectStreak: 1, perfectBest: 4 });
+    expect(perfectRecord(snap({}), TODAY)).toEqual({ current: 0, best: 0 });
   });
 
   test('срыв вредной привычки рвёт серию', () => {
