@@ -17,8 +17,9 @@ import {
   habitDays,
   habitStats,
   indexHabits,
+  liveCheck,
 } from '../../core/habits';
-import { checkId, live, type Habit, type Snapshot } from '../../core/model';
+import { live, type Habit, type Snapshot } from '../../core/model';
 import { settingsOf } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { useT } from '../../store/prefsStore';
@@ -41,7 +42,7 @@ type Filter = 'all' | 'good' | 'bad';
 
 /** Вредная привычка: сегодня срыв отмечен. */
 function slippedToday(data: Snapshot, habitId: string, today: string): boolean {
-  return !!data.checks[checkId(habitId, today)];
+  return !!liveCheck(data, habitId, today);
 }
 
 /**
@@ -79,7 +80,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
         habit: h,
         stats: habitStats(h, hd, today),
         week: moonDays(habitDays(h, hd, addDays(today, -6), today, today), h, today),
-        value: data.checks[checkId(h.id, today)]?.value ?? 0,
+        value: liveCheck(data, h.id, today)?.value ?? 0,
         slippedYesterday: h.kind === 'good' && habitDay(h, hd, yesterday, today).mark === 'slip',
       };
     });

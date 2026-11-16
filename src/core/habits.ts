@@ -6,6 +6,7 @@
  */
 import { addDays, weekday } from './dates';
 import {
+  checkId,
   live,
   type Habit,
   type HabitCheck,
@@ -73,6 +74,19 @@ export function activeHabits(snap: Pick<Snapshot, 'habits'>): Habit[] {
 
 export function fullValue(h: Habit): number {
   return h.measure === 'numeric' ? h.target : 1;
+}
+
+/**
+ * Отметка привычки за день, если она не снята. Снятая отметка остаётся в данных с `deletedAt`
+ * (мягкое удаление), поэтому читать `snap.checks[id]` напрямую нельзя — будет старое значение.
+ */
+export function liveCheck(
+  snap: Pick<Snapshot, 'checks'>,
+  habitId: string,
+  date: ISODate
+): HabitCheck | undefined {
+  const c = snap.checks[checkId(habitId, date)];
+  return c && c.deletedAt === null ? c : undefined;
 }
 
 export function isScheduled(h: Habit, date: ISODate): boolean {

@@ -12,7 +12,7 @@ import * as A from '../../core/actions';
 import { vibrateImpact } from '../../services/haptics';
 import { addDays, clockOf } from '../../core/dates';
 import { closedStreak, dayNumber, dayView, isClosed, type DayItem } from '../../core/day';
-import { dataOf, fullValue, habitStats, indexHabits } from '../../core/habits';
+import { dataOf, fullValue, habitStats, indexHabits, liveCheck } from '../../core/habits';
 import { dayPoints } from '../../core/points';
 import { quoteOfDay } from '../../core/quotes';
 import { effectiveSettings, settingsOf } from '../../core/settings';
@@ -282,7 +282,7 @@ function SoftLists({
                   key={item.id}
                   habit={habit}
                   today={today}
-                  value={data.checks[`${habit.id}|${today}`]?.value ?? 0}
+                  value={liveCheck(data, habit.id, today)?.value ?? 0}
                   streak={streakOf(habit.id)}
                   weekStart={weekStart}
                 />
@@ -370,7 +370,7 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
   if (!habit) return null;
   const streak = view.streakOf(habit.id);
   const numeric = habit.measure === 'numeric';
-  const value = data.checks[`${habit.id}|${today}`]?.value ?? 0;
+  const value = liveCheck(data, habit.id, today)?.value ?? 0;
   const sub = numeric
     ? [
         t('row.numericLeft', { left: Math.max(0, habit.target - value) }),

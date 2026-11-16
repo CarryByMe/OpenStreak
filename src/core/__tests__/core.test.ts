@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from '@jest/globals';
 import * as A from '../actions';
-import { dataOf, habitDay, indexHabits } from '../habits';
+import { dataOf, habitDay, indexHabits, liveCheck } from '../habits';
 import { fromLegacyV4, parseBackup, toExportV5 } from '../migrate';
 import { checkId, live } from '../model';
 import { planReminders } from '../reminders';
@@ -265,6 +265,28 @@ describe('операции', () => {
     expect(today().mark).toBe('empty');
     A.toggleCheck(id, TODAY); // отметить целиком
     expect(data().checks[checkId(id, TODAY)].value).toBe(100);
+  });
+
+  test('снятая отметка не читается как выполненная (мягкое удаление)', () => {
+    const id = A.createHabit({
+      name: 'Зарядка',
+      icon: 'dumbbell',
+      kind: 'good',
+      color: '#000000',
+      days: null,
+      question: '',
+      remindAt: '',
+      areaId: null,
+      measure: 'boolean',
+      unit: 'count',
+      target: 1,
+    });
+    A.setCheckValue(id, TODAY, 1);
+    expect(liveCheck(data(), id, TODAY)?.value).toBe(1);
+    A.setCheckValue(id, TODAY, 0);
+    // запись осталась с deletedAt, но отметки за день уже нет
+    expect(data().checks[checkId(id, TODAY)].deletedAt).not.toBeNull();
+    expect(liveCheck(data(), id, TODAY)).toBeUndefined();
   });
 
   test('удаление привычки удаляет её отметки и отдых', () => {
