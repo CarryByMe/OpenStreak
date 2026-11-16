@@ -105,6 +105,15 @@ export const ru = {
   'row.streak': 'серия {count}',
   'row.streakShort': '{count} дн',
   'row.numeric': '{value}/{target}',
+  'today.habitsTitle': 'Привычки на сегодня',
+  'today.tasksTitle': 'Задачи на сегодня',
+  'today.habitsAllDone': 'Все привычки на сегодня выполнены',
+  'row.today': 'Сегодня',
+  'row.tomorrow': 'Завтра',
+  'row.yesterday': 'Вчера',
+  'row.delete': 'Удалить: {title}',
+  'row.restFor': 'Выходной: {title}',
+  'row.restUndone': 'Выходной отменён',
 
   // Цитаты волка — свои, только в пацанском тоне, одна в день (утверждены)
   'quote.0': 'Волк не ждёт понедельника. Волк и есть понедельник.',

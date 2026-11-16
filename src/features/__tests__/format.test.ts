@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { quoteCount, translate, type MessageKey, type Params } from '../../i18n';
-import { dayMonth, fullDate, groupDigits, shortDate } from '../format';
+import { dayMonth, fullDate, groupDigits, relDate, shortDate } from '../format';
 
 const t = (key: MessageKey, params?: Params) => translate('ru', 'bro', key, params);
 
@@ -9,6 +9,14 @@ describe('форматирование', () => {
     expect(fullDate(t, '2026-11-04')).toBe('Среда, 4 ноября');
     expect(dayMonth(t, '2026-12-20')).toBe('20 декабря');
     expect(shortDate('2026-11-01')).toBe('01.11.26');
+  });
+  test('дата задачи словами', () => {
+    const today = '2026-11-16';
+    expect(relDate(t, today, today)).toBe('Сегодня');
+    expect(relDate(t, '2026-11-17', today)).toBe('Завтра');
+    expect(relDate(t, '2026-11-15', today)).toBe('Вчера');
+    expect(relDate(t, '2026-11-01', today)).toBe('1 ноября');
+    expect(relDate(t, '2026-12-01', today)).toBe('1 декабря');
   });
   test('разряды через неразрывный пробел', () => {
     expect(groupDigits(760)).toBe('760');

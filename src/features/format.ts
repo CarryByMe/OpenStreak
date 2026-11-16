@@ -1,5 +1,5 @@
 /** Даты и время для подписей экранов — через строки (`src/i18n`), без текста в коде. */
-import { weekday } from '../core/dates';
+import { addDays, weekday } from '../core/dates';
 import type { ISODate } from '../core/model';
 import type { MessageKey } from '../i18n';
 import type { Translate } from '../store/prefsStore';
@@ -18,6 +18,14 @@ export function fullDate(t: Translate, d: ISODate): string {
 /** «3 ноября» */
 export function dayMonth(t: Translate, d: ISODate): string {
   return t('date.dayMonth', { day: Number(d.slice(8, 10)), month: t(month(d)) });
+}
+
+/** Дата задачи словами: «Сегодня», «Завтра», «Вчера» или «12 ноября». */
+export function relDate(t: Translate, date: ISODate, today: ISODate): string {
+  if (date === today) return t('row.today');
+  if (date === addDays(today, 1)) return t('row.tomorrow');
+  if (date === addDays(today, -1)) return t('row.yesterday');
+  return dayMonth(t, date);
 }
 
 /** «01.11.26» — короткая дата для подписей вроде «Слово дано». */
