@@ -102,12 +102,6 @@ function NewSheetForm() {
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
   const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
   const [color, setColor] = useState<string>(editingHabit?.color ?? DEFAULT_SWATCH);
-  // Пока цвет привычки не выбран вручную, он следует за цветом сферы.
-  const [colorTouched, setColorTouched] = useState(!!editingHabit);
-  const chooseColor = (c: string) => {
-    setColor(c);
-    setColorTouched(true);
-  };
   const [days, setDays] = useState<number[] | null>(editingHabit?.days ?? null);
   const weekStart = settingsOf(useDataStore((s) => s.data)).weekStart;
   // Как в монолите: «Каждый день» или набор дней; пусто и все семь — снова «каждый день».
@@ -155,7 +149,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
-        color,
+        color: shownColor,
         areaId,
         days,
         remindAt,
@@ -171,7 +165,7 @@ function NewSheetForm() {
         name: title,
         kind: bad ? 'bad' : 'good',
         icon,
-        color,
+        color: shownColor,
         areaId,
         days,
         remindAt,
@@ -235,11 +229,10 @@ function NewSheetForm() {
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
   const areaName = areaId ? areaList.find((a) => a.id === areaId)?.name : undefined;
-  const pickArea = (id: string | null) => {
-    setAreaId(id);
-    if (kind !== 'habit' || colorTouched) return;
-    setColor(areaList.find((a) => a.id === id)?.color ?? DEFAULT_SWATCH);
-  };
+  const pickArea = (id: string | null) => setAreaId(id);
+  // Привычка в сфере берёт цвет сферы; свой цвет задаётся только у привычки без сферы.
+  const areaColor = areaId ? areaList.find((a) => a.id === areaId)?.color : undefined;
+  const shownColor = areaColor ?? color;
 
   const areaRow = (
     <FormRow
@@ -451,13 +444,13 @@ function NewSheetForm() {
             open={openRow === 'icon'}
             onPress={() => toggleRow('icon')}
           >
-            <IconPicker value={icon} onChange={setIcon} color={soft ? color : undefined} />
+            <IconPicker value={icon} onChange={setIcon} color={soft ? shownColor : undefined} />
           </FormRow>
         )}
 
         {kind === 'habit' && areaRow}
 
-        {kind === 'habit' && soft && (
+        {kind === 'habit' && soft && !areaId && (
           <FormRow
             icon="habits"
             label={cap(t('color.title'))}
@@ -467,7 +460,7 @@ function NewSheetForm() {
             open={openRow === 'color'}
             onPress={() => toggleRow('color')}
           >
-            <ColorPicker value={color} onChange={chooseColor} />
+            <ColorPicker value={color} onChange={setColor} />
           </FormRow>
         )}
 
@@ -890,12 +883,7 @@ function NewSheetForm() {
           visible
           editId={null}
           onClose={() => setAreaSheet(false)}
-          onSaved={(id) => {
-            setAreaId(id);
-            // Новая сфера из формы привычки: цвет привычки следует за её цветом.
-            const created = useDataStore.getState().data.areas[id];
-            if (kind === 'habit' && !colorTouched && created) setColor(created.color);
-          }}
+          onSaved={(id) => setAreaId(id)}
         />
       )}
 

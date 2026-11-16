@@ -2,6 +2,7 @@
  * «Сегодня» (design/mult/M-Today): дата плашкой, луна дня в наклейке со счётом и очками дня,
  * волк с цитатой, строка «Запиши…», «Осталось» лунами и журнал «Сделано» со временем.
  */
+import { habitColor } from '../../core/colors';
 import React, { useMemo } from 'react';
 import { ReviewCard } from './ReviewCard';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -296,7 +297,7 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
       sub={sub}
       phase={item.fraction}
       shape="square"
-      tint={habit.color}
+      tint={habitColor(habit, data.areas)}
       last={last}
       right={meta ? <Text style={[TYPE.badge, { color: p.text }]}>{meta}</Text> : null}
       onToggle={() => {

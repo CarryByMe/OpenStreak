@@ -3,6 +3,7 @@
  * плитка-иконка, название, норма, бейдж серии, неделя лунами; заметка, если вчера слил.
  * Тап по наклейке — карточка привычки.
  */
+import { habitColor } from '../../core/colors';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -218,7 +219,7 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                   onPress={() => onOpen(h.id)}
                   style={[styles.head, styles.titles]}
                 >
-                  <IconTile icon={h.icon} size={40} color={h.color} />
+                  <IconTile icon={h.icon} size={40} color={habitColor(h, data.areas)} />
                   <View style={styles.titles}>
                     <Text style={[TYPE.itemStrong, { color: p.text }]}>{h.name}</Text>
                     <Text style={[TYPE.meta, { color: p.muted }]}>
@@ -245,11 +246,11 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                     size={28}
                     fill={done ? 1 : Math.min(1, value / full)}
                     debt={h.kind === 'bad' && !done}
-                    tint={h.color}
+                    tint={habitColor(h, data.areas)}
                   />
                 </Pressable>
               </View>
-              <WeekMoons days={week} tint={h.color} />
+              <WeekMoons days={week} tint={habitColor(h, data.areas)} />
               {slippedYesterday && (
                 <Text style={[TYPE.meta, { color: p.red }]}>{t('habits.slipNote')}</Text>
               )}

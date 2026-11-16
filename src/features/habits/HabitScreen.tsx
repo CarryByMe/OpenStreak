@@ -3,6 +3,7 @@
  * (или «Отметить»), серия зарубками, последние 4 недели лунами, «Выходной» и «Слил сегодня».
  * Для вредной привычки вместо «слил» — «Сорвался».
  */
+import { habitColor } from '../../core/colors';
 import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -47,7 +48,7 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
   const { weekStart } = settingsOf(data);
   const h = data.habits[habitId];
   const soft = useSoft();
-  const tint = useTint(h?.color);
+  const tint = useTint(h ? habitColor(h, data.areas) : undefined);
 
   const view = useMemo(() => {
     if (!h || h.deletedAt !== null) return null;
