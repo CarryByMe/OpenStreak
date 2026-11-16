@@ -1,6 +1,6 @@
 import { describe, expect, test } from '@jest/globals';
 import { SWATCHES } from '../swatches';
-import { contrastRatio, ensureContrast, readableOn } from '../readable';
+import { blend, contrastRatio, ensureContrast, readableOn } from '../readable';
 
 describe('readableOn', () => {
   test('светлый на тёмной заливке, тёмный на светлой', () => {
@@ -62,5 +62,16 @@ describe('ensureContrast', () => {
 
   test('мусор вместо цвета возвращается как есть', () => {
     expect(ensureContrast('red', light)).toBe('red');
+  });
+});
+
+describe('blend', () => {
+  test('смешивает цвет с фоном по доле', () => {
+    expect(blend('#000000', '#FFFFFF', 0)).toBe('#FFFFFF');
+    expect(blend('#000000', '#FFFFFF', 1)).toBe('#000000');
+    expect(blend('#FF0000', '#FFFFFF', 0.5)).toBe('#FF8080');
+  });
+  test('не hex — цвет как есть', () => {
+    expect(blend('red', '#FFFFFF', 0.5)).toBe('red');
   });
 });

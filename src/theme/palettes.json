@@ -1,5 +1,5 @@
 {
-  "$comment": "Тема «Мульт» (design/mult). light — «День» (бумага и гуашь), dark — «Вечерний мульт» (сумерки). Цвет со смыслом: sun — луна и главное действие, teal — зачёт и «включено», red — только слив и долги; tag — плашки и пузыри, sky — плитки иконок. line и shadow — обводка наклеек и жёсткая тень. Пары в checks проверяет scripts/check-contrast.mjs (WCAG 2.x): text — обычный текст ≥ 4.5, large — крупный ≥ 3, ui — луна, значки, переключатель ≥ 3. fur…star — рисунок волка и звёзды: декоративная картинка, в проверку не входит. Темы normalLight и normalDark — «Обычный» (вид монолита CoolTick): холодный нейтральный фон, белые карточки, синий акцент (sun = sky; teal — зелёный «сделано»), акцент и красный затемнены до контраста 4.5 на белом; line — мягкая линия полей, shadow — цвет мягкой тени карточек. Темы minimalLight и minimalDark — «Минималистичный» (бывший «Обычный», design/serious): мягкие нейтральные тона и один акцент (индиго): sun и teal равны акценту (главное действие, выбранное, «сделано»), line — цвет чернил, shadow = фон (тени нет), красный — только долг и срыв.",
+  "$comment": "Тема «Мульт» (design/mult). light — «День» (бумага и гуашь), dark — «Вечерний мульт» (сумерки). Цвет со смыслом: sun — луна и главное действие, teal — зачёт и «включено», red — только слив и долги; tag — плашки и пузыри, sky — плитки иконок. line и shadow — обводка наклеек и жёсткая тень. Пары в checks проверяет scripts/check-contrast.mjs (WCAG 2.x): text — обычный текст ≥ 4.5, large — крупный ≥ 3, ui — луна, значки, переключатель ≥ 3. fur…star и palm* — рисунок волка, звёзды и пальма: декоративная картинка, в проверку не входит. Темы normalLight и normalDark — «Обычный» (вид монолита CoolTick): холодный нейтральный фон, белые карточки, синий акцент (sun = sky; teal — зелёный «сделано»), акцент и красный затемнены до контраста 4.5 на белом; line — мягкая линия полей, shadow — цвет мягкой тени карточек. Темы minimalLight и minimalDark — «Минималистичный» (бывший «Обычный», design/serious): мягкие нейтральные тона и один акцент (индиго): sun и teal равны акценту (главное действие, выбранное, «сделано»), line — цвет чернил, shadow = фон (тени нет), красный — только долг и срыв.",
   "themes": {
     "light": {
       "bg": "#F3E9D2",
@@ -33,7 +33,11 @@
       "eye": "#FFF8E8",
       "tongue": "#E07A6A",
       "drop": "#9CCFDB",
-      "star": "#FFF8E8"
+      "star": "#FFF8E8",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     },
     "dark": {
       "bg": "#1D2740",
@@ -67,7 +71,11 @@
       "eye": "#FFF4DC",
       "tongue": "#E07A6A",
       "drop": "#9CCFDB",
-      "star": "#F6EBD3"
+      "star": "#F6EBD3",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     },
     "minimalLight": {
       "bg": "#FAFAF8",
@@ -101,7 +109,11 @@
       "eye": "#FFFFFF",
       "tongue": "#B5B5B5",
       "drop": "#8E8E8E",
-      "star": "#FFFFFF"
+      "star": "#FFFFFF",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     },
     "minimalDark": {
       "bg": "#141517",
@@ -135,7 +147,11 @@
       "eye": "#FFFFFF",
       "tongue": "#B5B5B5",
       "drop": "#8E8E8E",
-      "star": "#FFFFFF"
+      "star": "#FFFFFF",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     },
     "normalLight": {
       "bg": "#F4F6FA",
@@ -169,7 +185,11 @@
       "eye": "#FFFFFF",
       "tongue": "#B5B5B5",
       "drop": "#8E8E8E",
-      "star": "#FFFFFF"
+      "star": "#FFFFFF",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     },
     "normalDark": {
       "bg": "#0E1217",
@@ -203,7 +223,11 @@
       "eye": "#FFFFFF",
       "tongue": "#B5B5B5",
       "drop": "#8E8E8E",
-      "star": "#FFFFFF"
+      "star": "#FFFFFF",
+      "palmSand": "#FFE082",
+      "palmTrunk": "#8D6E63",
+      "palmLeaf": "#43A047",
+      "palmNut": "#6D4C41"
     }
   },
   "checks": [

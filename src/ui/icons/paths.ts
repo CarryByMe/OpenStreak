@@ -115,3 +115,20 @@ export const HABIT_ICONS = {
 
 export type UiIconName = keyof typeof UI_ICONS;
 export type HabitIconName = keyof typeof HABIT_ICONS;
+
+/**
+ * Пальма кнопки «выходной» (как в монолите CoolTick): цветной рисунок на сетке 64, не линия.
+ * Цвета — токены палитры `palm*`.
+ */
+export const PALM = {
+  viewBox: 64,
+  sand: { cx: 32, cy: 50, rx: 15, ry: 4.5 },
+  trunk: 'M31 50 Q29 38 33 28',
+  leaves: [
+    'M33 28 Q23 22 15 27',
+    'M33 28 Q27 16 18 14',
+    'M33 28 Q39 16 48 14',
+    'M33 28 Q43 22 51 27',
+  ],
+  nut: { cx: 33, cy: 30, r: 2.5 },
+} as const;

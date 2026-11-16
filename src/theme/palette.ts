@@ -70,6 +70,11 @@ export type Palette = {
   tongue: string;
   drop: string;
   star: string;
+  /** пальма на кнопке «выходной»: тоже рисунок, в проверку контраста не входит */
+  palmSand: string;
+  palmTrunk: string;
+  palmLeaf: string;
+  palmNut: string;
 };
 
 type ThemeKey = Scheme | 'minimalLight' | 'minimalDark' | 'normalLight' | 'normalDark';

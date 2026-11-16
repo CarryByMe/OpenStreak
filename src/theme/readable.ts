@@ -51,3 +51,16 @@ export function ensureContrast(color: string, backgrounds: string[], min = 3): s
   }
   return light ? '#000000' : '#FFFFFF';
 }
+
+/** Смешать `#RRGGBB` с фоном: `amount` — доля цвета (0…1). Не hex — вернём цвет как есть. */
+export function blend(color: string, bg: string, amount: number): string {
+  if (!HEX.test(color) || !HEX.test(bg)) return color;
+  const part = (i: number) => {
+    const c = parseInt(color.slice(i, i + 2), 16);
+    const b = parseInt(bg.slice(i, i + 2), 16);
+    return Math.round(b + (c - b) * amount)
+      .toString(16)
+      .padStart(2, '0');
+  };
+  return `#${part(1)}${part(3)}${part(5)}`.toUpperCase();
+}
