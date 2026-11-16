@@ -163,6 +163,28 @@ function NewSheetForm() {
     }
   };
 
+  const removeTask = () => {
+    if (!editing) return;
+    const id = editing.id;
+    A.deleteTask(id);
+    hide();
+    toast(t('toast.taskDeleted'), { label: t('common.return'), onPress: () => A.restoreTask(id) });
+  };
+
+  // Удаление привычки уносит историю отметок, поэтому спрашиваем второй раз.
+  const [armed, setArmed] = useState(false);
+  const removeHabit = () => {
+    if (!editingHabit) return;
+    if (!armed) {
+      setArmed(true);
+      toast(t('habit.deleteConfirm'));
+      return;
+    }
+    A.deleteHabit(editingHabit.id);
+    hide();
+    toast(t('toast.habitDeleted'));
+  };
+
   const removeGoal = () => {
     if (!editingGoal) return;
     const id = editingGoal.id;
@@ -536,6 +558,14 @@ function NewSheetForm() {
       )}
       footer={
         <View style={styles.footer}>
+          {editing && <Button label={t('edit.delete')} variant="danger" onPress={removeTask} />}
+          {editingHabit && (
+            <Button
+              label={t(armed ? 'habit.deleteSure' : 'edit.delete')}
+              variant="danger"
+              onPress={removeHabit}
+            />
+          )}
           {editingGoal && <Button label={t('edit.delete')} variant="danger" onPress={removeGoal} />}
           <Button
             label={t(editingAny ? 'edit.save' : 'new.save')}

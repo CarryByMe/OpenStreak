@@ -18,7 +18,7 @@ import { ThemeTile } from '../ThemeTile';
 import { Section } from './Section';
 
 const PRIORITY_LABELS: [string, string, string, string] = [
-  'Без важности',
+  'Без приоритета',
   'Низкая',
   'Средняя',
   'Высокая',

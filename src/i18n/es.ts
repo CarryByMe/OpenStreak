@@ -203,6 +203,10 @@ export const es: Record<MessageKey, Message> = {
   'area.name': 'nombre',
   'area.icon': 'icono',
   'habit.icon': 'icono',
+  'habit.deleteConfirm':
+    'Se borrarán las marcas y el historial del hábito. Toca otra vez para confirmar',
+  'habit.deleteSure': 'Borrar seguro',
+  'toast.habitDeleted': 'Hábito borrado',
   'area.delete': 'Eliminar área',
   'area.deleteConfirm': 'Las metas del área también se eliminarán. Pulsa otra vez para confirmar',
   'area.deleteSure': 'Eliminar de verdad',

@@ -6,9 +6,9 @@
  * Своя реализация на Modal + reanimated + gesture-handler: `BottomSheetModal` из
  * @gorhom/bottom-sheet на вебе не показывается, а шторка должна работать везде одинаково.
  */
-import React, { useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import {
-  KeyboardAvoidingView,
+  Keyboard,
   Modal,
   Platform,
   Pressable,
@@ -17,6 +17,8 @@ import {
   Text,
   useWindowDimensions,
   View,
+  type HostInstance,
+  type ScrollViewInstance,
 } from 'react-native';
 import {
   GestureDetector,
@@ -43,6 +45,30 @@ import { designStyles } from '../theme/design';
 const CLOSE_DISTANCE = 120;
 const CLOSE_VELOCITY = 900;
 
+/**
+ * Поле внутри шторки зовёт это при фокусе: шторка прокручивается так, чтобы поле было видно
+ * над клавиатурой. Вне шторки — пустая функция.
+ */
+const RevealContext = createContext<(node: HostInstance | null) => void>(() => {});
+export const useSheetReveal = () => useContext(RevealContext);
+
+/** Высота клавиатуры на экране; на вебе событий нет — 0. */
+function useKeyboardHeight(): number {
+  const [h, setH] = useState(0);
+  useEffect(() => {
+    const ios = Platform.OS === 'ios';
+    const show = Keyboard.addListener(ios ? 'keyboardWillChangeFrame' : 'keyboardDidShow', (e) =>
+      setH(e.endCoordinates.height)
+    );
+    const hide = Keyboard.addListener(ios ? 'keyboardWillHide' : 'keyboardDidHide', () => setH(0));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  return h;
+}
+
 type Props = {
   visible: boolean;
   onClose: () => void;
@@ -59,6 +85,23 @@ export function Sheet({ visible, onClose, title, children, footer }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
+  const keyboard = useKeyboardHeight();
+  const scroll = useRef<ScrollViewInstance>(null);
+  // Шторка — отдельное окно: клавиатуру поднимаем сами, на всех платформах одинаково.
+  const lift = keyboard;
+  const reveal = useCallback((node: HostInstance | null) => {
+    const inner = scroll.current?.getInnerViewRef();
+    if (!node || !inner) return;
+    // Клавиатура и новая высота шторки устанавливаются не мгновенно — меряем чуть позже.
+    setTimeout(() => {
+      node.measureLayout(
+        inner,
+        (_x: number, y: number) =>
+          scroll.current?.scrollTo({ y: Math.max(0, y - 72), animated: true }),
+        () => {}
+      );
+    }, 120);
+  }, []);
 
   // Modal остаётся на экране, пока шторка уезжает вниз.
   const [mounted, setMounted] = useState(visible);
@@ -125,16 +168,12 @@ export function Sheet({ visible, onClose, title, children, footer }: Props) {
             accessibilityLabel={t('common.close')}
           />
         </Animated.View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.bottom}
-          pointerEvents="box-none"
-        >
+        <View style={[styles.bottom, { paddingBottom: lift }]} pointerEvents="box-none">
           <Animated.View
             accessibilityViewIsModal
             style={[
               {
-                maxHeight: Math.round(height * 0.86),
+                maxHeight: Math.round(Math.min(height * 0.86, height - lift - insets.top - 8)),
                 backgroundColor: plain ? p.bg : p.surface,
                 borderColor: plain ? p.divider : p.line,
               },
@@ -157,20 +196,25 @@ export function Sheet({ visible, onClose, title, children, footer }: Props) {
                 </View>
               </View>
             </GestureDetector>
-            <ScrollView
-              contentContainerStyle={[
-                styles.content,
-                !footer && { paddingBottom: insets.bottom + 28 },
-              ]}
-              keyboardShouldPersistTaps="handled"
-            >
-              {children}
-            </ScrollView>
+            <RevealContext.Provider value={reveal}>
+              <ScrollView
+                ref={scroll}
+                contentContainerStyle={[
+                  styles.content,
+                  !footer && { paddingBottom: (lift ? 0 : insets.bottom) + 28 },
+                ]}
+                keyboardShouldPersistTaps="handled"
+              >
+                {children}
+              </ScrollView>
+            </RevealContext.Provider>
             {footer && (
-              <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>{footer}</View>
+              <View style={[styles.footer, { paddingBottom: (lift ? 0 : insets.bottom) + 20 }]}>
+                {footer}
+              </View>
             )}
           </Animated.View>
-        </KeyboardAvoidingView>
+        </View>
       </GestureHandlerRootView>
     </Modal>
   );
