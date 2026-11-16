@@ -18,7 +18,7 @@ import {
   habitStats,
   indexHabits,
 } from '../../core/habits';
-import { checkId, live, type Snapshot } from '../../core/model';
+import { checkId, live, type Habit, type Snapshot } from '../../core/model';
 import { settingsOf } from '../../core/settings';
 import { useDataStore } from '../../core/store';
 import { useT } from '../../store/prefsStore';
@@ -42,6 +42,16 @@ type Filter = 'all' | 'good' | 'bad';
 /** Вредная привычка: сегодня срыв отмечен. */
 function slippedToday(data: Snapshot, habitId: string, today: string): boolean {
   return !!data.checks[checkId(habitId, today)];
+}
+
+/**
+ * Отметка за сегодня. Полезная: сделано — норма выполнена, иначе доля нормы. Вредная: отметка —
+ * это срыв; нет срыва — круг пустой, нажатие отмечает срыв, повторное — снимает.
+ */
+function todayMark(h: Habit, slipped: boolean, value: number, full: number) {
+  const bad = h.kind === 'bad';
+  const on = bad ? slipped : value >= full;
+  return { bad, on, fill: on ? 1 : bad ? 0 : Math.min(1, value / full) };
 }
 
 /** Наклон бейджей серий по очереди — как наклейки, налепленные от руки. */
@@ -157,22 +167,27 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
         <View>
           {shown.map(({ habit: h, stats, week, value, slippedYesterday }) => {
             const full = fullValue(h);
-            const done = h.kind === 'bad' ? !slippedToday(data, h.id, today) : value >= full;
+            const {
+              bad,
+              on: done,
+              fill,
+            } = todayMark(h, slippedToday(data, h.id, today), value, full);
             return (
               <View key={h.id} style={[styles.plainRow, { borderTopColor: p.divider }]}>
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: done }}
-                  accessibilityLabel={t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })}
-                  disabled={h.kind === 'bad'}
-                  onPress={() => A.setCheckValue(h.id, today, done ? 0 : full)}
+                  accessibilityLabel={
+                    bad
+                      ? t(done ? 'habit.slipOff' : 'habit.slip')
+                      : t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })
+                  }
+                  onPress={() =>
+                    bad ? A.toggleCheck(h.id, today) : A.setCheckValue(h.id, today, done ? 0 : full)
+                  }
                   style={styles.plainMark}
                 >
-                  <PlainMark
-                    shape="square"
-                    fill={done ? 1 : Math.min(1, value / full)}
-                    debt={h.kind === 'bad' && !done}
-                  />
+                  <PlainMark shape="square" fill={fill} debt={bad} />
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -209,7 +224,11 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
       {soft &&
         shown.map(({ habit: h, stats, week, value, slippedYesterday }) => {
           const full = fullValue(h);
-          const done = h.kind === 'bad' ? !slippedToday(data, h.id, today) : value >= full;
+          const {
+            bad,
+            on: done,
+            fill,
+          } = todayMark(h, slippedToday(data, h.id, today), value, full);
           return (
             <Card key={h.id} padded style={styles.card}>
               <View style={styles.head}>
@@ -236,18 +255,24 @@ export function HabitsScreen({ onOpen }: { onOpen: (habitId: string) => void }) 
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: done }}
-                  accessibilityLabel={t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })}
-                  disabled={h.kind === 'bad'}
-                  onPress={() => A.setCheckValue(h.id, today, done ? 0 : full)}
+                  accessibilityLabel={
+                    bad
+                      ? t(done ? 'habit.slipOff' : 'habit.slip')
+                      : t(done ? 'a11y.uncheck' : 'a11y.check', { title: h.name })
+                  }
+                  onPress={() =>
+                    bad ? A.toggleCheck(h.id, today) : A.setCheckValue(h.id, today, done ? 0 : full)
+                  }
                   style={styles.softMark}
                 >
                   <PlainMark
                     habit
-                    fill={done ? 1 : Math.min(1, value / full)}
-                    debt={h.kind === 'bad' && !done}
+                    cross={bad}
+                    fill={fill}
+                    debt={bad}
                     tint={habitColor(h, data.areas)}
                     label={
-                      h.measure === 'numeric'
+                      !bad && h.measure === 'numeric'
                         ? t('row.numeric', { value, target: h.target })
                         : undefined
                     }

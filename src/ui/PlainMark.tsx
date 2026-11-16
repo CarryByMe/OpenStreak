@@ -30,14 +30,26 @@ type Props = {
   habit?: boolean;
   /** «Обычный», привычка: текст вместо галочки (числовая — «3/5») */
   label?: string;
+  /** «Обычный», привычка: крестик вместо галочки — у вредной отметка означает срыв */
+  cross?: boolean;
 };
 
 /** Галочка из общего набора, но с жирной линией, как в монолите. */
-function Check({ size, color, width }: { size: number; color: string; width: number }) {
+function Check({
+  size,
+  color,
+  width,
+  cross = false,
+}: {
+  size: number;
+  color: string;
+  width: number;
+  cross?: boolean;
+}) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
       <Path
-        d={UI_ICONS.check.d}
+        d={(cross ? UI_ICONS.close : UI_ICONS.check).d}
         fill="none"
         stroke={color}
         strokeWidth={width}
@@ -80,7 +92,7 @@ export function PlainMark(props: Props) {
   return soft ? <SoftMark {...props} /> : <MinimalMark {...props} />;
 }
 
-function SoftMark({ fill, size, debt = false, tint, habit = false, label }: Props) {
+function SoftMark({ fill, size, debt = false, tint, habit = false, label, cross }: Props) {
   const p = usePalette();
   const safe = useTint(tint);
   const color = debt ? p.red : (safe ?? p.sun);
@@ -141,7 +153,7 @@ function SoftMark({ fill, size, debt = false, tint, habit = false, label }: Prop
           {label}
         </Text>
       ) : (
-        <Check size={Math.round(side * 0.46)} color={full ? on : hint} width={3} />
+        <Check size={Math.round(side * 0.46)} color={full ? on : hint} width={3} cross={cross} />
       )}
     </Animated.View>
   );
@@ -218,16 +230,7 @@ export function PlainDay({
     return <View style={[box, { backgroundColor: accent }]} />;
   }
   if (state === 'slip') {
-    return (
-      <View
-        style={[
-          box,
-          { borderWidth: 2, borderColor: p.red, alignItems: 'center', justifyContent: 'center' },
-        ]}
-      >
-        <View style={{ width: size * 0.36, height: size * 0.36, backgroundColor: p.red }} />
-      </View>
-    );
+    return <View style={[box, { backgroundColor: p.red }]} />;
   }
   if (state === 'rest') {
     return (
