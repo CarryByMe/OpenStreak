@@ -29,27 +29,29 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
 
   return (
     <Card padded={false}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${t('review.link')}. ${t('review.history')}`}
-        onPress={onOpenHistory}
-        style={styles.row}
-      >
-        <View style={styles.mark}>
-          {review ? (
-            <MoodMark mood={review.mood} size={40} />
-          ) : (
-            <View style={[styles.empty, { backgroundColor: p.tag }]}>
-              <Icon name="history" size={22} tone="muted" />
-            </View>
-          )}
-        </View>
-        <View style={styles.text}>
-          <Text style={[TYPE.itemStrong, { color: p.text }]}>{t('review.link')}</Text>
-          <Text numberOfLines={1} style={[TYPE.meta, { color: p.muted }]}>
-            {sub}
-          </Text>
-        </View>
+      <View style={styles.row}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${t('review.link')}. ${t('review.history')}`}
+          onPress={onOpenHistory}
+          style={styles.history}
+        >
+          <View style={styles.mark}>
+            {review ? (
+              <MoodMark mood={review.mood} size={40} />
+            ) : (
+              <View style={[styles.empty, { backgroundColor: p.tag }]}>
+                <Icon name="history" size={22} tone="muted" />
+              </View>
+            )}
+          </View>
+          <View style={styles.text}>
+            <Text style={[TYPE.itemStrong, { color: p.text }]}>{t('review.link')}</Text>
+            <Text numberOfLines={1} style={[TYPE.meta, { color: p.muted }]}>
+              {sub}
+            </Text>
+          </View>
+        </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={onOpenReview}
@@ -59,13 +61,14 @@ export function ReviewCard({ onOpenReview, onOpenHistory }: Props) {
             {t(review ? 'review.card.edit' : 'review.card.fill')}
           </Text>
         </Pressable>
-      </Pressable>
+      </View>
     </Card>
   );
 }
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: SPACE.md, padding: SPACE.md },
+  history: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: SPACE.md },
   mark: { width: 44, alignItems: 'center' },
   empty: {
     width: 40,
