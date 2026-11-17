@@ -24,7 +24,9 @@ const { themes, checks, mood } = JSON.parse(
 let failed = 0;
 for (const [name, t] of Object.entries(themes)) {
   console.log(`\n${name}`);
-  for (const [fg, bg, kind] of checks) {
+  for (const [fg, bg, kind, onlyThemes] of checks) {
+    // Необязательный четвёртый элемент — темы, в которых пара проверяется.
+    if (onlyThemes && !onlyThemes.includes(name)) continue;
     if (!t[fg] || !t[bg] || !MIN[kind]) {
       console.log(`  MISSING  ${fg} / ${bg} / ${kind}`);
       failed++;

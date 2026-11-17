@@ -103,6 +103,24 @@ export const en: Record<MessageKey, Message> = {
   'row.restFor': 'Day off: {title}',
   'row.restUndone': 'Day off cancelled',
 
+  // Виджет «Сегодня» на экране телефона
+  'widget.date': '{weekday}, {month} {day}',
+  'widget.doneCount': 'Done · {count}',
+  'widget.debt': 'debt',
+  'widget.allDone': { plain: 'all done', bro: 'full moon!' },
+  'widget.ready': {
+    plain: 'The day is complete. Time to wrap it up.',
+    bro: 'Nailed it. Close the day — take {points}.',
+  },
+  'widget.closed': {
+    plain: 'Day closed. See you tomorrow.',
+    bro: 'Day closed. See you tomorrow, champ.',
+  },
+  'widget.closedCaption': 'day closed',
+  'widget.empty': { plain: 'Nothing planned for today', bro: 'Empty. Write down what we do.' },
+  'widget.add': 'Add a task',
+  'widget.openApp': 'Open OpenStreak',
+
   'quote.0': 'The wolf doesn’t wait for Monday. The wolf is Monday.',
   'quote.1': 'Did it — keep quiet. Didn’t — keep quiet too, but do it tomorrow.',
   'quote.2': 'A streak isn’t a number. It’s character, stacked.',

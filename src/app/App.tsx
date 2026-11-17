@@ -17,6 +17,7 @@ import { isCatalogRequested } from '../ui/catalog/isCatalog';
 import { TAB_BAR_SPACE } from '../ui/TabBar';
 import { ToastHost } from '../ui/ToastHost';
 import { bootstrap } from './bootstrap';
+import { flushPendingWidgetAction, listenWidgetLinks, navigationRef } from './widgetLinks';
 import { WebFrame } from './WebFrame';
 
 // Системный сплэш (волк на луне) держим, пока не загрузятся шрифты и данные.
@@ -34,6 +35,9 @@ export const App: React.FC = () => {
     void usePrefsStore.getState().loadPrefs();
     void bootstrap();
   }, []);
+
+  // Нажатия на виджет приходят ссылками `openstreak://widget/…`.
+  useEffect(() => listenWidgetLinks(), []);
 
   useEffect(() => {
     if (fontsLoaded && ready) void SplashScreen.hideAsync().catch(() => {});
@@ -70,7 +74,7 @@ export const App: React.FC = () => {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
           {statusBar}
-          <NavigationContainer>
+          <NavigationContainer ref={navigationRef} onReady={flushPendingWidgetAction}>
             <RootNavigator />
           </NavigationContainer>
           <NewSheet />

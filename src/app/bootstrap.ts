@@ -7,6 +7,7 @@ import { planReminders } from '../core/reminders';
 import { flush, setToday, useDataStore } from '../core/store';
 import { syncGeofences } from '../services/geofence';
 import { syncReminders } from '../services/notifications';
+import { startWidgetSync } from '../widgets/sync';
 import { todayStr } from '../core/dates';
 import { loadData } from './loadData';
 import { followSettings, seedSettingsFromDevice } from './settingsSync';
@@ -30,6 +31,7 @@ async function start(): Promise<void> {
     console.warn('Device settings were not carried over', e);
   }
   followSettings();
+  startWidgetSync();
 
   let timer: ReturnType<typeof setTimeout> | null = null;
   const scheduleSync = () => {

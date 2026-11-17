@@ -14,6 +14,12 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   into model v2. Treat all imported data as untrusted.
 - Reminders are planned by `core/reminders.ts` (pure) and synced to the OS by
   `services/notifications.ts`; never fire reminders from timers in JS.
+- Home-screen widget («Сегодня», M и L): `core/widget.ts` (pure model) → `widgets/view.ts` (texts, colours of
+  one theme, JSON-serialisable) → renderers `widgets/android/TodayWidget.tsx` (`react-native-android-widget`,
+  SVG from `widgets/svg.ts`) and `widgets/ios/today.tsx` (`expo-widgets`). The widget runs outside the UI
+  (headless task on Android, extension on iOS): no stores, no hooks, no app imports inside it. iOS `'widget'`
+  functions are stringified — they must be self-contained (everything arrives in `props`). Components of the
+  Android tree must never return `null` — put the condition at the call site.
 - Screens live in `src/features`, navigation in `src/navigation`. Derived values (day, streaks,
   points, task groups, goals) are pure functions in `src/core` with tests — screens only render them.
 

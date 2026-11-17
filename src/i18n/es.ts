@@ -103,6 +103,24 @@ export const es: Record<MessageKey, Message> = {
   'row.restFor': 'Día libre: {title}',
   'row.restUndone': 'Día libre cancelado',
 
+  // Виджет «Сегодня» на экране телефона
+  'widget.date': '{weekday}, {day} de {month}',
+  'widget.doneCount': 'Hecho · {count}',
+  'widget.debt': 'deuda',
+  'widget.allDone': { plain: 'todo hecho', bro: '¡luna llena!' },
+  'widget.ready': {
+    plain: 'El día está completo. Toca hacer el cierre.',
+    bro: 'Crack. Cierra el día y llévate {points}.',
+  },
+  'widget.closed': {
+    plain: 'Día cerrado. Hasta mañana.',
+    bro: 'Día cerrado. Hasta mañana, crack.',
+  },
+  'widget.closedCaption': 'día cerrado',
+  'widget.empty': { plain: 'Nada previsto para hoy', bro: 'Vacío. Apunta qué hacemos.' },
+  'widget.add': 'Añadir una tarea',
+  'widget.openApp': 'Abrir OpenStreak',
+
   'quote.0': 'El lobo no espera al lunes. El lobo es el lunes.',
   'quote.1': 'Lo hiciste: calla. No lo hiciste: calla también, pero mañana hazlo.',
   'quote.2': 'Una racha no es un número. Es carácter apilado.',

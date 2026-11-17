@@ -5,9 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "openstreak",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qqqcoder.OpenStreak"
     },
     "android": {
       "adaptiveIcon": {
@@ -48,6 +50,60 @@
             "image": "./assets/splash-icon-dark.png",
             "backgroundColor": "#1D2740"
           }
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf",
+            "./node_modules/@expo-google-fonts/golos-text/500Medium/GolosText_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/golos-text/700Bold/GolosText_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/rubik/500Medium/Rubik_500Medium.ttf",
+            "./node_modules/@expo-google-fonts/rubik/700Bold/Rubik_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "TodayMedium",
+              "label": "Сегодня — средний",
+              "description": "Счёт дня и три ближайших дела, долг первым. Когда всё сделано — кнопка «Закрыть день».",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "TodayLarge",
+              "label": "Сегодня — большой",
+              "description": "Счёт дня, список дел, «Сделано» и кнопка «+» для нового дела.",
+              "minWidth": "250dp",
+              "minHeight": "250dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 4,
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMillis": 1800000
+            }
+          ]
+        }
+      ],
+      [
+        "expo-widgets",
+        {
+          "widgets": [
+            {
+              "name": "Today",
+              "displayName": "Сегодня",
+              "description": "Счёт дня и ближайшие дела.",
+              "ios": {
+                "supportedFamilies": ["systemMedium", "systemLarge"]
+              }
+            }
+          ]
         }
       ]
     ],
