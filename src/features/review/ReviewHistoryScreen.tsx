@@ -5,6 +5,8 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { dayView } from '../../core/day';
+import { indexHabits } from '../../core/habits';
 import { live, type ISODate } from '../../core/model';
 import { useDataStore } from '../../core/store';
 import type { MessageKey } from '../../i18n';
@@ -24,10 +26,22 @@ export function ReviewHistoryScreen({ onBack, onOpen }: Props) {
   const t = useT();
   const insets = useSafeAreaInsets();
   const data = useDataStore((s) => s.data);
+  const today = useDataStore((s) => s.today);
   const reviews = useMemo(
     () => live(data.reviews).sort((a, b) => b.date.localeCompare(a.date)),
     [data.reviews]
   );
+
+  // «Сделано N из M» за каждый день — чтобы в истории сразу видно, как прошёл день.
+  const progress = useMemo(() => {
+    const idx = indexHabits(data);
+    return new Map(
+      reviews.map((r) => {
+        const v = dayView(data, r.date, today, idx);
+        return [r.id, v.total > 0 ? { done: v.done, total: v.total } : null] as const;
+      })
+    );
+  }, [data, today, reviews]);
 
   return (
     <ScrollView
@@ -52,7 +66,11 @@ export function ReviewHistoryScreen({ onBack, onOpen }: Props) {
                 <MoodMark mood={r.mood} size={40} />
                 <View style={styles.text}>
                   <Text style={[TYPE.itemStrong, { color: p.text }]}>{day}</Text>
-                  <Text style={[TYPE.meta, { color: p.muted }]}>{mood}</Text>
+                  <Text style={[TYPE.meta, { color: p.muted }]}>
+                    {[mood, progress.get(r.id) && t('today.progress', progress.get(r.id)!)]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Text>
                   {!!r.note && (
                     <Text numberOfLines={3} style={[TYPE.body, { color: p.text }]}>
                       {r.note}

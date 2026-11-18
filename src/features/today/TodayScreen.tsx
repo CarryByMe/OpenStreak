@@ -33,6 +33,7 @@ import { SectionTitle } from '../../ui/ScreenHeader';
 import { Card, Pill, Tag, WolfQuote } from '../../ui/Sticker';
 import { useToast } from '../../ui/toast';
 import { dayMonth, fullDate } from '../format';
+import { itemTint } from '../itemTint';
 import { useNewSheet } from '../new/newSheetStore';
 
 type Props = {
@@ -236,10 +237,7 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
                 if (item.state === 'done' && !item.bad) {
                   // Выполненное — тот же кружок с галочкой, что у строк выше; нажатие возвращает
                   // в активные. Цвет — сферы или привычки, как в «Обычном».
-                  const tint =
-                    item.kind === 'habit'
-                      ? data.habits[item.id] && habitColor(data.habits[item.id], data.areas)
-                      : data.areas[data.tasks[item.id]?.areaId ?? '']?.color;
+                  const tint = itemTint(data, item);
                   return (
                     <MoonRow
                       key={key}

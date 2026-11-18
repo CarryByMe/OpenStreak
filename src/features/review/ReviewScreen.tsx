@@ -26,6 +26,7 @@ import { Segmented } from '../../ui/Segmented';
 import { WolfQuote } from '../../ui/Sticker';
 import { TextField } from '../../ui/TextField';
 import { fullDate } from '../format';
+import { DayLog } from './DayLog';
 import { designStyles } from '../../theme/design';
 
 const MOODS = [1, 2, 3, 4, 5] as const;
@@ -79,6 +80,9 @@ export function ReviewScreen({ onBack, onClosed, date }: Props) {
           })}
           title={t('review.title')}
         />
+
+        {/* В дневнике прошлого дня список раскрыт сразу: что ты делал в тот день */}
+        <DayLog day={day} data={data} initiallyOpen={target !== today} />
 
         {plain && (
           <View>
