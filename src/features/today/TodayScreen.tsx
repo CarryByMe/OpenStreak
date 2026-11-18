@@ -21,7 +21,8 @@ import { useDataStore } from '../../core/store';
 import { quoteCount, type MessageKey } from '../../i18n';
 import { useT, type Translate } from '../../store/prefsStore';
 import { usePalette, usePlain, useSoft } from '../../store/themeStore';
-import { RADIUS, SIZE, SPACE, TILT } from '../../theme/metrics';
+import { designStyles } from '../../theme/design';
+import { RADIUS, SIZE, SPACE, STROKE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { AddRow, IconButton, LinkRow } from '../../ui/Button';
 import { Moon } from '../../ui/Moon';
@@ -191,16 +192,18 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
               tilt={TILT.left}
             />
             <Card padded={false}>
-              {day.left.map((item, i) => (
-                <LeftRow
-                  key={`${item.kind}:${item.id}`}
-                  item={item}
-                  today={today}
-                  view={view}
-                  t={t}
-                  last={i === day.left.length - 1}
-                />
-              ))}
+              <View style={styles.clip}>
+                {day.left.map((item, i) => (
+                  <LeftRow
+                    key={`${item.kind}:${item.id}`}
+                    item={item}
+                    today={today}
+                    view={view}
+                    t={t}
+                    last={i === day.left.length - 1}
+                  />
+                ))}
+              </View>
             </Card>
           </View>
         )
@@ -214,34 +217,58 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
             tone="teal"
             tilt={TILT.slightRight}
           />
-          <View>
-            {day.log.map((item) => (
-              <LogRow
-                key={`${item.kind}:${item.id}`}
-                time={item.at !== null ? clockOf(item.at) : ''}
-                title={item.title}
-                mark={t(
-                  item.state === 'slip' ? 'mark.slip' : item.bad ? 'mark.clean' : 'mark.done'
-                )}
-                bad={item.state === 'slip'}
+          <Card padded={false}>
+            <View style={styles.clip}>
+              {day.log.map((item, i) => {
                 // чистый день вредной привычки — не отметка, вернуть нечего
-                onReturn={
-                  item.kind === 'task' || item.at !== null
-                    ? () => {
-                        const undo = A.returnToActive(item.kind, item.id, today);
-                        if (!undo) return;
-                        vibrateImpact();
-                        toast(t('toast.returned', { title: item.title }), {
-                          label: t('common.undo'),
-                          onPress: undo,
-                        });
-                      }
-                    : undefined
+                const returnable = item.kind === 'task' || item.at !== null;
+                const giveBack = () => {
+                  const undo = A.returnToActive(item.kind, item.id, today);
+                  if (!undo) return;
+                  vibrateImpact();
+                  toast(t('toast.returned', { title: item.title }), {
+                    label: t('common.undo'),
+                    onPress: undo,
+                  });
+                };
+                const returnLabel = t('a11y.returnItem', { title: item.title });
+                const key = `${item.kind}:${item.id}`;
+                if (item.state === 'done' && !item.bad) {
+                  // Выполненное — тот же кружок с галочкой, что у строк выше; нажатие возвращает
+                  // в активные. Цвет — сферы или привычки, как в «Обычном».
+                  const tint =
+                    item.kind === 'habit'
+                      ? data.habits[item.id] && habitColor(data.habits[item.id], data.areas)
+                      : data.areas[data.tasks[item.id]?.areaId ?? '']?.color;
+                  return (
+                    <MoonRow
+                      key={key}
+                      title={item.title}
+                      sub={item.at !== null ? clockOf(item.at) : undefined}
+                      phase={1}
+                      done
+                      shape={item.kind === 'habit' ? 'square' : 'circle'}
+                      tint={tint}
+                      onToggle={giveBack}
+                      toggleLabel={returnLabel}
+                      last={i === day.log.length - 1}
+                    />
+                  );
                 }
-                returnLabel={t('a11y.returnItem', { title: item.title })}
-              />
-            ))}
-          </View>
+                return (
+                  <LogRow
+                    key={key}
+                    time={item.at !== null ? clockOf(item.at) : ''}
+                    title={item.title}
+                    mark={t(item.state === 'slip' ? 'mark.slip' : 'mark.clean')}
+                    bad={item.state === 'slip'}
+                    onReturn={returnable ? giveBack : undefined}
+                    returnLabel={returnLabel}
+                  />
+                );
+              })}
+            </View>
+          </Card>
         </View>
       )}
 
@@ -421,17 +448,21 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: { paddingHorizontal: SPACE.screenX, paddingBottom: SPACE.xl, gap: SPACE.lg },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  titles: { flex: 1, alignItems: 'flex-start', gap: SPACE.sm },
-  hero: { marginTop: SPACE.xs },
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.hero },
-  score: { flex: 1, gap: SPACE.xs },
-  points: { position: 'absolute', top: -16, right: 14 },
-  section: { gap: SPACE.md },
-  list: { gap: 9 },
-  note: { textAlign: 'center' },
-  summary: { gap: SPACE.sm },
-  summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-});
+const styles = designStyles(() =>
+  StyleSheet.create({
+    content: { paddingHorizontal: SPACE.screenX, paddingBottom: SPACE.xl, gap: SPACE.lg },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+    titles: { flex: 1, alignItems: 'flex-start', gap: SPACE.sm },
+    hero: { marginTop: SPACE.xs },
+    // Обрезка во внутреннем блоке: фон строк не вылезает за скругления, а тень наклейки остаётся снаружи.
+    clip: { overflow: 'hidden', borderRadius: RADIUS.lg - STROKE.outline },
+    heroRow: { flexDirection: 'row', alignItems: 'center', gap: SPACE.hero },
+    score: { flex: 1, gap: SPACE.xs },
+    points: { position: 'absolute', top: -16, right: 14 },
+    section: { gap: SPACE.md },
+    list: { gap: 9 },
+    note: { textAlign: 'center' },
+    summary: { gap: SPACE.sm },
+    summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  })
+);

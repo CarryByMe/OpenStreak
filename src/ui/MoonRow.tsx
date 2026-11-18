@@ -167,7 +167,13 @@ const styles = StyleSheet.create({
   },
   pressed: { transform: [{ scale: 0.88 }] },
   body: { flex: 1, minWidth: 0, paddingVertical: SPACE.sm },
-  log: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, minHeight: 36 },
+  log: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    minHeight: 44,
+    paddingHorizontal: SPACE.md,
+  },
   time: { width: 48 },
   returnButton: {
     minHeight: 36,
