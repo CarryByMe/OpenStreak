@@ -152,6 +152,14 @@ export const es: Record<MessageKey, Message> = {
   'quote.28': 'Cae siete veces, levántate ocho.',
 
   // Места
+  'settings.widgets': 'Widgets',
+  'settings.widgetMedium': 'Hoy — mediano',
+  'settings.widgetMediumHint': 'Progreso del día y las tres próximas tareas',
+  'settings.widgetLarge': 'Hoy — grande',
+  'settings.widgetLargeHint': 'Lista de tareas, «Hecho» y «+»',
+  'settings.widgetAdd': 'Añadir',
+  'settings.widgetManual':
+    'Tu launcher no puede añadirlo solo. Mantén pulsada la pantalla de inicio → «Widgets» → OpenStreak',
   'settings.places': 'Lugares',
   'settings.placesHint': 'Avisos en una tienda, en casa, en el gimnasio',
   'places.title': 'Lugares',

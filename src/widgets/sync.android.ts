@@ -17,16 +17,7 @@ export function startWidgetSync(): void {
 
   const push = () => {
     try {
-      const { requestWidgetUpdate } =
-        require('react-native-android-widget') as typeof import('react-native-android-widget');
-      const { WIDGET_SIZES, renderTodayWidget } =
-        require('./android/handler') as typeof import('./android/handler');
-      for (const [widgetName, size] of Object.entries(WIDGET_SIZES)) {
-        void requestWidgetUpdate({
-          widgetName,
-          renderWidget: (info) => renderTodayWidget(size, info),
-        }).catch((e) => console.warn('Widget update failed', widgetName, e));
-      }
+      (require('./android/update') as typeof import('./android/update')).updateAllWidgets();
     } catch (e) {
       // нет нативного модуля (Expo Go) — виджетов нет, обновлять нечего
       console.warn('Widgets were not updated', e);

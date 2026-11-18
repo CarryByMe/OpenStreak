@@ -7,6 +7,7 @@
  */
 import React from 'react';
 import { FlexWidget, OverlapWidget, SvgWidget, TextWidget } from 'react-native-android-widget';
+import { MARK_ROW_ACTION } from '../links';
 import { checkSvg, doneRingSvg, markSvg, moonSvg, plusSvg, ringSvg } from '../svg';
 import type { TodayWidgetView, WidgetRowView } from '../view';
 
@@ -97,7 +98,13 @@ function Row({ row, v, rowH }: { row: WidgetRowView; v: TodayWidgetView; rowH: n
         height: rowH,
       }}
     >
-      <FlexWidget style={{ marginRight: 10 }}>
+      {/* Область нажатия шире самой отметки: палец не попадает в 22 dp */}
+      <FlexWidget
+        clickAction={MARK_ROW_ACTION}
+        clickActionData={{ kind: row.kind, id: row.id }}
+        accessibilityLabel={row.markLabel}
+        style={{ width: 36, height: rowH, alignItems: 'flex-start', justifyContent: 'center' }}
+      >
         <Mark row={row} v={v} />
       </FlexWidget>
       <FlexWidget style={{ flex: 1, height: 'wrap_content' }}>

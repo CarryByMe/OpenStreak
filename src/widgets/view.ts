@@ -69,6 +69,8 @@ export type WidgetRowView = {
   color: string;
   /** подпись справа: «60/100», «19:00», «9 дн», «долг»; пустая — нет */
   meta: string;
+  /** «Отметить: …» — для чтения с экрана и подсказки нажатия на отметку */
+  markLabel: string;
 };
 
 /** Ссылки, которые открывает виджет: приложение, «+» и «Закрыть день». */
@@ -176,6 +178,7 @@ export function buildTodayView(snap: Snapshot, today: ISODate, scheme: Scheme): 
           ? ensureContrast(r.color ?? colors.accent, [colors.surface], 3)
           : colors.ring,
       meta,
+      markLabel: t('a11y.check', { title: r.title }),
     };
   });
 

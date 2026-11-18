@@ -19,3 +19,6 @@ export function parseWidgetLink(url: string | null | undefined): WidgetAction | 
   const m = /^openstreak:\/\/widget\/(add|review)\/?(?:[?#].*)?$/i.exec(url.trim());
   return m ? (m[1].toLowerCase() as WidgetAction) : null;
 }
+
+/** Нажатие на отметку строки в виджете Android: отметить дело или привычку, не открывая приложение. */
+export const MARK_ROW_ACTION = 'MARK_ROW';

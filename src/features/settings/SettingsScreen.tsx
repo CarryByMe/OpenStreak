@@ -13,6 +13,8 @@ import { settingsOf } from '../../core/settings';
 import { replaceAll, useDataStore } from '../../core/store';
 import { exportData, importData } from '../../services/exportImport';
 import { askNotificationPermission } from '../../services/notifications';
+import { canPinWidgets, pinWidget } from '../../widgets/pin';
+import type { WidgetSize } from '../../widgets/android/TodayWidget';
 import { LOCALES } from '../../i18n';
 import { useT } from '../../store/prefsStore';
 import { usePalette, useThemeStore } from '../../store/themeStore';
@@ -73,6 +75,11 @@ export function SettingsScreen({
   const toggleReview = async (on: boolean) => {
     A.updateSettings({ reviewAt: on ? DEFAULT_REVIEW_AT : '' });
     if (on) await askNotificationPermission();
+  };
+
+  // Лаунчер показывает своё окно подтверждения; не умеет — подсказываем ручной путь.
+  const addWidget = async (size: WidgetSize) => {
+    if (!(await pinWidget(size))) toast(t('settings.widgetManual'), undefined, 6000);
   };
 
   const exportBackup = async () => {
@@ -309,6 +316,27 @@ export function SettingsScreen({
           />
         </Card>
       </View>
+
+      {canPinWidgets && (
+        <View style={styles.group}>
+          <SectionTitle title={t('settings.widgets')} tilt={1.5} />
+          <Card padded={false}>
+            <SettingRow
+              label={t('settings.widgetMedium')}
+              hint={t('settings.widgetMediumHint')}
+              value={t('settings.widgetAdd')}
+              onPress={() => addWidget('medium')}
+            />
+            <SettingRow
+              label={t('settings.widgetLarge')}
+              hint={t('settings.widgetLargeHint')}
+              value={t('settings.widgetAdd')}
+              onPress={() => addWidget('large')}
+              last
+            />
+          </Card>
+        </View>
+      )}
 
       <View style={styles.group}>
         <SectionTitle title={t('settings.data')} tilt={1} />

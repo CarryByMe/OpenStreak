@@ -152,6 +152,14 @@ export const en: Record<MessageKey, Message> = {
   'quote.28': 'Fall seven times, stand up eight.',
 
   // Места
+  'settings.widgets': 'Widgets',
+  'settings.widgetMedium': 'Today — medium',
+  'settings.widgetMediumHint': 'Day score and the next three tasks',
+  'settings.widgetLarge': 'Today — large',
+  'settings.widgetLargeHint': 'Task list, “Done” and “+”',
+  'settings.widgetAdd': 'Add',
+  'settings.widgetManual':
+    'Your launcher cannot add it for you. Long-press the home screen → “Widgets” → OpenStreak',
   'settings.places': 'Places',
   'settings.placesHint': 'Reminders at a shop, home, the gym',
   'places.title': 'Places',

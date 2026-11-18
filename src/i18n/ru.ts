@@ -163,6 +163,14 @@ export const ru = {
   'quote.28': 'Упал семь раз — встань восемь.',
 
   // Места
+  'settings.widgets': 'Виджеты',
+  'settings.widgetMedium': 'Сегодня — средний',
+  'settings.widgetMediumHint': 'Счёт дня и три ближайших дела',
+  'settings.widgetLarge': 'Сегодня — большой',
+  'settings.widgetLargeHint': 'Список дел, «Сделано» и «+»',
+  'settings.widgetAdd': 'Добавить',
+  'settings.widgetManual':
+    'Ваш лаунчер не умеет добавлять сам. Долгое нажатие на главный экран → «Виджеты» → OpenStreak',
   'settings.places': 'Места',
   'settings.placesHint': 'Напоминания у магазина, дома, в зале',
   'places.title': 'Места',
