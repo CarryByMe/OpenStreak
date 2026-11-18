@@ -3,6 +3,7 @@
  * Android-виджет рисует их через `SvgWidget`: канвы и `react-native-svg` в фоновой задаче нет.
  * Чистые функции, цвета приходят снаружи (из `WidgetColors`).
  */
+import { readableOn } from '../theme/readable';
 import { litPath } from '../ui/moon';
 import { UI_ICONS } from '../ui/icons/paths';
 import type { WidgetColors } from './view';
@@ -153,5 +154,26 @@ export function plusSvg(size: number, look: 'soft' | 'mult', c: WidgetColors): s
     `<circle cx="${num(mid + sh)}" cy="${num(mid + sh)}" r="${num(r + stroke / 2)}" fill="${c.shadow}"/>` +
       `<circle cx="${num(mid)}" cy="${num(mid)}" r="${num(r)}" fill="${c.accent}" stroke="${c.line}" stroke-width="${stroke}"/>` +
       plus(c.line, 2.8, `translate(${num(off)} ${num(off)}) scale(${num(s)})`)
+  );
+}
+
+/** Отмеченная строка «Обычного»: заливка цветом сферы и галочка читаемого цвета. */
+export function doneMarkSvg(
+  size: number,
+  shape: 'circle' | 'square',
+  color: string,
+  c: WidgetColors
+): string {
+  const body =
+    shape === 'circle'
+      ? `<circle cx="${num(size / 2)}" cy="${num(size / 2)}" r="${num(size / 2)}" fill="${color}"/>`
+      : `<rect x="0" y="0" width="${size}" height="${size}" rx="${num(size * 0.24)}" fill="${color}"/>`;
+  const s = (size * 0.6) / 24;
+  const off = size * 0.2;
+  return svg(
+    size,
+    size,
+    `0 0 ${size} ${size}`,
+    body + checkPath(readableOn(color), 3, `translate(${num(off)} ${num(off)}) scale(${num(s)})`)
   );
 }

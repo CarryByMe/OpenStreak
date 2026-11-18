@@ -1,6 +1,7 @@
 import { describe, expect, test } from '@jest/globals';
 import { resolvePalette } from '../../theme/palette';
-import { checkSvg, doneRingSvg, markSvg, moonSvg, plusSvg, ringSvg } from '../svg';
+import { contrastRatio } from '../../theme/readable';
+import { checkSvg, doneMarkSvg, doneRingSvg, markSvg, moonSvg, plusSvg, ringSvg } from '../svg';
 import type { WidgetColors } from '../view';
 
 const p = resolvePalette('light', 'auf');
@@ -32,6 +33,8 @@ const all = [
   markSvg(22, 'square', 0.5, '#1fb876', c),
   plusSvg(44, 'soft', c),
   plusSvg(44, 'mult', c),
+  doneMarkSvg(22, 'circle', '#1fb876', c),
+  doneMarkSvg(22, 'square', '#2f7cf6', c),
 ];
 
 describe('SVG виджета', () => {
@@ -68,5 +71,18 @@ describe('SVG виджета', () => {
     expect(markSvg(22, 'square', 0, '#1fb876', c)).not.toContain('clip-path');
     expect(markSvg(22, 'square', 0.4, '#1fb876', c)).toContain('clip-path');
     expect(markSvg(22, 'square', 5, '#1fb876', c)).toContain('y="0"');
+  });
+
+  test('отмеченная строка: залита цветом и галочка читается на нём в обеих темах', () => {
+    for (const scheme of ['light', 'dark'] as const) {
+      const p2 = resolvePalette(scheme, 'normal');
+      const c2 = { ...c, text: p2.text, surface: p2.surface };
+      for (const color of ['#1fb876', '#cddc39', '#2f7cf6', '#795548', '#f59e0b']) {
+        const svg = doneMarkSvg(22, 'circle', color, c2);
+        const check = /<path[^>]*stroke="(#[0-9A-Fa-f]{6})"/.exec(svg)![1];
+        expect(svg).toContain(`fill="${color}"`);
+        expect([scheme, color, contrastRatio(check, color) >= 3]).toEqual([scheme, color, true]);
+      }
+    }
   });
 });

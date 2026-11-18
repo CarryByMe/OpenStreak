@@ -71,6 +71,8 @@ export type WidgetRowView = {
   meta: string;
   /** «Отметить: …» — для чтения с экрана и подсказки нажатия на отметку */
   markLabel: string;
+  /** только что отмечена: строка показывается «защёлкнутой» перед тем, как уйти из списка */
+  done?: boolean;
 };
 
 /** Ссылки, которые открывает виджет: приложение, «+» и «Закрыть день». */
@@ -233,4 +235,39 @@ export function buildTodayViews(snap: Snapshot, today: ISODate): Record<Scheme, 
     light: buildTodayView(snap, today, pick('light')),
     dark: buildTodayView(snap, today, pick('dark')),
   };
+}
+
+/** Строка, которую только что отметили, и её место в списке — по виду каждой темы. */
+export type WidgetGhost = Record<Scheme, { index: number; row: WidgetRowView }>;
+
+/** Найти строку в видах до отметки; null — в виджете такой строки не было (он устарел). */
+export function ghostOf(
+  before: Record<Scheme, TodayWidgetView>,
+  target: { kind: 'task' | 'habit'; id: string }
+): WidgetGhost | null {
+  const find = (view: TodayWidgetView) => {
+    const index = view.rows.findIndex((r) => r.kind === target.kind && r.id === target.id);
+    return index < 0 ? null : { index, row: view.rows[index] };
+  };
+  const light = find(before.light);
+  const dark = find(before.dark);
+  return light && dark ? { light, dark } : null;
+}
+
+/**
+ * Вид после отметки с «призраком» отмеченной строки на прежнем месте: Android-виджет не умеет
+ * анимацию, поэтому показываем два кадра — «защёлкнулось» и итог без строки.
+ */
+export function applyGhost(
+  views: Record<Scheme, TodayWidgetView>,
+  ghost: WidgetGhost
+): Record<Scheme, TodayWidgetView> {
+  const apply = (scheme: Scheme): TodayWidgetView => {
+    const view = views[scheme];
+    const rows = view.rows.slice();
+    const { index, row } = ghost[scheme];
+    rows.splice(Math.min(index, rows.length), 0, { ...row, done: true, meta: '' });
+    return { ...view, rows };
+  };
+  return { light: apply('light'), dark: apply('dark') };
 }

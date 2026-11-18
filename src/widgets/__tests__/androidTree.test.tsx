@@ -10,7 +10,7 @@ import {
 } from '../../core/model';
 import { visibleRows, TodayWidget, type WidgetSize } from '../android/TodayWidget';
 import { WIDGET_LINKS } from '../links';
-import { buildTodayView } from '../view';
+import { applyGhost, buildTodayViews, ghostOf, buildTodayView } from '../view';
 
 const TODAY = '2026-11-16';
 const meta = (id: string): RecordMeta => ({ id, createdAt: 1, updatedAt: 1, deletedAt: null });
@@ -132,5 +132,33 @@ describe('сколько строк помещается', () => {
     expect(visibleRows('large', 'soft', 250)).toBe(3);
     expect(visibleRows('large', 'mult', 250)).toBe(3);
     expect(visibleRows('large', 'soft', 700)).toBe(6);
+  });
+});
+
+describe('кадр «отмечено»', () => {
+  test('отмеченная строка не нажимается повторно, остальные нажимаются', () => {
+    const before = buildTodayViews(snap('normal', [task('Первое'), task('Второе')]), TODAY);
+    const ghost = ghostOf(before, { kind: 'task', id: 'Первое' })!;
+    const after = buildTodayViews(
+      snap('normal', [task('Первое', { doneOn: TODAY, doneAt: 5 }), task('Второе')]),
+      TODAY
+    );
+    const frame = applyGhost(after, ghost).light;
+    const text = flat(buildWidgetTree(<TodayWidget view={frame} size="large" height={260} />));
+    expect(text.match(/"clickAction":"MARK_ROW"/g)).toHaveLength(1); // только «Второе»
+    expect(text).toContain('Первое');
+  });
+
+  test.each(DESIGNS)('%s: кадр собирается для обоих размеров', (design) => {
+    const before = buildTodayViews(snap(design, [task('Дело')]), TODAY);
+    const ghost = ghostOf(before, { kind: 'task', id: 'Дело' })!;
+    const after = buildTodayViews(
+      snap(design, [task('Дело', { doneOn: TODAY, doneAt: 5 })]),
+      TODAY
+    );
+    for (const size of SIZES) {
+      const frame = applyGhost(after, ghost).dark;
+      expect(buildWidgetTree(<TodayWidget view={frame} size={size} height={250} />)).toBeTruthy();
+    }
   });
 });

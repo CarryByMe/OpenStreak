@@ -8,7 +8,7 @@ import {
   type Task,
 } from '../../core/model';
 import { contrastRatio } from '../../theme/readable';
-import { buildTodayView, buildTodayViews, lookOf } from '../view';
+import { applyGhost, buildTodayView, buildTodayViews, ghostOf, lookOf } from '../view';
 
 // 2026-11-16 — понедельник.
 const TODAY = '2026-11-16';
@@ -180,5 +180,50 @@ describe('вид виджета «Сегодня»', () => {
   test('вид сериализуется в JSON без потерь', () => {
     const v = buildTodayView(snap({}, [task('a')], [habit('h')]), TODAY, 'dark');
     expect(JSON.parse(JSON.stringify(v))).toEqual(v);
+  });
+});
+
+describe('отметка кадрами: «призрак» строки', () => {
+  const three = () => [task('a'), task('b', { remindAt: '19:00' }), task('c')];
+
+  test('строка находится в видах и после отметки возвращается на прежнее место', () => {
+    const before = buildTodayViews(snap({}, three()), TODAY);
+    const ghost = ghostOf(before, { kind: 'task', id: 'b' });
+    expect(ghost?.light.index).toBe(0); // со временем — выше остальных
+    expect(ghost?.light.row.title).toBe('b');
+
+    const after = buildTodayViews(
+      snap({}, [task('a'), task('b', { doneOn: TODAY, doneAt: 5 }), task('c')]),
+      TODAY
+    );
+    expect(after.light.rows.map((r) => r.id)).toEqual(['a', 'c']);
+    const frame = applyGhost(after, ghost!);
+    expect(frame.light.rows.map((r) => r.id)).toEqual(['b', 'a', 'c']);
+    expect(frame.light.rows[0]).toMatchObject({ done: true, meta: '' });
+    // счёт уже новый: кадр показывает итог, а не прошлое
+    expect(frame.light.done).toBe(1);
+    expect(frame.dark.rows[0].done).toBe(true);
+  });
+
+  test('«призрак» не мутирует исходные виды', () => {
+    const before = buildTodayViews(snap({}, three()), TODAY);
+    const ghost = ghostOf(before, { kind: 'task', id: 'a' })!;
+    const frame = applyGhost(before, ghost);
+    expect(before.light.rows.some((r) => r.done)).toBe(false);
+    expect(frame.light.rows.filter((r) => r.done)).toHaveLength(1);
+  });
+
+  test('устаревший виджет: строки, которой нет, призрака нет', () => {
+    const before = buildTodayViews(snap({}, three()), TODAY);
+    expect(ghostOf(before, { kind: 'task', id: 'нет' })).toBeNull();
+    expect(ghostOf(before, { kind: 'habit', id: 'a' })).toBeNull(); // тот же id, другой вид
+  });
+
+  test('место за пределами списка — в конец', () => {
+    const before = buildTodayViews(snap({}, three()), TODAY);
+    const ghost = ghostOf(before, { kind: 'task', id: 'c' })!;
+    const onlyOne = buildTodayViews(snap({}, [task('a')]), TODAY);
+    const frame = applyGhost(onlyOne, ghost);
+    expect(frame.light.rows.map((r) => r.id)).toEqual(['a', 'c']);
   });
 });

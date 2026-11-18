@@ -3,10 +3,12 @@ import { loadData } from '../../app/loadData';
 import { flush } from '../../core/store';
 import { syncGeofences } from '../../services/geofence';
 import { syncReminders } from '../../services/notifications';
+import { pause } from '../android/frames';
 import { updateAllWidgets } from '../android/update';
 import { markRow } from '../markRow';
 import { widgetTaskHandler } from '../android/handler';
 
+jest.mock('../android/frames', () => ({ DONE_HOLD_MS: 700, pause: jest.fn(async () => {}) }));
 jest.mock('../android/update', () => ({ updateAllWidgets: jest.fn() }));
 jest.mock('../android/render', () => ({
   WIDGET_SIZES: { TodayMedium: 'medium', TodayLarge: 'large' },
@@ -44,6 +46,7 @@ const run = (over: Record<string, unknown>) =>
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
+  (pause as jest.Mock<() => Promise<void>>).mockResolvedValue();
   mocks.markRow.mockReturnValue(true);
   mocks.syncReminders.mockResolvedValue();
   mocks.syncGeofences.mockResolvedValue();
@@ -52,14 +55,25 @@ beforeEach(() => {
 });
 
 describe('обработчик виджета Android: нажатие на отметку', () => {
-  test('отмечает, пишет на диск, сверяет напоминания и обновляет виджеты', async () => {
+  test('отмечает, пишет на диск, сверяет напоминания; виджеты рисуются двумя кадрами', async () => {
     await run({ clickAction: 'MARK_ROW', clickActionData: { kind: 'task', id: 't1' } });
     expect(mocks.loadData).toHaveBeenCalled();
     expect(mocks.markRow).toHaveBeenCalledWith({ kind: 'task', id: 't1' });
     expect(mocks.flush).toHaveBeenCalled();
     expect(mocks.syncReminders).toHaveBeenCalled();
     expect(mocks.syncGeofences).toHaveBeenCalled();
-    expect(mocks.updateAllWidgets).toHaveBeenCalledTimes(1);
+    // кадр «отмечено», затем итоговый кадр
+    expect(mocks.updateAllWidgets).toHaveBeenCalledTimes(2);
+  });
+
+  test('первый кадр рисуется раньше записи на диск', async () => {
+    const order: string[] = [];
+    mocks.updateAllWidgets.mockImplementation(() => void order.push('кадр'));
+    mocks.flush.mockImplementation(async () => void order.push('запись'));
+    await run({ clickAction: 'MARK_ROW', clickActionData: { kind: 'task', id: 't1' } });
+    expect(order[0]).toBe('кадр');
+    expect(order[order.length - 1]).toBe('кадр');
+    expect(order).toContain('запись');
   });
 
   test('если отмечать нечего — всё равно перерисовывает (виджет мог устареть), но не пишет', async () => {
@@ -87,7 +101,7 @@ describe('обработчик виджета Android: нажатие на от�
     mocks.syncReminders.mockRejectedValueOnce(new Error('нет разрешения'));
     const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
     await run({ clickAction: 'MARK_ROW', clickActionData: { kind: 'habit', id: 'h1' } });
-    expect(mocks.updateAllWidgets).toHaveBeenCalledTimes(1);
+    expect(mocks.updateAllWidgets).toHaveBeenCalledTimes(2);
     warn.mockRestore();
   });
 
