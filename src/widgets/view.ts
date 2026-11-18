@@ -65,6 +65,8 @@ export type WidgetRowView = {
   fraction: number;
   debt: boolean;
   bad: boolean;
+  /** у дела есть пункты: нажатие на отметку открывает приложение, а не закрывает дело */
+  hasItems: boolean;
   /** цвет отметки (сфера или привычка), уже с нужным контрастом; в «Мульте» не используется */
   color: string;
   /** подпись справа: «60/100», «19:00», «9 дн», «долг»; пустая — нет */
@@ -160,6 +162,8 @@ export function buildTodayView(snap: Snapshot, today: ISODate, scheme: Scheme): 
           return t('widget.debt');
         case 'numeric':
           return t('row.numeric', { value: r.meta.value, target: r.meta.target });
+        case 'subtasks':
+          return t('row.numeric', { value: r.meta.done, target: r.meta.total });
         case 'time':
           return r.meta.time;
         case 'streak':
@@ -175,6 +179,7 @@ export function buildTodayView(snap: Snapshot, today: ISODate, scheme: Scheme): 
       fraction: r.fraction,
       debt: r.debt,
       bad: r.bad,
+      hasItems: r.hasItems,
       color:
         look === 'soft'
           ? ensureContrast(r.color ?? colors.accent, [colors.surface], 3)

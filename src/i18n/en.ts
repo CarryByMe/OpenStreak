@@ -102,6 +102,15 @@ export const en: Record<MessageKey, Message> = {
   'row.delete': 'Delete: {title}',
   'row.restFor': 'Day off: {title}',
   'row.restUndone': 'Day off cancelled',
+  'new.subtasks': 'items',
+  'sub.add': 'Item — Enter adds the next one',
+  'sub.paste': 'Paste a list from notes or chat — each line becomes an item',
+  'sub.remove': 'Remove item: {title}',
+  'sub.edit': 'Item {n}',
+  'sub.addRow': 'item',
+  'sub.expand': 'Show items: {title}',
+  'sub.collapse': 'Hide items: {title}',
+  'sub.progress': '{done} of {total} items checked',
 
   // Виджет «Сегодня» на экране телефона
   'widget.date': '{weekday}, {month} {day}',

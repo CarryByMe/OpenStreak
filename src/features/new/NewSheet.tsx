@@ -10,6 +10,7 @@ import * as A from '../../core/actions';
 import { addDays } from '../../core/dates';
 import { live, type ISODate, type PlaceTrigger, type Priority } from '../../core/model';
 import { useDataStore } from '../../core/store';
+import { subtasksOf } from '../../core/subtasks';
 import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
 import { settingsOf } from '../../core/settings';
@@ -37,6 +38,7 @@ import { usePlaceAccess } from '../places/placeAccessStore';
 import { PlaceSheet } from '../places/PlaceSheet';
 import { geofenceAccess } from '../../services/geofence';
 import { useNewSheet, type NewKind } from './newSheetStore';
+import { addFromText, SubtasksEditor, type SubtaskRow } from './SubtasksEditor';
 
 /** Системный выбор даты и времени есть только на телефонах. */
 const HAS_PICKER = Platform.OS !== 'web';
@@ -99,6 +101,17 @@ function NewSheetForm() {
   const [areaId, setAreaId] = useState<string | null>(
     editing ? editing.areaId : editingHabit ? editingHabit.areaId : initialArea
   );
+  // Пункты дела: список в форме, пока не нажали «Записать».
+  const [subtasks, setSubtasks] = useState<SubtaskRow[]>(() =>
+    editing
+      ? subtasksOf(useDataStore.getState().data, editing.id).map((x) => ({
+          key: x.id,
+          id: x.id,
+          title: x.title,
+        }))
+      : []
+  );
+  const [subtaskDraft, setSubtaskDraft] = useState('');
   const [bad, setBad] = useState(editingHabit?.kind === 'bad');
   const [icon, setIcon] = useState(editingHabit?.icon ?? 'target');
   const [color, setColor] = useState<string>(editingHabit?.color ?? DEFAULT_SWATCH);
@@ -140,6 +153,10 @@ function NewSheetForm() {
   const custom = date !== null && date !== today && date !== tomorrow;
   const canSave = title.trim().length > 0;
 
+  /** Пункты формы вместе с недописанным в поле нового пункта. */
+  const allSubtasks = () =>
+    addFromText(subtasks, subtaskDraft).map((x) => ({ id: x.id, title: x.title }));
+
   const save = () => {
     if (!canSave) return;
     if (editingGoal) {
@@ -158,8 +175,10 @@ function NewSheetForm() {
       });
     } else if (editing) {
       A.updateTask(editing.id, { title, date, priority, remindAt, areaId, placeId, placeTrigger });
+      A.saveSubtasks(editing.id, allSubtasks());
     } else if (kind === 'task') {
-      A.createTask({ title, date, priority, remindAt, areaId, placeId, placeTrigger });
+      const id = A.createTask({ title, date, priority, remindAt, areaId, placeId, placeTrigger });
+      A.saveSubtasks(id, allSubtasks());
     } else if (kind === 'habit') {
       A.createQuickHabit({
         name: title,
@@ -386,6 +405,18 @@ function NewSheetForm() {
             </FormRow>
             {areaRow}
           </>
+        )}
+
+        {kind === 'task' && (
+          <View style={styles.subtasks}>
+            <Text style={[TYPE.meta, { color: pal.muted }]}>{cap(t('new.subtasks'))}</Text>
+            <SubtasksEditor
+              items={subtasks}
+              onChange={setSubtasks}
+              draft={subtaskDraft}
+              onDraft={setSubtaskDraft}
+            />
+          </View>
         )}
 
         {kind === 'habit' && (
@@ -766,6 +797,17 @@ function NewSheetForm() {
             </Group>
           )}
 
+          {kind === 'task' && (
+            <Group title={t('new.subtasks')}>
+              <SubtasksEditor
+                items={subtasks}
+                onChange={setSubtasks}
+                draft={subtaskDraft}
+                onDraft={setSubtaskDraft}
+              />
+            </Group>
+          )}
+
           {(kind === 'task' || kind === 'habit') && (
             <Group title={t('new.area')}>
               <View style={styles.chips} accessibilityRole="radiogroup">
@@ -964,6 +1006,7 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', gap: SPACE.md },
   grow: { flex: 1 },
   group: { gap: SPACE.sm },
+  subtasks: { gap: SPACE.sm, marginTop: SPACE.lg },
   colorDot: { width: 24, height: 24, borderRadius: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, alignItems: 'center' },
   titleInput: {

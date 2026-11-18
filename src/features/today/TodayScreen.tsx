@@ -18,6 +18,7 @@ import { quoteOfDay } from '../../core/quotes';
 import { effectiveSettings, settingsOf } from '../../core/settings';
 import type { Snapshot } from '../../core/model';
 import { useDataStore } from '../../core/store';
+import { subtaskFraction, subtasksOf } from '../../core/subtasks';
 import { quoteCount, type MessageKey } from '../../i18n';
 import { useT, type Translate } from '../../store/prefsStore';
 import { usePalette, usePlain, useSoft } from '../../store/themeStore';
@@ -35,6 +36,7 @@ import { useToast } from '../../ui/toast';
 import { dayMonth, fullDate } from '../format';
 import { itemTint } from '../itemTint';
 import { useNewSheet } from '../new/newSheetStore';
+import { SubtaskBadge, SubtaskList } from '../tasks/SubtaskList';
 
 type Props = {
   onOpenSettings: () => void;
@@ -370,6 +372,7 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
   const p = usePalette();
   const data = useDataStore((s) => s.data);
   const toast = useToast((s) => s.show);
+  const editTask = useNewSheet((s) => s.editTask);
 
   if (item.kind === 'task') {
     const task = data.tasks[item.id];
@@ -381,16 +384,26 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
       : task.remindAt
         ? t('row.remindAt', { time: task.remindAt })
         : undefined;
-    const right = item.debt ? (
+    const items = subtasksOf(data, task.id);
+    const base = item.debt ? (
       <Pill label={t('mark.debt')} tone="red" filled />
     ) : task.priority > 0 ? (
       <PriorityMarks level={task.priority} />
     ) : null;
-    return (
+    const right =
+      items.length > 0 ? (
+        <View style={styles.rowRight}>
+          <SubtaskBadge task={task} items={items} />
+          {base}
+        </View>
+      ) : (
+        base
+      );
+    const row = (
       <MoonRow
         title={item.title}
         sub={sub}
-        phase={0}
+        phase={subtaskFraction(items)}
         debt={item.debt}
         tint={task.areaId ? data.areas[task.areaId]?.color : undefined}
         right={right}
@@ -404,6 +417,14 @@ function LeftRow({ item, today, view, t, last }: RowProps) {
           });
         }}
       />
+    );
+    return items.length > 0 ? (
+      <>
+        {row}
+        <SubtaskList task={task} items={items} onEdit={() => editTask(task.id)} />
+      </>
+    ) : (
+      row
     );
   }
 
@@ -461,6 +482,7 @@ const styles = designStyles(() =>
     list: { gap: 9 },
     note: { textAlign: 'center' },
     summary: { gap: SPACE.sm },
+    rowRight: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs },
     summaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
   })
 );

@@ -4,13 +4,14 @@
  * отдыха, корзина и большая кнопка-галочка. Задача: круг-отметка, название, дата (долг — красным),
  * флажок с приоритетом, сфера; справа корзина.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as A from '../../core/actions';
 import { habitColor } from '../../core/colors';
 import { fullValue } from '../../core/habits';
 import type { Habit, Task } from '../../core/model';
 import { useDataStore } from '../../core/store';
+import { subtaskFraction, subtasksOf } from '../../core/subtasks';
 import type { MessageKey } from '../../i18n';
 import { vibrateImpact } from '../../services/haptics';
 import { useT } from '../../store/prefsStore';
@@ -25,6 +26,7 @@ import { useToast } from '../../ui/toast';
 import { relDate } from '../format';
 import { useNewSheet } from '../new/newSheetStore';
 import { scheduleLabel } from '../habits/habitText';
+import { SubtaskBadge, SubtaskList } from '../tasks/SubtaskList';
 
 /** Цвет сферы или привычки для подписи: контраст текста ≥ 4.5 на фоне и карточке. */
 function useTextTint(color: string | undefined): string | undefined {
@@ -101,6 +103,11 @@ export function TaskTodayRow({ task, today }: { task: Task; today: string }) {
   const toast = useToast((s) => s.show);
   const editTask = useNewSheet((s) => s.editTask);
   const area = useDataStore((s) => (task.areaId ? s.data.areas[task.areaId] : undefined));
+  const allSubtasks = useDataStore((s) => s.data.subtasks);
+  const items = useMemo(
+    () => subtasksOf({ subtasks: allSubtasks }, task.id),
+    [allSubtasks, task.id]
+  );
   const areaText = useTextTint(area && !area.deletedAt ? area.color : undefined);
   const debt = task.date !== null && task.date < today;
   const prioColor = [p.muted, p.prioLow, p.prioMid, p.red][task.priority];
@@ -131,7 +138,7 @@ export function TaskTodayRow({ task, today }: { task: Task; today: string }) {
           onPress={toggle}
           style={({ pressed }) => [styles.taskMark, pressed && styles.pressed]}
         >
-          <PlainMark fill={0} tint={area?.color} />
+          <PlainMark fill={subtaskFraction(items)} tint={area?.color} />
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -161,8 +168,17 @@ export function TaskTodayRow({ task, today }: { task: Task; today: string }) {
             {!!task.remindAt && <Meta icon="remind" text={task.remindAt} color={p.muted} />}
           </View>
         </Pressable>
+        {items.length > 0 && <SubtaskBadge task={task} items={items} />}
         <RowButton icon="delete" label={t('row.delete', { title: task.title })} onPress={remove} />
       </View>
+      {items.length > 0 && (
+        <SubtaskList
+          task={task}
+          items={items}
+          tint={area && !area.deletedAt ? area.color : undefined}
+          onEdit={() => editTask(task.id)}
+        />
+      )}
     </Card>
   );
 }

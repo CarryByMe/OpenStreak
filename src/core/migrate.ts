@@ -10,6 +10,7 @@
  */
 import { newId } from './ids';
 import { DEFAULT_SETTINGS, designOf } from './settings';
+import { MAX_SUBTASK_TITLE } from './subtasks';
 import {
   COLLECTIONS,
   SETTINGS_ID,
@@ -27,6 +28,7 @@ import {
   type RestPeriod,
   type Settings,
   type Snapshot,
+  type Subtask,
   type Task,
 } from './model';
 
@@ -101,6 +103,24 @@ export function cleanTask(x: unknown, now: number): Task | null {
     remindAt: time(x.remindAt),
     placeId: idOrNull(x.placeId),
     placeTrigger: x.placeTrigger === 'enter' || x.placeTrigger === 'exit' ? x.placeTrigger : null,
+  };
+}
+
+export function cleanSubtask(x: unknown, now: number): Subtask | null {
+  if (!isObj(x)) return null;
+  const m = meta(x, now);
+  const taskId = idOrNull(x.taskId);
+  const title = nonEmpty(x.title)?.trim().slice(0, MAX_SUBTASK_TITLE);
+  if (!m || !taskId || !title) return null;
+  const order = num(x.order);
+  const done = date(x.doneOn);
+  return {
+    ...m,
+    taskId,
+    title,
+    order: order !== null ? Math.round(order) : 0,
+    doneOn: done,
+    doneAt: done ? num(x.doneAt) : null,
   };
 }
 
@@ -378,6 +398,11 @@ export function fromExportV5(raw: unknown, now: number, today: ISODate): Snapsho
     if (rec) target[rec.id] = rec;
   };
   for (const x of list('tasks')) put(snap.tasks, cleanTask(x, now));
+  for (const x of list('subtasks')) put(snap.subtasks, cleanSubtask(x, now));
+  // Пункты без дела (в бэкапе дела нет) не нужны: сироты отбрасываются.
+  for (const [id, sub] of Object.entries(snap.subtasks)) {
+    if (!snap.tasks[sub.taskId]) delete snap.subtasks[id];
+  }
   for (const x of list('habits')) put(snap.habits, cleanHabit(x, now, startedAt));
   for (const x of list('checks')) put(snap.checks, cleanCheck(x, now));
   for (const x of list('rests')) put(snap.rests, cleanRest(x, now));

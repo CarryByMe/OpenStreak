@@ -89,6 +89,13 @@ describe('отметка из виджета', () => {
     expect(liveCheck(data(), bad, TODAY)).toBeUndefined();
   });
 
+  test('дело со списком из виджета не закрывается (виджет мог устареть)', () => {
+    const id = A.createTask({ title: 'Купить продукты' });
+    A.saveSubtasks(id, [{ id: null, title: 'молоко' }]);
+    expect(markRow({ kind: 'task', id })).toBe(false);
+    expect(data().tasks[id].doneOn).toBeNull();
+  });
+
   test('удалённое дело не оживает', () => {
     const id = A.createTask({ title: 'Лишнее' });
     A.deleteTask(id);

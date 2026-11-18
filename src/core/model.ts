@@ -42,6 +42,20 @@ export type Task = RecordMeta & {
   placeTrigger: PlaceTrigger | null;
 };
 
+/**
+ * Пункт дела («подзадача»): отдельная запись, привязанная к делу. Так пункты синхронизируются
+ * по одному, а не целым списком. Без даты и времени: пункт — не дело.
+ */
+export type Subtask = RecordMeta & {
+  taskId: string;
+  title: string;
+  /** порядок в деле, по возрастанию */
+  order: number;
+  /** день и момент отметки; null — не отмечен */
+  doneOn: ISODate | null;
+  doneAt: number | null;
+};
+
 export type HabitKind = 'good' | 'bad';
 export type HabitMeasure = 'boolean' | 'numeric';
 export type HabitUnit = 'count' | 'minutes' | 'hours';
@@ -154,6 +168,7 @@ export const SETTINGS_ID = 'me';
 
 export type Collections = {
   tasks: Task;
+  subtasks: Subtask;
   habits: Habit;
   checks: HabitCheck;
   rests: RestPeriod;
@@ -169,6 +184,7 @@ export type AnyRecord = Collections[CollectionName];
 
 export const COLLECTIONS: readonly CollectionName[] = [
   'tasks',
+  'subtasks',
   'habits',
   'checks',
   'rests',
@@ -192,6 +208,7 @@ export type Snapshot = { [K in CollectionName]: Record<string, Collections[K]> }
 export function emptySnapshot(startedAt: ISODate): Snapshot {
   return {
     tasks: {},
+    subtasks: {},
     habits: {},
     checks: {},
     rests: {},

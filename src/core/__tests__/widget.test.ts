@@ -210,4 +210,54 @@ describe('виджет «Сегодня»', () => {
     expect(m.done).toBe(1);
     expect(m.state).toBe('ready');
   });
+
+  test('дело с пунктами: счёт «2/5», доля пунктов, нажатие на отметку не закрывает', () => {
+    const base = snap({ tasks: [task('shop'), task('plain')] });
+    const sub = (id: string, order: number, done: boolean) => {
+      base.subtasks[id] = {
+        ...meta(id),
+        taskId: 'shop',
+        title: id,
+        order,
+        doneOn: done ? TODAY : null,
+        doneAt: done ? 5 : null,
+      };
+    };
+    sub('a', 0, true);
+    sub('b', 1, true);
+    sub('c', 2, false);
+    sub('d', 3, false);
+    sub('e', 4, false);
+    const rows = Object.fromEntries(todayWidgetModel(base, TODAY).rows.map((r) => [r.id, r]));
+    expect(rows.shop.meta).toEqual({ kind: 'subtasks', done: 2, total: 5 });
+    expect(rows.shop.fraction).toBeCloseTo(0.4);
+    expect(rows.shop.hasItems).toBe(true);
+    expect(rows.plain.hasItems).toBe(false);
+    // «начатое» поднимается выше нетронутых дел
+    expect(todayWidgetModel(base, TODAY).rows.map((r) => r.id)).toEqual(['shop', 'plain']);
+  });
+
+  test('долг важнее счёта пунктов; удалённые пункты не считаются', () => {
+    const base = snap({ tasks: [task('shop', { date: '2026-11-10' })] });
+    base.subtasks.a = {
+      ...meta('a'),
+      taskId: 'shop',
+      title: 'a',
+      order: 0,
+      doneOn: null,
+      doneAt: null,
+    };
+    base.subtasks.gone = {
+      ...meta('gone'),
+      taskId: 'shop',
+      title: 'g',
+      order: 1,
+      doneOn: null,
+      doneAt: null,
+      deletedAt: 9,
+    };
+    const [row] = todayWidgetModel(base, TODAY).rows;
+    expect(row.meta).toEqual({ kind: 'debt' });
+    expect(row.hasItems).toBe(true);
+  });
 });

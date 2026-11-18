@@ -12,6 +12,10 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
 - Storage: `core/storage` — SQLite on iOS/Android, AsyncStorage on web, `MemoryStorage` in tests.
 - `core/migrate.ts` — the only place that turns outside JSON (old `CoolTick.v4` state, backups)
   into model v2. Treat all imported data as untrusted.
+- Subtasks («пункты» of a task) are their own collection `subtasks` (`taskId`, `order`, `doneOn`), not an array
+  inside the task: each item syncs on its own. Pure helpers in `core/subtasks.ts`; changes only through
+  `actions.saveSubtasks` / `toggleSubtask` (the last checked item closes the task, undo restores both).
+  `deleteTask` / `restoreTask` cascade to the items. Points are for the task only.
 - Reminders are planned by `core/reminders.ts` (pure) and synced to the OS by
   `services/notifications.ts`; never fire reminders from timers in JS.
 - Home-screen widget («Сегодня», M и L): `core/widget.ts` (pure model) → `widgets/view.ts` (texts, colours of

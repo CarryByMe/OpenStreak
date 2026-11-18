@@ -14,6 +14,7 @@ import { addDays } from '../../core/dates';
 import { live, type ISODate, type Task } from '../../core/model';
 import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
+import { subtaskFraction, subtaskIndex } from '../../core/subtasks';
 import {
   doneEarlier,
   openTasksByArea,
@@ -39,6 +40,7 @@ import { TextField } from '../../ui/TextField';
 import { useToast } from '../../ui/toast';
 import { dayMonth, fullDate } from '../format';
 import { TaskCalendar } from './TaskCalendar';
+import { SubtaskBadge, SubtaskList } from './SubtaskList';
 import { useNewSheet } from '../new/newSheetStore';
 import { designStyles } from '../../theme/design';
 
@@ -84,6 +86,7 @@ export function TasksScreen() {
   const areaName = useMemo(() => new Map(areas.map((a) => [a.id, a.name])), [areas]);
   const areaColor = useMemo(() => new Map(areas.map((a) => [a.id, a.color])), [areas]);
   const perArea = useMemo(() => openTasksByArea(data), [data]);
+  const subIndex = useMemo(() => subtaskIndex(data), [data]);
   const counts = taskCounts(data, today);
 
   const groups = useMemo(() => {
@@ -143,37 +146,60 @@ export function TasksScreen() {
           а тень наклейки остаётся снаружи. */}
       <View style={styles.clip}>
         {head}
-        {tasks.map((task, i) => (
-          <SwipeRow key={task.id} label={t('tasks.swipe')} onSwipe={() => remove(task)}>
-            {(guard) => (
-              <MoonRow
-                title={task.title}
-                sub={subOf(task)}
-                phase={task.doneOn ? 1 : 0}
-                done={task.doneOn !== null}
-                debt={debt(task)}
-                tint={task.areaId ? areaColor.get(task.areaId) : undefined}
-                onToggle={guard(() => {
-                  if (!task.doneOn) {
-                    vibrateImpact();
-                    A.toggleTask(task.id);
-                    return;
-                  }
-                  // Снять отметку: дело снова в работе, 5 секунд на «Отменить».
-                  const undo = A.returnToActive('task', task.id, today);
-                  if (!undo) return;
-                  toast(t('toast.returned', { title: task.title }), {
-                    label: t('common.undo'),
-                    onPress: undo,
-                  });
-                })}
-                onPress={guard(() => editTask(task.id))}
-                right={task.priority > 0 ? <PriorityMarks level={task.priority} /> : null}
-                last={tail === false ? false : i === tasks.length - 1}
-              />
-            )}
-          </SwipeRow>
-        ))}
+        {tasks.map((task, i) => {
+          const items = subIndex.get(task.id) ?? [];
+          const tint = task.areaId ? areaColor.get(task.areaId) : undefined;
+          const right =
+            items.length > 0 ? (
+              <View style={styles.rowRight}>
+                <SubtaskBadge task={task} items={items} />
+                {task.priority > 0 ? <PriorityMarks level={task.priority} /> : null}
+              </View>
+            ) : task.priority > 0 ? (
+              <PriorityMarks level={task.priority} />
+            ) : null;
+          return (
+            <SwipeRow key={task.id} label={t('tasks.swipe')} onSwipe={() => remove(task)}>
+              {(guard) => (
+                <>
+                  <MoonRow
+                    title={task.title}
+                    sub={subOf(task)}
+                    phase={task.doneOn ? 1 : subtaskFraction(items)}
+                    done={task.doneOn !== null}
+                    debt={debt(task)}
+                    tint={tint}
+                    onToggle={guard(() => {
+                      if (!task.doneOn) {
+                        vibrateImpact();
+                        A.toggleTask(task.id);
+                        return;
+                      }
+                      // Снять отметку: дело снова в работе, 5 секунд на «Отменить».
+                      const undo = A.returnToActive('task', task.id, today);
+                      if (!undo) return;
+                      toast(t('toast.returned', { title: task.title }), {
+                        label: t('common.undo'),
+                        onPress: undo,
+                      });
+                    })}
+                    onPress={guard(() => editTask(task.id))}
+                    right={right}
+                    last={tail === false ? false : i === tasks.length - 1}
+                  />
+                  {items.length > 0 && (
+                    <SubtaskList
+                      task={task}
+                      items={items}
+                      tint={tint}
+                      onEdit={() => editTask(task.id)}
+                    />
+                  )}
+                </>
+              )}
+            </SwipeRow>
+          );
+        })}
       </View>
     </Card>
   );
@@ -416,6 +442,7 @@ const styles = designStyles(() =>
     group: { marginTop: SPACE.xs, gap: SPACE.md },
     clip: { overflow: 'hidden', borderRadius: RADIUS.lg - STROKE.outline },
     empty: { gap: SPACE.md, paddingTop: SPACE.sm },
+    rowRight: { flexDirection: 'row', alignItems: 'center', gap: SPACE.xs },
     goalRow: {
       flexDirection: 'row',
       alignItems: 'center',

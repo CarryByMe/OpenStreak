@@ -1,0 +1,132 @@
+/**
+ * Блок «Пункты» в форме дела: список пунктов, поле нового пункта и подсказка про вставку.
+ * Enter добавляет пункт и оставляет поле для следующего; вставленный текст с переносами строк
+ * делится на пункты (маркеры списков убираются). Сохраняет форма (`A.saveSubtasks`).
+ */
+import React from 'react';
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { MAX_SUBTASKS, MAX_SUBTASK_TITLE, splitPasted } from '../../core/subtasks';
+import { useT } from '../../store/prefsStore';
+import { usePalette, usePlain } from '../../store/themeStore';
+import { SPACE } from '../../theme/metrics';
+import { TYPE } from '../../theme/type';
+import { Icon } from '../../ui/icons';
+import { Moon } from '../../ui/Moon';
+import { PlainMark } from '../../ui/PlainMark';
+import { NO_WEB_OUTLINE } from '../../ui/TextField';
+
+/** Пункт в форме: `id` — у сохранённого, null — новый; `key` нужен только списку. */
+export type SubtaskRow = { key: string; id: string | null; title: string };
+
+let counter = 0;
+export const newRowKey = () => `new-${++counter}`;
+
+type Props = {
+  items: SubtaskRow[];
+  onChange: (items: SubtaskRow[]) => void;
+  /** текст в поле нового пункта — хранит форма, чтобы не потерять его при «Записать» */
+  draft: string;
+  onDraft: (text: string) => void;
+};
+
+/** Добавить пункты из текста (по строкам); сколько поместилось — учитывает предел. */
+export function addFromText(items: SubtaskRow[], text: string): SubtaskRow[] {
+  const room = Math.max(0, MAX_SUBTASKS - items.length);
+  const titles = splitPasted(text).slice(0, room);
+  return [...items, ...titles.map((title) => ({ key: newRowKey(), id: null, title }))];
+}
+
+export function SubtasksEditor({ items, onChange, draft, onDraft }: Props) {
+  const p = usePalette();
+  const t = useT();
+  const plain = usePlain();
+  const full = items.length >= MAX_SUBTASKS;
+
+  const commit = (text: string) => {
+    onChange(addFromText(items, text));
+    onDraft('');
+  };
+
+  return (
+    <View style={styles.wrap}>
+      {items.map((item, i) => (
+        <View key={item.key} style={[styles.row, { borderBottomColor: p.divider }]}>
+          <View style={styles.mark}>
+            {plain ? <PlainMark shape="circle" fill={0} size={20} /> : <Moon phase={0} size={22} />}
+          </View>
+          <TextInput
+            accessibilityLabel={t('sub.edit', { n: i + 1 })}
+            value={item.title}
+            maxLength={MAX_SUBTASK_TITLE}
+            onChangeText={(title) =>
+              onChange(items.map((x) => (x.key === item.key ? { ...x, title } : x)))
+            }
+            style={[
+              TYPE.body,
+              styles.input,
+              { color: p.text },
+              Platform.OS === 'web' ? NO_WEB_OUTLINE : null,
+            ]}
+          />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('sub.remove', { title: item.title })}
+            onPress={() => onChange(items.filter((x) => x.key !== item.key))}
+            hitSlop={8}
+            style={styles.remove}
+          >
+            <Icon name="close" size={18} tone="muted" />
+          </Pressable>
+        </View>
+      ))}
+      {!full && (
+        <View style={[styles.row, { borderBottomColor: p.divider }]}>
+          <View style={styles.mark}>
+            <Icon name="plus" size={20} tone="muted" />
+          </View>
+          {/* multiline — чтобы вставка с переносами строк не склеивалась в одну; Enter при этом отправляет */}
+          <TextInput
+            accessibilityLabel={t('sub.add')}
+            placeholder={t('sub.add')}
+            placeholderTextColor={p.muted}
+            value={draft}
+            multiline
+            submitBehavior="submit"
+            onChangeText={(text) => (/[\r\n]/.test(text) ? commit(text) : onDraft(text))}
+            onSubmitEditing={() => commit(draft)}
+            maxLength={MAX_SUBTASK_TITLE * 20}
+            style={[
+              TYPE.body,
+              styles.input,
+              { color: p.text },
+              Platform.OS === 'web' ? NO_WEB_OUTLINE : null,
+            ]}
+          />
+        </View>
+      )}
+      <Text style={[TYPE.meta, styles.hint, { color: p.text, backgroundColor: p.tag }]}>
+        {t('sub.paste')}
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { gap: 0 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACE.sm,
+    minHeight: 46,
+    borderBottomWidth: 1,
+  },
+  mark: { width: 28, alignItems: 'center' },
+  input: { flex: 1, paddingVertical: SPACE.sm },
+  remove: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  hint: {
+    marginTop: SPACE.sm,
+    paddingHorizontal: SPACE.md,
+    paddingVertical: SPACE.sm,
+    borderRadius: 12,
+  },
+});

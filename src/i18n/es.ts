@@ -102,6 +102,15 @@ export const es: Record<MessageKey, Message> = {
   'row.delete': 'Eliminar: {title}',
   'row.restFor': 'Día libre: {title}',
   'row.restUndone': 'Día libre cancelado',
+  'new.subtasks': 'puntos',
+  'sub.add': 'Punto — Enter añade el siguiente',
+  'sub.paste': 'Pega una lista de notas o chat — cada línea será un punto',
+  'sub.remove': 'Quitar punto: {title}',
+  'sub.edit': 'Punto {n}',
+  'sub.addRow': 'punto',
+  'sub.expand': 'Mostrar puntos: {title}',
+  'sub.collapse': 'Ocultar puntos: {title}',
+  'sub.progress': '{done} de {total} puntos marcados',
 
   // Виджет «Сегодня» на экране телефона
   'widget.date': '{weekday}, {day} de {month}',

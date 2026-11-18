@@ -227,3 +227,22 @@ describe('отметка кадрами: «призрак» строки', () =>
     expect(frame.light.rows.map((r) => r.id)).toEqual(['a', 'c']);
   });
 });
+
+describe('дело с пунктами в виджете', () => {
+  test('справа «2/5», отметка не закрывает дело', () => {
+    const s = snap({}, [task('Купить продукты')]);
+    ['a', 'b', 'c', 'd', 'e'].forEach((id, i) => {
+      s.subtasks[id] = {
+        ...meta(id),
+        taskId: 'Купить продукты',
+        title: id,
+        order: i,
+        doneOn: i < 2 ? TODAY : null,
+        doneAt: i < 2 ? 5 : null,
+      };
+    });
+    const [row] = buildTodayView(s, TODAY, 'light').rows;
+    expect(row).toMatchObject({ meta: '2/5', hasItems: true });
+    expect(row.fraction).toBeCloseTo(0.4);
+  });
+});

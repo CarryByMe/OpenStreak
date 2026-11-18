@@ -162,3 +162,25 @@ describe('кадр «отмечено»', () => {
     }
   });
 });
+
+describe('дело с пунктами в дереве виджета', () => {
+  test('нажатие на отметку открывает приложение, а не помечает', () => {
+    const s = snap('normal', [task('Купить продукты'), task('Позвонить')]);
+    s.subtasks.a = {
+      ...meta('a'),
+      taskId: 'Купить продукты',
+      title: 'молоко',
+      order: 0,
+      doneOn: null,
+      doneAt: null,
+    };
+    const text = flat(
+      buildWidgetTree(
+        <TodayWidget view={buildTodayView(s, TODAY, 'light')} size="large" height={260} />
+      )
+    );
+    expect(text.match(/"clickAction":"MARK_ROW"/g)).toHaveLength(1); // только «Позвонить»
+    expect(text).toContain('"clickAction":"OPEN_APP"');
+    expect(text).toContain('0/1');
+  });
+});

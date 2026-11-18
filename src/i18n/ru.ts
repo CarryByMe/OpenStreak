@@ -115,6 +115,15 @@ export const ru = {
   'row.delete': 'Удалить: {title}',
   'row.restFor': 'Выходной: {title}',
   'row.restUndone': 'Выходной отменён',
+  'new.subtasks': 'пункты',
+  'sub.add': 'Пункт — Enter добавит следующий',
+  'sub.paste': 'Вставь список из заметок или чата — каждая строка станет пунктом',
+  'sub.remove': 'Убрать пункт: {title}',
+  'sub.edit': 'Пункт {n}',
+  'sub.addRow': 'пункт',
+  'sub.expand': 'Показать пункты: {title}',
+  'sub.collapse': 'Скрыть пункты: {title}',
+  'sub.progress': 'Отмечено пунктов {done} из {total}',
 
   // Виджет «Сегодня» на экране телефона
   'widget.date': '{weekday}, {day} {month}',

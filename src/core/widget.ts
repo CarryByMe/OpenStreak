@@ -7,12 +7,14 @@ import { closedStreak, dayNumber, dayView, isClosed, type DayItem } from './day'
 import { dataOf, habitStats, indexHabits, liveCheck } from './habits';
 import type { ISODate, Snapshot } from './model';
 import { POINTS } from './points';
+import { subtaskFraction, subtaskIndex, subtaskProgress } from './subtasks';
 
 /** Что стоит справа в строке: долг, «60/100», время напоминания или серия. */
 export type WidgetMeta =
   | { kind: 'none' }
   | { kind: 'debt' }
   | { kind: 'numeric'; value: number; target: number }
+  | { kind: 'subtasks'; done: number; total: number }
   | { kind: 'time'; time: string }
   | { kind: 'streak'; days: number };
 
@@ -25,6 +27,8 @@ export type WidgetRow = {
   debt: boolean;
   /** вредная привычка */
   bad: boolean;
+  /** у дела есть пункты: из виджета его не закрыть одним нажатием */
+  hasItems: boolean;
   /** цвет сферы или привычки `#RRGGBB`; null — цвет по умолчанию (акцент) */
   color: string | null;
   meta: WidgetMeta;
@@ -59,7 +63,7 @@ export type TodayWidgetModel = {
 
 type Data = Pick<
   Snapshot,
-  'tasks' | 'habits' | 'checks' | 'rests' | 'areas' | 'reviews' | 'profile'
+  'tasks' | 'subtasks' | 'habits' | 'checks' | 'rests' | 'areas' | 'reviews' | 'profile'
 >;
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -73,24 +77,30 @@ function rowOf(
   snap: Data,
   item: DayItem,
   today: ISODate,
-  idx: ReturnType<typeof indexHabits>
+  idx: ReturnType<typeof indexHabits>,
+  items: ReturnType<typeof subtaskIndex>
 ): WidgetRow | null {
   if (item.kind === 'task') {
     const task = snap.tasks[item.id];
     if (!task) return null;
     const area = task.areaId ? snap.areas[task.areaId] : undefined;
+    const subs = items.get(item.id) ?? [];
     const meta: WidgetMeta = item.debt
       ? { kind: 'debt' }
-      : task.remindAt
-        ? { kind: 'time', time: task.remindAt }
-        : { kind: 'none' };
+      : subs.length > 0
+        ? { kind: 'subtasks', ...subtaskProgress(subs) }
+        : task.remindAt
+          ? { kind: 'time', time: task.remindAt }
+          : { kind: 'none' };
     return {
       id: item.id,
       kind: 'task',
       title: item.title,
-      fraction: item.fraction,
+      // у дела с пунктами начатое показывается долей пунктов
+      fraction: subs.length > 0 ? subtaskFraction(subs) : item.fraction,
       debt: item.debt,
       bad: false,
+      hasItems: subs.length > 0,
       color: area && area.deletedAt === null ? safeColor(area.color) : null,
       meta,
     };
@@ -117,6 +127,7 @@ function rowOf(
     fraction: item.fraction,
     debt: false,
     bad: item.bad,
+    hasItems: false,
     color: safeColor(habitColor(habit, snap.areas)),
     meta,
   };
@@ -132,9 +143,10 @@ function rank(row: WidgetRow): [number, string] {
 
 export function todayWidgetModel(snap: Data, today: ISODate): TodayWidgetModel {
   const idx = indexHabits(snap);
+  const items = subtaskIndex(snap);
   const day = dayView(snap, today, today, idx);
   const rows = day.left
-    .map((item) => rowOf(snap, item, today, idx))
+    .map((item) => rowOf(snap, item, today, idx, items))
     .filter((r): r is WidgetRow => r !== null)
     // sort устойчивый: внутри группы остаётся порядок дня
     .sort((a, b) => {

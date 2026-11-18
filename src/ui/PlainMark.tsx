@@ -10,7 +10,7 @@
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { usePalette, useSoft } from '../store/themeStore';
 import { TYPE } from '../theme/type';
 import { ensureContrast, mixWith, readableOn } from '../theme/readable';
@@ -100,6 +100,34 @@ function SoftMark({ fill, size, debt = false, tint, habit = false, label, cross 
   const pop = usePop(full && habit);
   const side = size ?? (habit ? 46 : 23);
   const on = readableOn(color);
+  if (!habit && fill > 0 && !full) {
+    // Дело с пунктами в процессе: кольцо-прогресс (бледная дорожка и дуга цвета сферы).
+    const r = (side - 2.5) / 2;
+    const len = 2 * Math.PI * r;
+    return (
+      <Svg width={side} height={side} viewBox={`0 0 ${side} ${side}`}>
+        <Circle
+          cx={side / 2}
+          cy={side / 2}
+          r={r}
+          fill="none"
+          stroke={mixWith(color, p.surface, 0.7)}
+          strokeWidth={2.5}
+        />
+        <Circle
+          cx={side / 2}
+          cy={side / 2}
+          r={r}
+          fill="none"
+          stroke={color}
+          strokeWidth={2.5}
+          strokeLinecap="round"
+          strokeDasharray={`${len * Math.min(1, fill)} ${len}`}
+          transform={`rotate(-90 ${side / 2} ${side / 2})`}
+        />
+      </Svg>
+    );
+  }
   if (!habit) {
     return (
       <View

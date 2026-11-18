@@ -7,6 +7,7 @@ import * as A from '../core/actions';
 import { todayStr } from '../core/dates';
 import { fullValue, liveCheck } from '../core/habits';
 import { get, useDataStore } from '../core/store';
+import { subtasksOf } from '../core/subtasks';
 
 export type MarkTarget = { kind: 'task' | 'habit'; id: string };
 
@@ -23,6 +24,8 @@ export function markRow({ kind, id }: MarkTarget): boolean {
   if (kind === 'task') {
     const task = get('tasks', id);
     if (!task || task.doneOn !== null) return false;
+    // Дело со списком из виджета не закрыть: пункты отмечают в приложении (виджет мог устареть).
+    if (subtasksOf(useDataStore.getState().data, id).length > 0) return false;
     A.toggleTask(id);
     return true;
   }

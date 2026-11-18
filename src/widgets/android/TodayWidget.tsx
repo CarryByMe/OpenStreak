@@ -111,8 +111,10 @@ function Row({ row, v, rowH }: { row: WidgetRowView; v: TodayWidgetView; rowH: n
     >
       {/* Область нажатия шире самой отметки: палец не попадает в 22 dp */}
       <FlexWidget
-        clickAction={row.done ? undefined : MARK_ROW_ACTION}
-        clickActionData={row.done ? undefined : { kind: row.kind, id: row.id }}
+        clickAction={row.done ? undefined : row.hasItems ? 'OPEN_APP' : MARK_ROW_ACTION}
+        clickActionData={
+          row.done || row.hasItems ? undefined : { kind: row.kind, id: row.id }
+        }
         accessibilityLabel={row.markLabel}
         style={{ width: 36, height: rowH, alignItems: 'flex-start', justifyContent: 'center' }}
       >

@@ -6,6 +6,7 @@ import { todayStr } from './dates';
 import { fullValue, liveCheck } from './habits';
 import { newId } from './ids';
 import { clampRadius, isValidCoords } from './places';
+import { MAX_SUBTASKS, MAX_SUBTASK_TITLE, subtasksOf } from './subtasks';
 import {
   SETTINGS_ID,
   checkId,
@@ -18,6 +19,7 @@ import {
   type Priority,
 } from './model';
 import { DEFAULT_SETTINGS, type SettingsFields } from './settings';
+import type { StoredRecord } from './storage/types';
 import {
   commit,
   compact,
@@ -138,13 +140,111 @@ export function returnToActive(
     ]);
 }
 
+/** Пункты удаляются вместе с делом: метки удаления отличаются на миллисекунды, не больше. */
+const CASCADE_MS = 2000;
+
 export function deleteTask(id: string): void {
-  commit(compact([draftDelete('tasks', id)]));
+  const items = subtasksOf(data(), id);
+  commit(compact([draftDelete('tasks', id), ...items.map((s) => draftDelete('subtasks', s.id))]));
 }
 
-/** Отменить удаление задачи: запись возвращается с теми же полями и датой создания. */
+/**
+ * Отменить удаление задачи: запись возвращается с теми же полями и датой создания, а с ней — пункты,
+ * удалённые вместе с ней (пункт, убранный раньше, остаётся убранным).
+ */
 export function restoreTask(id: string): void {
-  commit(compact([draftRestore('tasks', id)]));
+  const deletedAt = data().tasks[id]?.deletedAt ?? null;
+  const items =
+    deletedAt === null
+      ? []
+      : Object.values(data().subtasks).filter(
+          (s) =>
+            s.taskId === id &&
+            s.deletedAt !== null &&
+            Math.abs(s.deletedAt - deletedAt) < CASCADE_MS
+        );
+  commit(compact([draftRestore('tasks', id), ...items.map((s) => draftRestore('subtasks', s.id))]));
+}
+
+// ── Пункты дел ───────────────────────────────────────────────────────────────
+
+/** Пункт в форме: `id` — у существующего, null — новый. */
+export type SubtaskDraft = { id: string | null; title: string };
+
+/**
+ * Привести пункты дела к списку из формы: новые создаются, переименованные и переставленные
+ * правятся, пропавшие из списка мягко удаляются. Пустые названия отбрасываются, лишнее сверх
+ * `MAX_SUBTASKS` обрезается. Отметки пунктов не трогаются.
+ */
+export function saveSubtasks(taskId: string, drafts: SubtaskDraft[]): void {
+  if (!get('tasks', taskId)) return;
+  const existing = subtasksOf(data(), taskId);
+  const byId = new Map(existing.map((s) => [s.id, s]));
+  const kept = new Set<string>();
+  const out: (StoredRecord | null)[] = [];
+  drafts
+    .map((d) => ({ id: d.id, title: d.title.trim().slice(0, MAX_SUBTASK_TITLE) }))
+    .filter((d) => d.title !== '')
+    .slice(0, MAX_SUBTASKS)
+    .forEach((d, order) => {
+      const prev = d.id ? byId.get(d.id) : undefined;
+      if (prev && !kept.has(prev.id)) {
+        kept.add(prev.id);
+        if (prev.title !== d.title || prev.order !== order) {
+          out.push(draftPatch('subtasks', prev.id, { title: d.title, order }));
+        }
+      } else {
+        out.push(
+          draftCreate('subtasks', newId(), {
+            taskId,
+            title: d.title,
+            order,
+            doneOn: null,
+            doneAt: null,
+          })
+        );
+      }
+    });
+  for (const s of existing) if (!kept.has(s.id)) out.push(draftDelete('subtasks', s.id));
+  commit(compact(out));
+}
+
+/**
+ * Отметить или снять пункт. Если отмечен последний неотмеченный пункт, дело закрывается само.
+ * Снятие пункта дело не открывает: выполненное дело возвращает «Вернуть». Возвращает, закрылось
+ * ли дело, и функцию «отменить» (вернёт и пункт, и дело); null — пункта нет.
+ */
+export function toggleSubtask(id: string): { closed: boolean; undo: () => void } | null {
+  const item = get('subtasks', id);
+  const task = item && get('tasks', item.taskId);
+  if (!item || !task) return null;
+  const was = { doneOn: item.doneOn, doneAt: item.doneAt };
+  commit(
+    compact([
+      draftPatch(
+        'subtasks',
+        id,
+        was.doneOn ? { doneOn: null, doneAt: null } : { doneOn: todayStr(), doneAt: now() }
+      ),
+    ])
+  );
+  let closed = false;
+  if (!was.doneOn && task.doneOn === null) {
+    const items = subtasksOf(data(), task.id);
+    if (items.length > 0 && items.every((s) => s.doneOn !== null)) {
+      commit(compact([draftPatch('tasks', task.id, { doneOn: todayStr(), doneAt: now() })]));
+      closed = true;
+    }
+  }
+  const undo = () => {
+    commit(
+      compact([
+        draftPatch('subtasks', id, was),
+        ...(closed ? [draftPatch('tasks', task.id, { doneOn: null, doneAt: null })] : []),
+      ])
+    );
+  };
+  return { closed, undo };
 }
 
 // ── Места ────────────────────────────────────────────────────────────────────
