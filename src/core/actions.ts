@@ -3,7 +3,7 @@
  * вибро, тосты и запросы разрешений — забота слоя интерфейса.
  */
 import { todayStr } from './dates';
-import { fullValue } from './habits';
+import { fullValue, liveCheck } from './habits';
 import { newId } from './ids';
 import { clampRadius, isValidCoords } from './places';
 import {
@@ -102,6 +102,40 @@ export function toggleTask(id: string): void {
       ),
     ])
   );
+}
+
+/**
+ * Вернуть из «Сделано» в активные — когда отметили случайно. Дело становится невыполненным
+ * (дата остаётся, так что прошлая снова станет долгом), у привычки снимается отметка за `date`
+ * (и слив тоже). Возвращает функцию «отменить» или null, если возвращать нечего: дело не
+ * выполнено, у привычки нет отметки (например, чистый день вредной привычки).
+ */
+export function returnToActive(
+  kind: 'task' | 'habit',
+  id: string,
+  date: ISODate
+): (() => void) | null {
+  if (kind === 'task') {
+    const task = get('tasks', id);
+    if (!task || task.doneOn === null) return null;
+    const { doneOn, doneAt } = task;
+    commit(compact([draftPatch('tasks', id, { doneOn: null, doneAt: null })]));
+    // Отмена возвращает прежние день и время выполнения, а не «сейчас».
+    return () => commit(compact([draftPatch('tasks', id, { doneOn, doneAt })]));
+  }
+  if (!get('habits', id)) return null;
+  const check = liveCheck(data(), id, date);
+  if (!check) return null;
+  commit(compact([draftDelete('checks', check.id)]));
+  return () =>
+    commit([
+      draftCreate('checks', check.id, {
+        habitId: id,
+        date,
+        value: check.value,
+        ...(check.slip ? { slip: true } : {}),
+      }),
+    ]);
 }
 
 export function deleteTask(id: string): void {

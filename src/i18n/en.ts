@@ -344,6 +344,12 @@ export const en: Record<MessageKey, Message> = {
   'tasks.notFound': 'Nothing found',
   'tasks.add': 'Add a task',
   'common.return': 'Bring back',
+  'toast.returned': '{title} — back in progress',
+  'a11y.returnItem': 'Move back to active: {title}',
+  'tasks.doneEarlier': 'Completed earlier · {count}',
+  'tasks.doneEarlierSub': 'Tap the circle to put a task back in progress',
+  'tasks.doneHide': 'Hide completed',
+  'tasks.doneOn': 'done {date}',
 
   'habits.active': '{count} active',
   'habits.bad': { one: '{count} bad', other: '{count} bad' },

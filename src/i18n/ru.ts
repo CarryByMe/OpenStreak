@@ -382,6 +382,12 @@ export const ru = {
   'tasks.notFound': 'Ничего не нашлось',
   'tasks.add': 'Запиши дело',
   'common.return': 'Вернуть',
+  'toast.returned': '{title} — снова в деле',
+  'a11y.returnItem': 'Вернуть в активные: {title}',
+  'tasks.doneEarlier': 'Выполненные ранее · {count}',
+  'tasks.doneEarlierSub': 'Нажми на кружок — дело вернётся в работу',
+  'tasks.doneHide': 'Скрыть выполненные',
+  'tasks.doneOn': 'выполнено {date}',
   // Привычки
   'habits.active': '{count} в деле',
   'habits.bad': {

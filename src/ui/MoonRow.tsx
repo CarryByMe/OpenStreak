@@ -116,11 +116,16 @@ type LogProps = {
   mark?: string;
   /** пометка красным — слив */
   bad?: boolean;
+  /** «Вернуть»: убрать из «Сделано» обратно в активные, если отметили случайно */
+  onReturn?: () => void;
+  /** текст кнопки «Вернуть» для чтения с экрана */
+  returnLabel?: string;
 };
 
 /** Строка журнала «Сделано»: время, что сделано (зачёркнуто), пометка-пилюля. */
-export function LogRow({ time, title, mark, bad }: LogProps) {
+export function LogRow({ time, title, mark, bad, onReturn, returnLabel }: LogProps) {
   const p = usePalette();
+  const t = useT();
   return (
     <View style={styles.log}>
       <Text style={[TYPE.meta, styles.time, { color: p.muted }]}>{time}</Text>
@@ -128,6 +133,19 @@ export function LogRow({ time, title, mark, bad }: LogProps) {
         {title}
       </Text>
       {!!mark && <Pill label={mark} tone={bad ? 'red' : 'teal'} />}
+      {onReturn && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={returnLabel}
+          onPress={onReturn}
+          hitSlop={8}
+          style={({ pressed }) => [styles.returnButton, pressed && { backgroundColor: p.tag }]}
+        >
+          <Text style={[TYPE.meta, styles.returnText, { color: p.text }]}>
+            {t('common.return')}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -151,5 +169,12 @@ const styles = StyleSheet.create({
   body: { flex: 1, minWidth: 0, paddingVertical: SPACE.sm },
   log: { flexDirection: 'row', alignItems: 'center', gap: SPACE.sm, minHeight: 36 },
   time: { width: 48 },
+  returnButton: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: SPACE.sm,
+    borderRadius: 8,
+  },
+  returnText: { textDecorationLine: 'underline' },
   logTitle: { flex: 1, textDecorationLine: 'line-through' },
 });

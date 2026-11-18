@@ -87,3 +87,27 @@ export function openTasksByArea(snap: Pick<Snapshot, 'tasks'>): Map<string | nul
   }
   return m;
 }
+
+/**
+ * Выполненные раньше сегодняшнего дня (за `days` дней), свежие сверху: их можно вернуть в
+ * активные, если отметили случайно. Выполненные сегодня остаются в группах «Дел».
+ */
+export function doneEarlier(
+  snap: Pick<Snapshot, 'tasks'>,
+  today: ISODate,
+  opts: { days?: number; areaId?: string | null; limit?: number } = {}
+): Task[] {
+  const from = addDays(today, -(opts.days ?? 30));
+  return live(snap.tasks)
+    .filter(
+      (t) =>
+        t.doneOn !== null &&
+        t.doneOn < today &&
+        t.doneOn >= from &&
+        (opts.areaId === undefined || opts.areaId === null || t.areaId === opts.areaId)
+    )
+    .sort((a, b) =>
+      a.doneOn! < b.doneOn! ? 1 : a.doneOn! > b.doneOn! ? -1 : (b.doneAt ?? 0) - (a.doneAt ?? 0)
+    )
+    .slice(0, opts.limit ?? 50);
+}

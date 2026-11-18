@@ -47,6 +47,7 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
   const data = useDataStore((s) => s.data);
   const today = useDataStore((s) => s.today);
   const showNew = useNewSheet((s) => s.show);
+  const toast = useToast((s) => s.show);
 
   const view = useMemo(() => {
     const idx = indexHabits(data);
@@ -223,6 +224,21 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
                   item.state === 'slip' ? 'mark.slip' : item.bad ? 'mark.clean' : 'mark.done'
                 )}
                 bad={item.state === 'slip'}
+                // чистый день вредной привычки — не отметка, вернуть нечего
+                onReturn={
+                  item.kind === 'task' || item.at !== null
+                    ? () => {
+                        const undo = A.returnToActive(item.kind, item.id, today);
+                        if (!undo) return;
+                        vibrateImpact();
+                        toast(t('toast.returned', { title: item.title }), {
+                          label: t('common.undo'),
+                          onPress: undo,
+                        });
+                      }
+                    : undefined
+                }
+                returnLabel={t('a11y.returnItem', { title: item.title })}
               />
             ))}
           </View>

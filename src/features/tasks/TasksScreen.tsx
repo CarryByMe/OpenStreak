@@ -14,13 +14,19 @@ import { addDays } from '../../core/dates';
 import { live, type ISODate, type Task } from '../../core/model';
 import { effectiveSettings } from '../../core/settings';
 import { useDataStore } from '../../core/store';
-import { openTasksByArea, taskCounts, taskGroups, type TaskGroupKey } from '../../core/tasks';
+import {
+  doneEarlier,
+  openTasksByArea,
+  taskCounts,
+  taskGroups,
+  type TaskGroupKey,
+} from '../../core/tasks';
 import type { MessageKey } from '../../i18n';
 import { useT, type Translate } from '../../store/prefsStore';
 import { usePalette } from '../../store/themeStore';
 import { RADIUS, SPACE, STROKE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
-import { AddRow, IconButton } from '../../ui/Button';
+import { AddRow, IconButton, LinkRow } from '../../ui/Button';
 import { Card, type Tone } from '../../ui/Sticker';
 import { Chip } from '../../ui/Chip';
 import { Icon } from '../../ui/icons';
@@ -68,6 +74,7 @@ export function TasksScreen() {
   const [calView, setCalView] = useState<CalView>('month');
   const [cursor, setCursor] = useState<ISODate>(today);
   const [selected, setSelected] = useState<ISODate>(today);
+  const [showDone, setShowDone] = useState(false);
   const weekStart = effectiveSettings(data).weekStart;
 
   const areas = useMemo(
@@ -87,6 +94,14 @@ export function TasksScreen() {
         tasks: q ? g.tasks.filter((x) => x.title.toLocaleLowerCase().includes(q)) : g.tasks,
       }))
       .filter((g) => g.tasks.length > 0);
+  }, [data, today, area, query]);
+
+  // Выполненные раньше сегодняшнего дня: сюда попадает и то, что отметили случайно.
+  const earlier = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase();
+    return doneEarlier(data, today, { areaId: area }).filter(
+      (x) => !q || x.title.toLocaleLowerCase().includes(q)
+    );
   }, [data, today, area, query]);
 
   const needle = query.trim().toLocaleLowerCase();
@@ -120,7 +135,8 @@ export function TasksScreen() {
     tasks: Task[],
     debt: (task: Task) => boolean,
     head?: React.ReactNode,
-    tail?: boolean
+    tail?: boolean,
+    subOf: (task: Task) => string = (task) => metaOf(task, today, areaName, t)
   ) => (
     <Card padded={false}>
       {/* Обрезка — во внутреннем блоке: подложка свайпа не вылезает за скругления,
@@ -132,14 +148,24 @@ export function TasksScreen() {
             {(guard) => (
               <MoonRow
                 title={task.title}
-                sub={metaOf(task, today, areaName, t)}
+                sub={subOf(task)}
                 phase={task.doneOn ? 1 : 0}
                 done={task.doneOn !== null}
                 debt={debt(task)}
                 tint={task.areaId ? areaColor.get(task.areaId) : undefined}
                 onToggle={guard(() => {
-                  if (!task.doneOn) vibrateImpact();
-                  A.toggleTask(task.id);
+                  if (!task.doneOn) {
+                    vibrateImpact();
+                    A.toggleTask(task.id);
+                    return;
+                  }
+                  // Снять отметку: дело снова в работе, 5 секунд на «Отменить».
+                  const undo = A.returnToActive('task', task.id, today);
+                  if (!undo) return;
+                  toast(t('toast.returned', { title: task.title }), {
+                    label: t('common.undo'),
+                    onPress: undo,
+                  });
                 })}
                 onPress={guard(() => editTask(task.id))}
                 right={task.priority > 0 ? <PriorityMarks level={task.priority} /> : null}
@@ -303,6 +329,26 @@ export function TasksScreen() {
             {taskCard(g.tasks, () => g.key === 'debts')}
           </View>
         ))
+      )}
+
+      {mode === 'list' && earlier.length > 0 && (
+        <View style={styles.group}>
+          <LinkRow
+            title={
+              showDone ? t('tasks.doneHide') : t('tasks.doneEarlier', { count: earlier.length })
+            }
+            sub={showDone ? undefined : t('tasks.doneEarlierSub')}
+            onPress={() => setShowDone((v) => !v)}
+          />
+          {showDone &&
+            taskCard(
+              earlier,
+              () => false,
+              undefined,
+              undefined,
+              (task) => t('tasks.doneOn', { date: dayMonth(t, task.doneOn!) })
+            )}
+        </View>
       )}
 
       {mode === 'list' && groups.length > 0 && (

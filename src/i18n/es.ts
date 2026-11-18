@@ -345,6 +345,12 @@ export const es: Record<MessageKey, Message> = {
   'tasks.notFound': 'No se encontró nada',
   'tasks.add': 'Apunta una tarea',
   'common.return': 'Recuperar',
+  'toast.returned': '{title} — de vuelta en curso',
+  'a11y.returnItem': 'Volver a activas: {title}',
+  'tasks.doneEarlier': 'Completadas antes · {count}',
+  'tasks.doneEarlierSub': 'Toca el círculo para devolver la tarea a pendientes',
+  'tasks.doneHide': 'Ocultar completadas',
+  'tasks.doneOn': 'hecha {date}',
 
   'habits.active': '{count} activos',
   'habits.bad': { one: '{count} malo', other: '{count} malos' },
