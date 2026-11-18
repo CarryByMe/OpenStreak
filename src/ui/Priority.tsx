@@ -45,7 +45,7 @@ export function PriorityMarks({ level }: { level: PriorityLevel; size?: number }
 type PickerProps = {
   value: PriorityLevel;
   onChange: (v: PriorityLevel) => void;
-  /** подписи вариантов для чтения с экрана: без важности, низкая, средняя, высокая */
+  /** подписи вариантов для чтения с экрана: без приоритета, низкий, средний, высокий */
   labels: [string, string, string, string];
   label: string;
 };

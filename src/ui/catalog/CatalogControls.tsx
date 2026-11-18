@@ -18,10 +18,10 @@ import { ThemeTile } from '../ThemeTile';
 import { Section } from './Section';
 
 const PRIORITY_LABELS: [string, string, string, string] = [
-  'Не указана',
-  'Низкая',
-  'Средняя',
-  'Высокая',
+  'Без приоритета',
+  'Низкий',
+  'Средний',
+  'Высокий',
 ];
 
 export function CatalogControls() {

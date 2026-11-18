@@ -32,7 +32,7 @@ function useTextTint(color: string | undefined): string | undefined {
   return color ? ensureContrast(color, [p.bg, p.surface], 4.5) : undefined;
 }
 
-/** Подпись с иконкой: «🔁 пн, ср», «📅 Вчера», «⚑ Высокая». */
+/** Подпись с иконкой: «🔁 пн, ср», «📅 Вчера», «⚑ Высокий». */
 function Meta({ icon, text, color }: { icon?: UiIconName; text: string; color: string }) {
   return (
     <View style={styles.metaItem}>
