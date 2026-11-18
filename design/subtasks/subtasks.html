@@ -1,0 +1,277 @@
+<!doctype html>
+<!--
+  Макет «Подзадачи» (пункты дела): «Обычный» и «Мульт», тема «День».
+  Шрифты берутся из node_modules (после `npm install` открывается как есть).
+  Картинка для просмотра — subtasks.png рядом; пересобрать: открыть этот файл в браузере.
+-->
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Макет — подзадачи</title>
+    <style>
+      @font-face { font-family: 'Manrope'; font-weight: 800; src: url('../../node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf'); }
+      @font-face { font-family: 'Manrope'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/manrope/700Bold/Manrope_700Bold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 400; src: url('../../node_modules/@expo-google-fonts/golos-text/400Regular/GolosText_400Regular.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 500; src: url('../../node_modules/@expo-google-fonts/golos-text/500Medium/GolosText_500Medium.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 600; src: url('../../node_modules/@expo-google-fonts/golos-text/600SemiBold/GolosText_600SemiBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/golos-text/700Bold/GolosText_700Bold.ttf'); }
+      @font-face { font-family: 'Rubik'; font-weight: 400; src: url('../../node_modules/@expo-google-fonts/rubik/400Regular/Rubik_400Regular.ttf'); }
+      @font-face { font-family: 'Rubik'; font-weight: 500; src: url('../../node_modules/@expo-google-fonts/rubik/500Medium/Rubik_500Medium.ttf'); }
+      @font-face { font-family: 'Rubik'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/rubik/700Bold/Rubik_700Bold.ttf'); }
+      @font-face { font-family: 'Unbounded'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf'); }
+      @font-face { font-family: 'Unbounded'; font-weight: 800; src: url('../../node_modules/@expo-google-fonts/unbounded/800ExtraBold/Unbounded_800ExtraBold.ttf'); }
+
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #e9ecf1; font-family: 'Golos', sans-serif; color: #141a23; padding: 36px 40px 48px; width: 1640px; }
+      h1 { font: 800 30px 'Manrope'; }
+      .lead { color: #5c687b; font-size: 15px; margin: 6px 0 28px; max-width: 980px; line-height: 1.45; }
+      .band { border-radius: 28px; padding: 22px 26px 26px; margin-bottom: 28px; display: flex; gap: 30px; align-items: flex-start; }
+      .band-title { font: 800 13px 'Manrope'; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px; }
+      .col { display: flex; flex-direction: column; gap: 10px; }
+      .cap { font-size: 13.5px; line-height: 1.4; width: 360px; padding-left: 4px; }
+      .cap b { font-weight: 700; }
+      .phone { width: 360px; height: 740px; border-radius: 38px; position: relative; overflow: hidden; box-shadow: 0 0 0 9px #11151c, 0 18px 40px rgba(0,0,0,.22); }
+      .status { height: 34px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 13px; font-weight: 600; }
+      .pad { padding: 0 18px; }
+      .svc { width: 380px; display: flex; flex-direction: column; gap: 16px; }
+      .svc h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; opacity: .75; }
+      .legend { background: #fff; border-radius: 22px; padding: 22px 28px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 36px; font-size: 14px; line-height: 1.45; }
+      .legend b { display: block; font: 800 14px 'Manrope'; margin-bottom: 3px; }
+      .legend span { color: #5c687b; }
+    </style>
+  </head>
+  <body>
+    <h1>Подзадачи: список внутри дела</h1>
+    <p class="lead">
+      Пример — «Купить продукты» со списком покупок. Пункты — отдельные записи, привязанные к делу.
+      Три шага: собрали список, отмечаем в магазине прямо на «Сегодня», последний пункт закрывает дело.
+      Справа — где ещё виден список: виджет и уведомление у магазина.
+    </p>
+    <div id="root"></div>
+
+    <div class="legend">
+      <div><b>Вставка списком</b><span>Вставленный текст с переносами строк разбивается на пункты: «молоко ↵ хлеб ↵ семки» → три пункта.</span></div>
+      <div><b>Закрытие дела</b><span>Отметка последнего пункта закрывает дело сама, с «Отменить» на 5 секунд. Ручное закрытие спрашивает про оставшиеся.</span></div>
+      <div><b>Очки</b><span>+10 только за само дело. За пункты очков нет — иначе их можно накручивать дроблением.</span></div>
+      <div><b>Счёт и отметка</b><span>Справа «2/5»; кружок дела заполняется долей — дугой в «Обычном», фазой луны в «Мульте».</span></div>
+      <div><b>Виджет</b><span>Строка с «2/5». Тап по отметке такого дела открывает приложение, а не закрывает всё дело разом.</span></div>
+      <div><b>Один уровень</b><span>Пункт — не дело: без даты, времени и приоритета. Максимум 50 пунктов в деле.</span></div>
+    </div>
+
+    <script>
+      // ── Данные примера ─────────────────────────────────────────────────────
+      const ITEMS = [
+        { t: 'молоко', done: true },
+        { t: 'хлеб', done: true },
+        { t: 'семки', done: false },
+        { t: 'яблоки', done: false },
+        { t: 'сыр', done: false },
+      ];
+
+      // ── Токены двух оформлений (тема «День») ───────────────────────────────
+      const TH = {
+        soft: {
+          name: 'Обычный', band: '#dfe6f1', bg: '#F4F6FA', surface: '#FFFFFF', text: '#141A23', muted: '#5C687B',
+          line: '#D5DCE8', divider: '#E5EAF2', track: '#E3E8F0', accent: '#2563EB', onAccent: '#FFFFFF',
+          ok: '#0B7A4F', onOk: '#FFFFFF', red: '#C62828', tag: '#E6EEFD', ring: '#6B7789', crater: '#5C687B',
+          head: "'Manrope'", body: "'Golos'",
+        },
+        mult: {
+          name: 'Мульт', band: '#ecdfbf', bg: '#F3E9D2', surface: '#FFF8E8', text: '#1E2233', muted: '#5A5E6E',
+          line: '#1E2233', divider: '#E9D9B6', track: '#E6D8B8', accent: '#F5B82E', onAccent: '#1E2233',
+          ok: '#17705F', onOk: '#FFF8E8', red: '#B8322A', tag: '#F7D9A8', ring: '#1E2233', crater: '#E3A11C',
+          head: "'Unbounded'", body: "'Rubik'",
+        },
+      };
+
+      // ── Луна (как ui/moon.ts) ──────────────────────────────────────────────
+      function litPath(p) {
+        const R = 46;
+        if (p <= 0.001) return null;
+        if (p >= 0.999) return `M50 ${50 - R} A${R} ${R} 0 1 1 50 ${50 + R} A${R} ${R} 0 1 1 50 ${50 - R} Z`;
+        const rx = Math.round(R * Math.abs(1 - 2 * p) * 100) / 100;
+        const sweep = p < 0.5 ? 0 : 1;
+        return `M50 ${50 - R} A${R} ${R} 0 0 1 50 ${50 + R} A${rx} ${R} 0 0 ${sweep} 50 ${50 - R} Z`;
+      }
+      const CHECK = 'M5 12.5l4.5 4.5L19 7';
+
+      // ── Отметки ────────────────────────────────────────────────────────────
+      /** k: soft | mult; state: open | done | part; f — доля 0…1 */
+      function mark(k, state, f = 0, size = 24) {
+        const c = TH[k];
+        if (k === 'mult') {
+          const phase = state === 'done' ? 1 : state === 'part' ? f : 0;
+          const d = litPath(phase);
+          const rw = size <= 24 ? 8 : 6;
+          return `<svg width="${size}" height="${size}" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="${c.track}"/>${d ? `<path d="${d}" fill="${c.accent}"/>` : ''}${phase >= 0.999 ? `<circle cx="36" cy="38" r="8" fill="${c.crater}"/><circle cx="62" cy="62" r="11" fill="${c.crater}"/><circle cx="66" cy="32" r="5" fill="${c.crater}"/>` : ''}<circle cx="50" cy="50" r="46" fill="none" stroke="${c.ring}" stroke-width="${rw}"/></svg>`;
+        }
+        const r = size / 2 - 2;
+        const len = 2 * Math.PI * r;
+        if (state === 'done')
+          return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="${c.accent}" stroke="${c.accent}" stroke-width="2"/><path d="${CHECK}" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(${size * 0.2} ${size * 0.2}) scale(${(size * 0.6) / 24})"/></svg>`;
+        if (state === 'part')
+          return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${c.track}" stroke-width="3"/><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${c.accent}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${len * f} ${len}" transform="rotate(-90 ${size / 2} ${size / 2})"/></svg>`;
+        return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size / 2}" cy="${size / 2}" r="${r}" fill="none" stroke="${c.accent}" stroke-width="2"/></svg>`;
+      }
+      const icon = (d, color, size = 18, w = 2.2) =>
+        `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+      const PLUS = 'M12 5v14M5 12h14', CLOSE = 'M6 6l12 12M18 6L6 18', UP = 'M6 15l6-6 6 6', DOWN = 'M6 9l6 6 6-6';
+
+      // ── Общие куски ────────────────────────────────────────────────────────
+      const card = (k, inner, extra = '') => {
+        const c = TH[k];
+        return k === 'soft'
+          ? `<div style="background:${c.surface};border-radius:18px;box-shadow:0 8px 24px rgba(24,45,80,.10);overflow:hidden;${extra}">${inner}</div>`
+          : `<div style="background:${c.surface};border:2.5px solid ${c.line};border-radius:20px;box-shadow:4px 4px 0 ${c.line};overflow:hidden;${extra}">${inner}</div>`;
+      };
+      const status = (k, dark = false) =>
+        `<div class="status" style="color:${dark ? '#fff' : TH[k].text}"><span>9:41</span><span>●●● ▮</span></div>`;
+      const sectionTitle = (k, text, n, tone = 'accent', tiltDeg = -2) => {
+        const c = TH[k];
+        if (k === 'soft')
+          return `<div style="display:flex;align-items:center;gap:8px;margin:18px 0 10px;font:800 13px ${c.head};letter-spacing:.07em;text-transform:uppercase;color:${c.muted}">${text}<span style="background:${c.tag};color:${c.muted};border-radius:99px;padding:1px 9px;font-size:12px;letter-spacing:0">${n}</span></div>`;
+        const bg = tone === 'ok' ? c.ok : c.accent, fg = tone === 'ok' ? c.onOk : c.onAccent;
+        return `<div style="margin:20px 0 12px"><span style="display:inline-block;background:${bg};color:${fg};border:2.5px solid ${c.line};border-radius:10px;padding:4px 11px;font:700 13px ${c.head};transform:rotate(${tiltDeg}deg);box-shadow:2px 2px 0 ${c.line}">${text} · ${n}</span></div>`;
+      };
+      const tabbar = (k) => {
+        const c = TH[k];
+        const tabs = ['Сегодня', 'Дела', 'Привычки', 'Цели', k === 'soft' ? 'Итоги' : 'Стая'];
+        const inner = tabs
+          .map((t, i) => {
+            const on = i === 0;
+            const style = on
+              ? k === 'soft'
+                ? `background:${c.tag};color:${c.accent};`
+                : `background:${c.accent};border:2.5px solid ${c.line};color:${c.text};`
+              : `color:${c.muted};`;
+            return `<div style="flex:1;text-align:center;padding:9px 0;border-radius:${k === 'soft' ? 14 : 14}px;font:${on ? 700 : 500} 11px ${c.body};${style}">${t}</div>`;
+          })
+          .join('');
+        const box =
+          k === 'soft'
+            ? `background:${c.surface};border-top:1px solid ${c.divider};`
+            : `background:${c.surface};border:2.5px solid ${c.line};border-radius:24px;box-shadow:4px 4px 0 ${c.line};`;
+        return `<div style="position:absolute;left:${k === 'soft' ? 0 : 12}px;right:${k === 'soft' ? 0 : 16}px;bottom:${k === 'soft' ? 0 : 14}px;padding:${k === 'soft' ? '10px 10px 18px' : '6px'};${box}display:flex;gap:2px">${inner}</div>`;
+      };
+      const header = (k, sub) => {
+        const c = TH[k];
+        if (k === 'soft')
+          return `<div class="pad"><div style="color:${c.muted};font-size:13px">Среда, 18 ноября</div><div style="font:800 28px ${c.head};margin:2px 0 12px">Сегодня</div><div style="display:flex;justify-content:space-between;font:600 14px ${c.body}"><span>${sub[0]}</span><span style="color:${c.muted};font-weight:400">${sub[1]}</span></div><div style="display:flex;gap:6px;margin-top:8px">${[0, 1, 2].map((i) => `<div style="flex:1;height:7px;border-radius:9px;background:${i < sub[2] ? c.accent : c.track}"></div>`).join('')}</div></div>`;
+        return `<div class="pad"><span style="display:inline-block;background:${c.tag};border:2.5px solid ${c.line};border-radius:10px;padding:5px 11px;font:700 13px ${c.head};transform:rotate(-2deg);box-shadow:2px 2px 0 ${c.line}">Среда, 18 ноября</span><div style="display:flex;align-items:center;gap:14px;margin-top:14px;font:700 15px ${c.body}">${mark('mult', 'part', sub[2] / 3, 54)}<div><div style="font:800 26px ${c.head}">${sub[2]}<span style="color:${c.muted}"> / 3</span></div><div style="color:${c.muted};font-weight:400;font-size:13px">${sub[1]}</div></div></div></div>`;
+      };
+      const rowDivider = (k) => `border-top:${k === 'soft' ? '1px solid' : '2px dashed'} ${TH[k].divider}`;
+
+      // Строка пункта внутри раскрытой карточки
+      const subRow = (k, it) => {
+        const c = TH[k];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:9px 14px 9px 52px;${rowDivider(k)}">${mark(k, it.done ? 'done' : 'open', 0, 20)}<span style="flex:1;font:${k === 'soft' ? 500 : 400} 15px ${c.body};color:${it.done ? c.muted : c.text};${it.done ? 'text-decoration:line-through' : ''}">${it.t}</span></div>`;
+      };
+      const addSub = (k) => {
+        const c = TH[k];
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px 12px 52px;${rowDivider(k)};color:${c.muted};font:400 14px ${c.body}">${icon(PLUS, c.muted, 18)}<span>пункт</span></div>`;
+      };
+      const taskHead = (k, { title, state, f, meta, chevron, struck, sub }) => {
+        const c = TH[k];
+        return `<div style="display:flex;align-items:center;gap:14px;padding:13px 14px"><div style="width:26px;display:flex;justify-content:center">${mark(k, state, f, 26)}</div><div style="flex:1"><div style="font:${k === 'soft' ? 700 : 700} 16px ${c.body};color:${struck ? c.muted : c.text};${struck ? 'text-decoration:line-through' : ''}">${title}</div>${sub ? `<div style="font-size:12.5px;color:${c.muted};margin-top:1px">${sub}</div>` : ''}</div>${meta ? `<span style="font:700 14px ${c.body};color:${c.text}">${meta}</span>` : ''}${chevron ? icon(chevron, c.muted, 18) : ''}</div>`;
+      };
+
+      // ── Экран 1: шторка «Новое» с блоком «Пункты» ─────────────────────────
+      function screenCreate(k) {
+        const c = TH[k];
+        const chip = (t, on) =>
+          k === 'soft'
+            ? `<span style="padding:7px 16px;border-radius:99px;font:600 14px ${c.body};background:${on ? c.accent : c.tag};color:${on ? c.onAccent : c.muted}">${t}</span>`
+            : `<span style="padding:6px 15px;border-radius:12px;font:700 13px ${c.body};background:${on ? c.accent : c.surface};color:${c.text};border:2.5px solid ${c.line};${on ? `box-shadow:2px 2px 0 ${c.line}` : ''}">${t}</span>`;
+        const field = (t, ph) =>
+          `<div style="padding:12px 14px;border-radius:${k === 'soft' ? 14 : 14}px;${k === 'soft' ? `background:${c.bg}` : `border:2.5px solid ${c.line};background:${c.surface}`};font:500 16px ${c.body};color:${ph ? c.muted : c.text}">${t}</div>`;
+        const rowx = (a, b) =>
+          `<div style="display:flex;justify-content:space-between;padding:11px 2px;${rowDivider(k)};font:400 15px ${c.body}"><span>${a}</span><span style="color:${c.muted}">${b}</span></div>`;
+        const it = (t) =>
+          `<div style="display:flex;align-items:center;gap:12px;padding:9px 2px;${rowDivider(k)}">${mark(k, 'open', 0, 20)}<span style="flex:1;font:${k === 'soft' ? 500 : 400} 15px ${c.body}">${t}</span>${icon('M5 9h14M5 15h14', c.muted, 18)}${icon(CLOSE, c.muted, 16)}</div>`;
+        const btn =
+          k === 'soft'
+            ? `background:${c.accent};color:${c.onAccent};border-radius:16px;`
+            : `background:${c.accent};color:${c.onAccent};border:2.5px solid ${c.line};border-radius:18px;box-shadow:4px 4px 0 ${c.line};`;
+        return `<div class="phone" style="background:${c.bg}">${status(k)}<div class="pad" style="opacity:.55">${header(k, ['Сделано 1 из 3', 'осталось 2', 1])}</div>
+          <div style="position:absolute;inset:0;background:rgba(10,14,20,.42)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;top:96px;background:${c.surface};border-radius:30px 30px 0 0;${k === 'mult' ? `border:2.5px solid ${c.line};border-bottom:none;` : ''}padding:10px 18px 0">
+            <div style="width:42px;height:5px;border-radius:9px;background:${c.divider};margin:0 auto 12px"></div>
+            <div style="font:800 22px ${c.head};margin-bottom:12px">Новое</div>
+            <div style="display:flex;gap:8px;margin-bottom:12px">${chip('дело', true)}${chip('привычка')}${chip('цель')}</div>
+            ${field('Купить продукты')}
+            <div style="margin-top:4px">${rowx('Когда', 'Сегодня')}${rowx('Приоритет', 'Без приоритета')}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin:12px 0 2px;font:800 12.5px ${c.head};letter-spacing:.07em;text-transform:uppercase;color:${c.muted}">Пункты<span style="background:${c.tag};color:${c.muted};border-radius:99px;padding:1px 9px;letter-spacing:0">3</span></div>
+            ${it('молоко')}${it('хлеб')}${it('семки')}
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 2px;${rowDivider(k)};color:${c.muted};font:400 15px ${c.body}">${icon(PLUS, c.accent === '#F5B82E' ? c.text : c.accent, 20)}<span>Пункт — Enter добавит следующий</span></div>
+            <div style="margin-top:8px;padding:9px 12px;border-radius:12px;background:${c.tag};font:400 12.5px/1.4 ${c.body};color:${c.text}">Вставь список из заметок или чата — каждая строка станет пунктом</div>
+            <div style="position:absolute;left:18px;right:18px;bottom:22px;text-align:center;padding:15px;font:700 16px ${c.body};${btn}">Записать</div>
+          </div></div>`;
+      }
+
+      // ── Экран 2: «Сегодня», дело раскрыто ─────────────────────────────────
+      function screenToday(k) {
+        const c = TH[k];
+        const body =
+          sectionTitle(k, k === 'soft' ? 'Задачи на сегодня' : 'Осталось', 2, 'accent', -2) +
+          card(
+            k,
+            taskHead(k, { title: 'Купить продукты', state: 'part', f: 0.4, meta: '2/5', chevron: UP, sub: 'Пятёрочка · сегодня' }) +
+              ITEMS.map((i) => subRow(k, i)).join('') +
+              addSub(k)
+          ) +
+          '<div style="height:12px"></div>' +
+          card(k, taskHead(k, { title: 'Позвонить маме', state: 'open', f: 0, sub: 'Сегодня' }));
+        return `<div class="phone" style="background:${c.bg}">${status(k)}${header(k, ['Сделано 1 из 3', 'осталось 2', 1])}<div class="pad">${body}</div>${tabbar(k)}</div>`;
+      }
+
+      // ── Экран 3: последний пункт — дело закрылось ─────────────────────────
+      function screenDone(k) {
+        const c = TH[k];
+        const toast = `<div style="position:absolute;left:14px;right:14px;bottom:${k === 'soft' ? 96 : 100}px;background:${k === 'soft' ? '#141A23' : '#1E2233'};color:#F6EBD3;border-radius:${k === 'soft' ? 18 : 16}px;padding:10px 10px 10px 14px;display:flex;align-items:center;justify-content:space-between;white-space:nowrap;font:500 13px ${c.body};${k === 'mult' ? `border:2.5px solid ${c.line};box-shadow:3px 3px 0 ${c.line}` : 'box-shadow:0 10px 30px rgba(0,0,0,.3)'}"><span>Купить продукты — выполнено</span><span style="background:${c.accent};color:${c.onAccent};font-weight:700;border-radius:10px;padding:6px 12px;${k === 'mult' ? `border:2px solid ${c.line}` : ''}">Отменить</span></div>`;
+        const body =
+          sectionTitle(k, k === 'soft' ? 'Задачи на сегодня' : 'Осталось', 1, 'accent', -2) +
+          card(k, taskHead(k, { title: 'Позвонить маме', state: 'open', f: 0, sub: 'Сегодня' })) +
+          sectionTitle(k, 'Сделано', 1, 'ok', 1.5) +
+          card(
+            k,
+            taskHead(k, { title: 'Купить продукты', state: 'done', f: 1, struck: true, meta: '5/5', sub: '13:30' })
+          );
+        return `<div class="phone" style="background:${c.bg}">${status(k)}${header(k, ['Сделано 2 из 3', 'осталось 1', 2])}<div class="pad">${body}</div>${toast}${tabbar(k)}</div>`;
+      }
+
+      // ── Справа: виджет и уведомление ──────────────────────────────────────
+      function widget(k) {
+        const c = TH[k];
+        const row = (t, st, f, meta) =>
+          `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;${rowDivider(k)}">${mark(k, st, f, 20)}<span style="flex:1;font:600 13.5px ${c.body}">${t}</span><span style="font:700 12.5px ${c.body}">${meta}</span></div>`;
+        const inner = `<div style="display:flex;gap:14px;padding:14px"><div style="width:62px;text-align:center">${mark(k, 'part', 0.33, 44)}<div style="font:800 15px ${c.head};margin-top:4px">1<span style="color:${c.muted};font-weight:400"> / 3</span></div><div style="font-size:10.5px;color:${c.muted}">осталось 2</div></div><div style="flex:1">${row('Купить продукты', 'part', 0.4, '2/5').replace('border-top', 'border-top-color:transparent;border-top')}${row('Записаться в зал', 'open', 0, '19:00')}${row('Читать 20 минут', 'open', 0, '9 дн')}</div></div>`;
+        return card(k, inner, 'border-radius:' + (k === 'soft' ? 24 : 22) + 'px');
+      }
+      function notification(k) {
+        const c = TH[k];
+        return `<div style="background:#fff;color:#141a23;border-radius:20px;padding:12px 14px;box-shadow:0 6px 18px rgba(0,0,0,.12);font-family:'Golos'">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:#5c687b"><span style="width:18px;height:18px;border-radius:6px;background:${c.accent};display:inline-block"></span>OpenStreak · сейчас</div>
+          <div style="font:700 14.5px 'Golos';margin-top:6px">Ты у магазина «Пятёрочка»</div>
+          <div style="font-size:13.5px;line-height:1.4;margin-top:2px">Купить продукты — осталось: семки, яблоки, сыр</div></div>`;
+      }
+
+      // ── Сборка ─────────────────────────────────────────────────────────────
+      const caps = [
+        '<b>1 · Собрали список.</b> В шторке «Новое» у дела блок «Пункты»: Enter — следующий пункт, вставленный список делится по строкам.',
+        '<b>2 · Отмечаем в магазине.</b> Тап по делу раскрывает пункты на «Сегодня» и в «Делах». Справа счёт 2/5, кружок заполнен на 40%.',
+        '<b>3 · Последний пункт.</b> Дело закрывается само и уходит в «Сделано», с «Отменить» на 5 секунд.',
+      ];
+      document.getElementById('root').innerHTML = ['soft', 'mult']
+        .map((k) => {
+          const c = TH[k];
+          return `<div class="band" style="background:${c.band}"><div style="width:100%">
+            <div class="band-title" style="color:${c.muted}">${c.name}</div>
+            <div style="display:flex;gap:34px;align-items:flex-start">
+              ${[screenCreate(k), screenToday(k), screenDone(k)].map((s, i) => `<div class="col">${s}<div class="cap" style="color:${c.text}">${caps[i]}</div></div>`).join('')}
+              <div class="svc" style="color:${c.text}"><h3>Виджет · средний</h3>${widget(k)}<h3 style="margin-top:6px">Уведомление у магазина</h3>${notification(k)}</div>
+            </div></div></div>`;
+        })
+        .join('');
+    </script>
+  </body>
+</html>
