@@ -1,0 +1,158 @@
+<!doctype html>
+<!--
+  Макет: блок «Подзадачи» в шторке «Новое» — внизу формы, перед «Записать», в одном ряду со строками.
+  Три варианта, у каждого пустое и заполненное состояние. «Обычный», тема «Вечер» (normalDark).
+  Шрифты берутся из node_modules (после `npm install` открывается как есть).
+  Картинка для просмотра — subtasks-form.png рядом.
+-->
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Макет — подзадачи в форме</title>
+    <style>
+      @font-face { font-family: 'Manrope'; font-weight: 800; src: url('../../node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 400; src: url('../../node_modules/@expo-google-fonts/golos-text/400Regular/GolosText_400Regular.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 500; src: url('../../node_modules/@expo-google-fonts/golos-text/500Medium/GolosText_500Medium.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 600; src: url('../../node_modules/@expo-google-fonts/golos-text/600SemiBold/GolosText_600SemiBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/golos-text/700Bold/GolosText_700Bold.ttf'); }
+
+      :root {
+        --bg: #0E1217; --surface: #161C24; --text: #EDF1F7; --muted: #9AA6B8; --line: #2A3441;
+        --sun: #5B9BFF; --onSun: #0A1220; --red: #FF8A80; --prioMid: #FBBF24; --divider: #26303C;
+        --track: #2A3441; --ring: #8B97A9; --tag: #1D2A40;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #05070a; font-family: 'Golos', sans-serif; color: var(--text); padding: 36px 40px 44px; width: 1300px; }
+      h1 { font: 800 28px 'Manrope'; }
+      .lead { color: var(--muted); font-size: 15px; margin: 8px 0 26px; max-width: 1100px; line-height: 1.45; }
+      .grid { display: grid; grid-template-columns: repeat(3, 380px); gap: 30px 40px; }
+      .head { font: 800 18px 'Manrope'; margin-bottom: 6px; }
+      .head small { font: 600 12px 'Golos'; color: var(--onSun); background: var(--sun); border-radius: 99px; padding: 3px 9px; margin-left: 8px; vertical-align: 3px; }
+      .cap { font-size: 13.5px; line-height: 1.45; color: var(--muted); min-height: 100px; margin-bottom: 10px; }
+      .state { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px 4px; }
+      .phone { width: 380px; border-radius: 34px; overflow: hidden; background: #000; box-shadow: 0 0 0 8px #1a1f27; margin-bottom: 26px; }
+      .sheet { background: var(--bg); border-radius: 28px 28px 0 0; margin-top: 18px; padding: 10px 20px 20px; }
+      .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--track); margin: 0 auto 12px; }
+      .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+      .top b { font: 800 22px 'Manrope'; }
+      .x { width: 40px; height: 40px; border-radius: 20px; background: var(--surface); display: grid; place-items: center; }
+      .seg { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 10px; }
+      .seg div { flex: 1; text-align: center; padding: 9px 0; font-weight: 600; font-size: 15px; border-radius: 11px; }
+      .seg .on { background: var(--sun); color: var(--onSun); }
+      .title { font-size: 22px; font-weight: 500; padding: 10px 0; border-bottom: 1px solid var(--divider); }
+      .title.ph { color: var(--muted); }
+      .row { display: flex; align-items: center; gap: 14px; min-height: 52px; border-bottom: 1px solid var(--divider); }
+      .row .lab { flex: 1; font-size: 16px; font-weight: 500; }
+      .row .val { font-size: 15px; font-weight: 500; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+      .row .val.set { color: var(--sun); }
+      .dot { width: 12px; height: 12px; border-radius: 6px; display: inline-block; }
+      svg { flex: none; }
+      .btn { margin-top: 16px; height: 52px; border-radius: 16px; background: var(--sun); color: var(--onSun); display: grid; place-items: center; font-weight: 700; font-size: 16px; }
+      .btn.off { background: var(--track); color: var(--muted); }
+      .hl { position: relative; }
+      .hl::before { content: ''; position: absolute; inset: -4px -10px; border: 1.5px dashed var(--prioMid); border-radius: 12px; pointer-events: none; }
+
+      /* подзадача: строка в сетке формы */
+      .sub { display: flex; align-items: center; gap: 14px; min-height: 46px; border-bottom: 1px solid var(--divider); }
+      .sub .circ { width: 20px; height: 20px; border-radius: 10px; border: 1.75px solid var(--ring); flex: none; margin: 0 1px; }
+      .sub .t { flex: 1; font-size: 15px; }
+      .sub .t.ph { color: var(--muted); }
+      .sub.add .t { color: var(--muted); }
+      .indent { padding-left: 36px; }
+      .indent .sub:last-child { border-bottom: none; }
+      .card { background: var(--surface); border-radius: 18px; padding: 2px 14px; }
+      .card .sub:last-child { border-bottom: none; }
+      .sect { font-size: 13px; color: var(--muted); margin: 16px 0 6px 2px; display: flex; justify-content: space-between; }
+      .legend { margin-top: 6px; background: var(--surface); border-radius: 20px; padding: 18px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 36px; font-size: 14px; line-height: 1.45; }
+      .legend b { display: block; font: 800 14px 'Manrope'; margin-bottom: 3px; }
+      .legend span { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>Подзадачи в форме дела</h1>
+    <p class="lead">
+      Блок «Подзадачи» переезжает вниз — после «Места» и «Напомнить», прямо перед «Записать» — и
+      строится по сетке остальных строк: значок в колонке значков (22 px), текст по колонке подписей,
+      тонкие разделители, справа то, что на месте шеврона. Пунктиром отмечен новый блок.
+    </p>
+    <div class="grid" id="root"></div>
+    <div class="legend">
+      <div><b>Ввод</b><span>Enter добавляет подзадачу и оставляет поле для следующей; вставка текста с переносами — по строке на подзадачу (подсказку не показываем).</span></div>
+      <div><b>Удаление</b><span>Крестик справа — на месте шеврона, в той же колонке, что и у строк формы.</span></div>
+      <div><b>Клавиатура</b><span>Блок внизу: при фокусе шторка прокручивается так, чтобы поле было над клавиатурой (уже есть в Sheet).</span></div>
+    </div>
+
+    <script>
+      const P = {
+        calendar: 'M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5',
+        goals: 'M6 21V4 M6 4h12l-2.5 4 2.5 4H6',
+        habits: 'M12 3c1 4 5.5 5.5 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3 2-4.5 2.5-6.5 1.2 1 2 2.5 2 4 1.2-2.2 1.5-5 1-8z',
+        place: 'M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0',
+        remind: 'M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z M10 20.5a2 2 0 0 0 4 0',
+        tasks: 'M5 4h14v16H5z M8.5 12l2.5 2.5 5-5',
+        plus: 'M12 5v14M5 12h14',
+        chevron: 'M9 6l6 6-6 6',
+        close: 'M6 6l12 12M18 6L6 18',
+      };
+      const ic = (n, s = 22, c = 'var(--muted)', rot = 0) =>
+        `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${rot}deg)"><path d="${P[n]}"/></svg>`;
+      const row = (icon, lab, val, opt = {}) =>
+        `<div class="row">${ic(icon)}<div class="lab">${lab}</div><div class="val ${opt.set ? 'set' : ''}">${opt.dot ? `<span class="dot" style="background:${opt.dot}"></span>` : ''}${val}</div>${ic('chevron', 16, 'var(--muted)', opt.open ? 90 : 0)}</div>`;
+      const sub = (t, ph) =>
+        `<div class="sub"><div class="circ"></div><div class="t ${ph ? 'ph' : ''}">${t}</div>${ph ? '' : ic('close', 16)}</div>`;
+      const addSub = (t = 'Подзадача') =>
+        `<div class="sub add">${ic('plus', 22)}<div class="t">${t}</div></div>`;
+
+      const ITEMS = ['молоко', 'хлеб', 'яблоки'];
+
+      function form(filled, block) {
+        return `<div class="phone"><div class="sheet">
+          <div class="grab"></div>
+          <div class="top"><b>Новое</b><div class="x">${ic('close', 18, 'var(--text)')}</div></div>
+          <div class="seg"><div class="on">Дело</div><div>Привычка</div><div>Цель</div></div>
+          <div class="title ${filled ? '' : 'ph'}">${filled ? 'Купить продукты' : 'Что сделать'}</div>
+          ${row('calendar', 'Когда', 'Сегодня', { set: true })}
+          ${row('goals', 'Приоритет', filled ? 'Средний' : 'Без приоритета', filled ? { set: true, dot: 'var(--prioMid)' } : {})}
+          ${row('habits', 'Сфера', 'Без сферы')}
+          ${row('place', 'Место', 'Без места')}
+          ${row('remind', 'Напомнить', 'Не задано')}
+          <div class="hl">${block(filled)}</div>
+          <div class="btn ${filled ? '' : 'off'}">Записать</div>
+        </div></div>`;
+      }
+
+      const VARIANTS = [
+        {
+          name: 'А · Строки в сетке',
+          rec: true,
+          cap: 'Без заголовка: каждая подзадача — строка формы. Кружок стоит в колонке значков, текст — по колонке подписей, крестик — на месте шеврона. Последняя строка «+ Подзадача» — поле ввода. Пустая форма выглядит как ещё одна строка.',
+          block: (f) => (f ? ITEMS.map((x) => sub(x)).join('') : '') + addSub(),
+        },
+        {
+          name: 'Б · Строка с раскрытием',
+          cap: 'Как «Сфера» или «Место»: строка «Подзадачи» со счётом справа («3» или «Нет») и шевроном. Нажатие раскрывает список под строкой с отступом по колонке подписей. Форма короче, но до списка на один тап больше.',
+          block: (f) =>
+            f
+              ? row('tasks', 'Подзадачи', '3', { set: true, open: true }) +
+                `<div class="indent">${ITEMS.map((x) => sub(x)).join('')}${addSub('Добавить')}</div>`
+              : row('tasks', 'Подзадачи', 'Нет'),
+        },
+        {
+          name: 'В · Карточка',
+          cap: 'Подпись «Подзадачи» над карточкой, сами подзадачи — в мягкой карточке цвета поверхности, как блоки на «Сегодня». Внутри та же сетка: кружок, текст, крестик. Заметнее остальных строк, но выделяется из формы.',
+          block: (f) =>
+            `<div class="sect"><span>Подзадачи</span><span>${f ? '0 из 3' : ''}</span></div><div class="card">${(f ? ITEMS.map((x) => sub(x)).join('') : '') + addSub()}</div>`,
+        },
+      ];
+
+      document.getElementById('root').innerHTML = VARIANTS.map(
+        (v) => `<div>
+          <div class="head">${v.name}${v.rec ? '<small>советую</small>' : ''}</div>
+          <div class="cap">${v.cap}</div>
+          <div class="state">Пустая форма</div>${form(false, v.block)}
+          <div class="state">Со списком</div>${form(true, v.block)}
+        </div>`
+      ).join('');
+    </script>
+  </body>
+</html>
