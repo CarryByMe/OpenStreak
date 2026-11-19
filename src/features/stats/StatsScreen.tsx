@@ -1,200 +1,201 @@
 /**
- * «Итоги» в «Обычном» оформлении (design/serious): неделя столбиками, три числа и строки с
- * цифрами. Без званий, очков и оценок — только то, что посчитано из данных.
+ * «Итоги» в «Обычном» и «Минималистичном» (design/stats, экран 1): переключатель «Неделя · Месяц · Год»,
+ * процент сделанного из запланированного и разница с прошлым периодом, четыре плитки, график по дням
+ * (у года — по месяцам) со средним и вывод словами. Ниже — разделы и календарь настроения.
  */
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { addDays, weekday } from '../../core/dates';
-import { packWeek } from '../../core/points';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { overview, type Bucket } from '../../core/stats';
 import { useDataStore } from '../../core/store';
-import type { MessageKey } from '../../i18n';
-import { useT } from '../../store/prefsStore';
-import { usePalette, useSoft } from '../../store/themeStore';
+import { useT, type Translate } from '../../store/prefsStore';
+import { usePalette } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
-import { ScreenHeader, SectionTitle } from '../../ui/ScreenHeader';
+import { ColumnChart } from '../../ui/charts';
+import { Icon } from '../../ui/icons';
+import { Card } from '../../ui/Sticker';
 import { dayMonth } from '../format';
 import { MoodCalendar } from './MoodCalendar';
-import { StatCards } from './StatCards';
+import {
+  dec,
+  delta,
+  DeltaText,
+  KpiGrid,
+  monthShort,
+  pct,
+  PeriodBar,
+  Section,
+  StatsPage,
+  usePeriod,
+  weekdayName,
+  weekdayShort,
+  type PeriodParams,
+} from './statsUi';
 
-const BAR_MAX = 96;
+export type StatsSection = 'habits' | 'tasks' | 'areas' | 'year';
 
-type Props = { onOpenDay?: (date: string) => void; onOpenHistory?: () => void };
+type Props = {
+  onOpenDay?: (date: string) => void;
+  onOpenHistory?: () => void;
+  onOpenSection?: (section: StatsSection, params: PeriodParams) => void;
+};
 
-export function StatsScreen({ onOpenDay, onOpenHistory }: Props) {
+/** Подпись столбика: день месяца, день недели или месяц. */
+function bucketLabel(t: Translate, kind: string, b: Bucket, i: number, count: number): string {
+  if (kind === 'year') return monthShort(t, i);
+  if (kind === 'week') return weekdayShort(t, new Date(`${b.from}T00:00`).getDay());
+  const day = Number(b.from.slice(8, 10));
+  return day === 1 || day % 7 === 0 || i === count - 1 ? String(day) : '';
+}
+
+export function StatsScreen({ onOpenDay, onOpenHistory, onOpenSection }: Props) {
   const p = usePalette();
-  const soft = useSoft();
   const t = useT();
-  const insets = useSafeAreaInsets();
   const data = useDataStore((s) => s.data);
-  const today = useDataStore((s) => s.today);
-  const week = useMemo(() => packWeek(data, today), [data, today]);
-  const maxMarks = Math.max(1, ...week.days.map((d) => d.marks));
-  const from = addDays(today, -6);
-  // отметки за неделю — дела и нормы привычек; карточка показывает только привычки
-  const habitMarks = week.marks - week.tasksDone;
+  const state = usePeriod();
+  const { period, today } = state;
+  const o = useMemo(() => overview(data, period, today), [data, period, today]);
+  const kind = period.kind;
 
-  const numbers = [
-    { value: String(week.tasksDone), label: t('pack.tasksDone', { count: week.tasksDone }) },
-    { value: String(week.marks), label: t('pack.marks', { count: week.marks }) },
-    { value: String(week.bestStreak), label: t('pack.bestStreak') },
+  const rates = o.buckets.map((b) => (b.rate === null ? null : Math.round(b.rate * 100)));
+  const highlight = o.buckets.findIndex((b) => today >= b.from && today <= b.to);
+  // Среднее — по законченным дням: сегодняшний столбик ещё растёт.
+  const known = rates.filter(
+    (r, i): r is number => r !== null && (kind === 'year' || i !== highlight)
+  );
+  const avg = known.length ? known.reduce((a, b) => a + b, 0) / known.length : null;
+  const rateDelta = delta(t, kind, o.rate.value, o.rate.prev, pct);
+
+  const note =
+    o.bestWeekday && o.worstWeekday
+      ? t('stats.bestDay', {
+          best: weekdayName(t, o.bestWeekday.day),
+          bestRate: pct(o.bestWeekday.rate),
+          worst: weekdayName(t, o.worstWeekday.day),
+          worstRate: pct(o.worstWeekday.rate),
+        })
+      : null;
+
+  const params: PeriodParams = { kind, anchor: period.from > today ? today : period.from };
+  const links: { key: StatsSection; label: string }[] = [
+    { key: 'habits', label: t('stats.section.habits') },
+    { key: 'tasks', label: t('stats.section.tasks') },
+    { key: 'areas', label: t('stats.section.areas') },
+    { key: 'year', label: t('stats.section.year', { year: period.from.slice(0, 4) }) },
   ];
 
   return (
-    <ScrollView
-      style={{ backgroundColor: p.bg }}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + SPACE.md }]}
-    >
-      <ScreenHeader
-        kicker={`${dayMonth(t, from)} – ${dayMonth(t, today)}`}
-        title={t('tab.stats')}
+    <StatsPage title={t('tab.stats')}>
+      <PeriodBar state={state} />
+
+      <Card>
+        {o.rate.value === null ? (
+          <Text style={[TYPE.body, { color: p.muted }]}>{t('stats.collecting')}</Text>
+        ) : (
+          <View
+            style={styles.hero}
+            accessible
+            accessibilityLabel={[pct(o.rate.value), t('stats.rateHint'), rateDelta?.a11y]
+              .filter(Boolean)
+              .join(', ')}
+          >
+            <Text style={[TYPE.numberXL, { color: p.text }]}>{pct(o.rate.value)}</Text>
+            <View style={styles.heroSub}>
+              <Text style={[TYPE.meta, { color: p.muted }]}>{t('stats.rateHint')}</Text>
+              {rateDelta && <DeltaText delta={rateDelta} />}
+            </View>
+          </View>
+        )}
+      </Card>
+
+      <KpiGrid
+        items={[
+          {
+            value: String(o.tasksDone.value),
+            label: t('stats.kpi.tasks'),
+            delta: delta(t, kind, o.tasksDone.value, o.tasksDone.prev, String),
+          },
+          {
+            value: String(o.habitMarks.value),
+            label: t('stats.kpi.marks'),
+            delta: delta(t, kind, o.habitMarks.value, o.habitMarks.prev, String),
+          },
+          {
+            value: o.bestRun ? t('stats.days', { count: o.bestRun.days }) : '—',
+            label: o.bestRun
+              ? `${t('stats.kpi.run')} · ${o.bestRun.habit.name}`
+              : t('stats.kpi.run'),
+          },
+          {
+            value: o.mood.value === null ? '—' : dec(t, o.mood.value),
+            label: t('stats.kpi.mood'),
+            delta: delta(t, kind, o.mood.value, o.mood.prev, (v) => dec(t, v)),
+          },
+        ]}
       />
 
-      {soft ? (
-        <StatCards
-          cards={[
-            {
-              icon: 'check',
-              color: p.teal,
-              value: week.tasksDone,
-              label: t('stats.tasksWeek', { count: week.tasksDone }),
-            },
-            {
-              icon: 'repeat',
-              color: p.prioLow,
-              value: habitMarks,
-              label: t('stats.habitMarks', { count: habitMarks }),
-            },
-            {
-              icon: 'star',
-              color: p.prioMid,
-              value: week.perfectStreak,
-              label: t('pack.perfectStreak', { count: week.perfectStreak }),
-              note: t('stats.now'),
-            },
-            {
-              icon: 'trophy',
-              color: p.violet,
-              value: week.perfectBest,
-              label: t('pack.perfectStreak', { count: week.perfectBest }),
-              note: t('stats.best'),
-            },
-          ]}
+      <Section
+        title={t(kind === 'year' ? 'stats.byMonth' : 'stats.byDay')}
+        hint={t('stats.percentDone')}
+        note={note}
+      >
+        <ColumnChart
+          values={rates}
+          max={100}
+          labels={o.buckets.map((b, i) => bucketLabel(t, kind, b, i, o.buckets.length))}
+          highlight={highlight >= 0 ? highlight : undefined}
+          avg={avg}
+          avgLabel={avg !== null ? t('stats.avg', { value: `${Math.round(avg)}%` }) : undefined}
+          format={(v) => `${Math.round(v)}%`}
+          tip={(i) => {
+            const b = o.buckets[i];
+            const when =
+              kind === 'year'
+                ? t(`cal.month.${i}` as Parameters<Translate>[0])
+                : dayMonth(t, b.from);
+            return b.rate === null
+              ? when
+              : `${when}: ${pct(b.rate)} · ${t('stats.ofN', { a: b.done, b: b.planned })}`;
+          }}
+          a11yLabel={o.buckets
+            .map((b, i) =>
+              b.rate === null ? null : `${bucketLabel(t, kind, b, i, 0) || b.from}: ${pct(b.rate)}`
+            )
+            .filter(Boolean)
+            .join('; ')}
         />
-      ) : (
-        <View
-          style={[
-            styles.numbers,
-            soft
-              ? {
-                  borderWidth: 0,
-                  backgroundColor: p.surface,
-                  borderRadius: 18,
-                  paddingHorizontal: 16,
-                }
-              : { borderColor: p.divider },
-          ]}
-        >
-          {numbers.map((n, i) => (
-            <View
-              key={n.label}
-              style={[
-                styles.number,
-                i > 0 && { borderLeftWidth: 1, borderLeftColor: p.divider, paddingLeft: 14 },
-              ]}
-            >
-              <Text style={[TYPE.numberL, { color: p.text }]}>{n.value}</Text>
-              <Text style={[TYPE.caption, { color: p.muted }]}>{n.label}</Text>
-            </View>
-          ))}
-        </View>
-      )}
+      </Section>
 
-      <View style={styles.section}>
-        <SectionTitle title={t('pack.week')} />
-        <View
-          accessible
-          accessibilityLabel={week.days.map((d) => d.marks).join(', ')}
-          style={styles.bars}
-        >
-          {week.days.map((d) => {
-            const isToday = d.date === today;
-            return (
-              <View key={d.date} style={styles.barCol}>
-                <Text style={[TYPE.mark, { color: p.text }]}>{d.marks}</Text>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height: Math.max(4, Math.round((d.marks / maxMarks) * BAR_MAX)),
-                      backgroundColor: soft
-                        ? d.marks === 0
-                          ? p.track
-                          : p.sun
-                        : isToday
-                          ? 'transparent'
-                          : p.line,
-                      borderWidth: isToday && !soft ? 2 : 0,
-                      borderColor: p.line,
-                      borderTopLeftRadius: soft ? 8 : 0,
-                      borderTopRightRadius: soft ? 8 : 0,
-                    },
-                  ]}
-                />
-                <Text
-                  style={[isToday ? TYPE.mark : TYPE.tiny, { color: isToday ? p.text : p.muted }]}
-                >
-                  {t(`day.short.${weekday(d.date)}` as MessageKey)}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
-      </View>
+      <Card padded={false}>
+        {links.map((l, i) => (
+          <Pressable
+            key={l.key}
+            accessibilityRole="button"
+            onPress={() => onOpenSection?.(l.key, params)}
+            style={({ pressed }) => [
+              styles.link,
+              i > 0 && { borderTopWidth: 1, borderTopColor: p.divider },
+              pressed && { backgroundColor: p.bg },
+            ]}
+          >
+            <Text style={[TYPE.row, { color: p.text, flex: 1 }]}>{l.label}</Text>
+            <Icon name="chevron" size={16} tone="muted" />
+          </Pressable>
+        ))}
+      </Card>
 
       <MoodCalendar onOpenDay={onOpenDay} onOpenHistory={onOpenHistory} />
-
-      <View>
-        {!soft && (
-          <Row
-            name={t('pack.perfectStreak', { count: week.perfectStreak })}
-            value={String(week.perfectStreak)}
-          />
-        )}
-        <Row
-          name={t('pack.slips', { count: week.slips })}
-          value={String(week.slips)}
-          alert={week.slips > 0}
-        />
-      </View>
-    </ScrollView>
-  );
-}
-
-function Row({ name, value, alert }: { name: string; value: string; alert?: boolean }) {
-  const p = usePalette();
-  return (
-    <View style={[styles.row, { borderTopColor: p.divider }]}>
-      <Text style={[TYPE.body, { color: p.text }]}>{name}</Text>
-      <Text style={[TYPE.row, { color: alert ? p.red : p.muted }]}>{value}</Text>
-    </View>
+    </StatsPage>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: SPACE.screenX, paddingBottom: SPACE.xl, gap: SPACE.lg },
-  numbers: { flexDirection: 'row', borderTopWidth: 1, borderBottomWidth: 1, paddingVertical: 16 },
-  number: { flex: 1, gap: 4 },
-  section: { gap: SPACE.md },
-  bars: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, height: 148 },
-  barCol: { flex: 1, alignItems: 'center', gap: 6, justifyContent: 'flex-end' },
-  bar: { alignSelf: 'stretch' },
-  row: {
+  hero: { flexDirection: 'row', alignItems: 'flex-end', gap: SPACE.md },
+  heroSub: { flex: 1, paddingBottom: 6, gap: 2 },
+  link: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: 50,
-    borderTopWidth: 1,
+    paddingHorizontal: SPACE.lg,
   },
 });

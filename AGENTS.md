@@ -29,7 +29,7 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   functions are stringified — they must be self-contained (everything arrives in `props`). Components of the
   Android tree must never return `null` — put the condition at the call site.
 - Screens live in `src/features`, navigation in `src/navigation`. Derived values (day, streaks,
-  points, task groups, goals) are pure functions in `src/core` with tests — screens only render them.
+  points, task groups, goals, «Итоги» — `core/stats.ts`) are pure functions in `src/core` with tests — screens only render them.
 
 # Rules for this repo
 

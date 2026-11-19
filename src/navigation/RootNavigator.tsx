@@ -14,7 +14,13 @@ import { GoalsScreen } from '../features/goals/GoalsScreen';
 import { HabitScreen } from '../features/habits/HabitScreen';
 import { HabitsScreen } from '../features/habits/HabitsScreen';
 import { PackScreen } from '../features/pack/PackScreen';
-import { StatsScreen } from '../features/stats/StatsScreen';
+import { AreasStatsScreen } from '../features/stats/AreasStatsScreen';
+import { HabitsStatsScreen } from '../features/stats/HabitsStatsScreen';
+import { HabitYearScreen } from '../features/stats/HabitYearScreen';
+import { StatsScreen, type StatsSection } from '../features/stats/StatsScreen';
+import type { PeriodParams } from '../features/stats/statsUi';
+import { TasksStatsScreen } from '../features/stats/TasksStatsScreen';
+import { YearStatsScreen } from '../features/stats/YearStatsScreen';
 import { PlacesScreen } from '../features/places/PlacesScreen';
 import { ClosedScreen } from '../features/review/ClosedScreen';
 import { ReviewHistoryScreen } from '../features/review/ReviewHistoryScreen';
@@ -38,6 +44,11 @@ export type RootStack = {
   schedule: undefined;
   scheduleWeek: undefined;
   bells: undefined;
+  statsHabits: PeriodParams;
+  statsHabit: { id: string; year: number };
+  statsTasks: PeriodParams;
+  statsAreas: PeriodParams;
+  statsYear: { year: number };
   habit: { id: string };
   review: { date?: string } | undefined;
   reviewHistory: undefined;
@@ -66,7 +77,11 @@ function LunaTabBar({ state, navigation }: BottomTabBarProps) {
   );
 }
 
-type DayLinks = { onOpenDay: (date: string) => void; onOpenHistory: () => void };
+type DayLinks = {
+  onOpenDay: (date: string) => void;
+  onOpenHistory: () => void;
+  onOpenSection: (section: StatsSection, params: PeriodParams) => void;
+};
 
 /** «Обычный» и «Минималистичный» — «Итоги» (статистика), «АУФ» — «Стая» (звания и волк). */
 function PackOrStats(props: DayLinks) {
@@ -100,6 +115,12 @@ function Tabs({ navigation }: NativeStackScreenProps<RootStack, 'tabs'>) {
           <PackOrStats
             onOpenDay={(date) => navigation.navigate('review', { date })}
             onOpenHistory={() => navigation.navigate('reviewHistory')}
+            onOpenSection={(section, params) => {
+              if (section === 'habits') navigation.navigate('statsHabits', params);
+              else if (section === 'tasks') navigation.navigate('statsTasks', params);
+              else if (section === 'areas') navigation.navigate('statsAreas', params);
+              else navigation.navigate('statsYear', { year: Number(params.anchor.slice(0, 4)) });
+            }}
           />
         )}
       </Tab.Screen>
@@ -175,6 +196,39 @@ export function RootNavigator() {
       </Stack.Screen>
       <Stack.Screen name="bells">
         {({ navigation }) => <BellsScreen onBack={() => navigation.goBack()} />}
+      </Stack.Screen>
+      <Stack.Screen name="statsHabits">
+        {({ navigation, route }) => (
+          <HabitsStatsScreen
+            params={route.params}
+            onBack={() => navigation.goBack()}
+            onOpenHabit={(id, year) => navigation.navigate('statsHabit', { id, year })}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="statsHabit">
+        {({ navigation, route }) => (
+          <HabitYearScreen
+            habitId={route.params.id}
+            year={route.params.year}
+            onBack={() => navigation.goBack()}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="statsTasks">
+        {({ navigation, route }) => (
+          <TasksStatsScreen params={route.params} onBack={() => navigation.goBack()} />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="statsAreas">
+        {({ navigation, route }) => (
+          <AreasStatsScreen params={route.params} onBack={() => navigation.goBack()} />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="statsYear">
+        {({ navigation, route }) => (
+          <YearStatsScreen year={route.params.year} onBack={() => navigation.goBack()} />
+        )}
       </Stack.Screen>
     </Stack.Navigator>
   );
