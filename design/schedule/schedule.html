@@ -1,0 +1,342 @@
+<!doctype html>
+<!--
+  Макет «Расписание» (концепт): конструктор недели — пары, зал, работа. «Обычный», тема «Вечер» (normalDark).
+  Шрифты берутся из node_modules (после `npm install` открывается как есть).
+  Картинка для просмотра — schedule.png рядом.
+-->
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Макет — расписание</title>
+    <style>
+      @font-face { font-family: 'Manrope'; font-weight: 800; src: url('../../node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 400; src: url('../../node_modules/@expo-google-fonts/golos-text/400Regular/GolosText_400Regular.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 500; src: url('../../node_modules/@expo-google-fonts/golos-text/500Medium/GolosText_500Medium.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 600; src: url('../../node_modules/@expo-google-fonts/golos-text/600SemiBold/GolosText_600SemiBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/golos-text/700Bold/GolosText_700Bold.ttf'); }
+
+      :root {
+        --bg: #0E1217; --surface: #161C24; --text: #EDF1F7; --muted: #9AA6B8; --line: #2A3441;
+        --sun: #5B9BFF; --onSun: #0A1220; --teal: #3DD6A0; --red: #FF8A80; --mid: #FBBF24; --violet: #B794FF;
+        --divider: #26303C; --track: #2A3441; --tag: #1D2A40;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #05070a; font-family: 'Golos', sans-serif; color: var(--text); padding: 36px 40px 44px; width: 1300px; }
+      h1 { font: 800 28px 'Manrope'; }
+      h2 { font: 800 13px 'Manrope'; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 6px 0 14px; }
+      .lead { color: var(--muted); font-size: 15px; margin: 8px 0 26px; max-width: 1150px; line-height: 1.45; }
+      .grid { display: grid; grid-template-columns: repeat(3, 380px); gap: 0 40px; margin-bottom: 30px; }
+      .head { font: 800 17px 'Manrope'; margin-bottom: 6px; }
+      .cap { font-size: 13.5px; line-height: 1.45; color: var(--muted); min-height: 82px; margin-bottom: 10px; }
+      .phone { width: 380px; height: 780px; border-radius: 34px; overflow: hidden; background: var(--bg); box-shadow: 0 0 0 8px #1a1f27; position: relative; }
+      .status { height: 30px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 13px; font-weight: 600; }
+      .pad { padding: 0 20px; }
+      svg { flex: none; display: block; }
+
+      /* шапки экранов */
+      .date { font-size: 13px; color: var(--muted); margin-top: 6px; }
+      .big { font: 800 30px 'Manrope'; margin: 2px 0 14px; }
+      .nav { display: flex; align-items: center; gap: 12px; margin: 8px 0 14px; }
+      .nav b { font: 800 24px 'Manrope'; flex: 1; }
+      .rbtn { width: 40px; height: 40px; border-radius: 20px; background: var(--surface); display: grid; place-items: center; }
+      .pill { height: 36px; padding: 0 14px; border-radius: 18px; background: var(--surface); display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; }
+
+      /* карточки */
+      .card { background: var(--surface); border-radius: 22px; padding: 16px; margin-bottom: 12px; }
+      .card-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+      .card-h b { font: 800 17px 'Manrope'; }
+      .card-h a { font-size: 14px; font-weight: 600; color: var(--sun); display: flex; align-items: center; gap: 2px; }
+      .meta { font-size: 13px; color: var(--muted); }
+
+      /* строка занятия */
+      .slot { display: flex; gap: 12px; align-items: stretch; padding: 9px 0; }
+      .slot .tm { width: 46px; font-size: 14px; font-weight: 600; line-height: 1.25; text-align: right; }
+      .slot .tm small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+      .slot .bar { width: 4px; border-radius: 2px; }
+      .slot .bd { flex: 1; min-width: 0; }
+      .slot .tt { font-size: 15.5px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+      .slot .sub { font-size: 13px; color: var(--muted); margin-top: 3px; display: flex; gap: 10px; align-items: center; }
+      .slot .sub span { display: inline-flex; align-items: center; gap: 4px; }
+      .slot.past .tt, .slot.past .tm { color: var(--muted); }
+      .slot.now { background: var(--tag); border-radius: 14px; margin: 2px -10px; padding: 10px; }
+      .badge { font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 8px; background: var(--sun); color: var(--onSun); }
+      .prog { height: 4px; border-radius: 2px; background: var(--track); margin-top: 8px; overflow: hidden; }
+      .prog i { display: block; height: 100%; background: var(--sun); }
+      .gap { font-size: 12.5px; color: var(--muted); padding: 2px 0 2px 58px; }
+      .task { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--divider); font-size: 15.5px; }
+      .task:first-of-type { border-top: none; }
+      .circ { width: 22px; height: 22px; border-radius: 11px; border: 2px solid var(--muted); flex: none; }
+      .mini-btn { font-size: 13px; font-weight: 700; color: var(--onSun); background: var(--teal); border-radius: 10px; padding: 5px 10px; margin-left: auto; }
+
+      /* полоса дней */
+      .days { display: flex; gap: 6px; margin-bottom: 12px; }
+      .days div { flex: 1; height: 56px; border-radius: 14px; background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 13px; font-weight: 600; }
+      .days div.on { background: var(--sun); color: var(--onSun); }
+      .days div.off { color: var(--muted); }
+      .days i { display: flex; gap: 2px; }
+      .days i b { width: 5px; height: 5px; border-radius: 3px; display: block; }
+      .seg { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 12px; }
+      .seg div { flex: 1; text-align: center; padding: 8px 0; font-weight: 600; font-size: 14px; border-radius: 11px; color: var(--muted); }
+      .seg .on { background: var(--sun); color: var(--onSun); }
+      .add { height: 52px; border-radius: 16px; border: 1.5px dashed var(--line); display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; color: var(--muted); margin-top: 6px; }
+      .fab { position: absolute; right: 20px; bottom: 24px; height: 52px; padding: 0 20px; border-radius: 26px; background: var(--sun); color: var(--onSun); display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+
+      /* неделя сеткой */
+      .wk { display: grid; grid-template-columns: 30px repeat(6, 1fr); gap: 0 4px; position: relative; }
+      .wk .dh { text-align: center; font-size: 12.5px; font-weight: 600; color: var(--muted); padding-bottom: 8px; }
+      .wk .dh.on { color: var(--sun); }
+      .wk .hrs { grid-column: 1; position: relative; }
+      .wk .col { position: relative; background: var(--surface); border-radius: 10px; }
+      .wk .hl { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--divider); }
+      .wk .h { position: absolute; font-size: 11px; color: var(--muted); right: 2px; transform: translateY(-50%); }
+      .blk { position: absolute; left: 2px; right: 2px; border-radius: 7px; padding: 4px 4px; font-size: 10.5px; font-weight: 600; line-height: 1.2; overflow: hidden; color: var(--onSun); }
+      .nowline { position: absolute; left: 30px; right: 0; height: 2px; background: var(--red); }
+      .nowline::before { content: ''; position: absolute; left: -4px; top: -3px; width: 8px; height: 8px; border-radius: 4px; background: var(--red); }
+
+      /* шторка */
+      .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.7); }
+      .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--bg); border-radius: 28px 28px 0 0; padding: 10px 20px 20px; }
+      .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--track); margin: 0 auto 12px; }
+      .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+      .top b { font: 800 22px 'Manrope'; }
+      .title { font-size: 22px; font-weight: 500; padding: 10px 0; border-bottom: 1px solid var(--divider); }
+      .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+      .chip { height: 38px; padding: 0 14px; border-radius: 19px; border: 1.5px solid var(--line); display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 600; }
+      .chip.on { background: var(--sun); border-color: var(--sun); color: var(--onSun); }
+      .row { display: flex; align-items: center; gap: 14px; min-height: 52px; border-bottom: 1px solid var(--divider); }
+      .row .lab { flex: 1; font-size: 16px; font-weight: 500; }
+      .row .val { font-size: 15px; font-weight: 500; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+      .row .val.set { color: var(--sun); }
+      .dot { width: 12px; height: 12px; border-radius: 6px; display: inline-block; }
+      .body { padding: 0 0 12px 36px; }
+      .dchips { display: flex; gap: 5px; }
+      .dchips div { width: 38px; height: 38px; border-radius: 19px; border: 1.5px solid var(--line); display: grid; place-items: center; font-size: 13px; font-weight: 600; }
+      .dchips div.on { background: var(--sun); border-color: var(--sun); color: var(--onSun); }
+      .btn { margin-top: 14px; height: 52px; border-radius: 16px; background: var(--sun); color: var(--onSun); display: grid; place-items: center; font-weight: 700; font-size: 16px; }
+      .menu { position: absolute; right: 20px; width: 270px; background: var(--surface); border: 1px solid var(--divider); border-radius: 20px; padding: 8px 6px; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+      .mi { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 12px; border-radius: 12px; font-size: 15.5px; font-weight: 500; }
+      .mi .n { width: 52px; color: var(--muted); font-size: 14px; }
+      .mi .t { flex: 1; }
+      .mi.on { background: var(--bg); }
+
+      /* звонки */
+      .bell { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--divider); font-size: 15.5px; }
+      .bell:first-child { border-top: none; }
+      .bell .n { width: 64px; color: var(--muted); font-size: 14px; }
+      .bell .t { flex: 1; font-weight: 600; font-variant-numeric: tabular-nums; }
+      .brk { font-size: 12px; color: var(--muted); padding-left: 76px; margin: -4px 0 -2px; }
+      .set { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--divider); font-size: 15px; }
+      .set:first-child { border-top: none; }
+      .set span { color: var(--sun); font-weight: 600; }
+      .sw { width: 46px; height: 28px; border-radius: 14px; background: var(--teal); position: relative; }
+      .sw::after { content: ''; position: absolute; right: 3px; top: 3px; width: 22px; height: 22px; border-radius: 11px; background: var(--onSun); }
+
+      .legend { background: var(--surface); border-radius: 20px; padding: 18px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 36px; font-size: 14px; line-height: 1.45; }
+      .legend b { display: block; font: 800 14px 'Manrope'; margin-bottom: 3px; }
+      .legend span { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>Расписание: конструктор недели</h1>
+    <p class="lead">
+      Повторяющиеся занятия по дням недели — пары, зал, работа, кружки. Задаются один раз, дальше
+      сами показываются на «Сегодня» и напоминают заранее. Пары можно ставить по номеру («2 пара»), а не
+      по времени: время берётся из звонков. Для вуза — чётная и нечётная неделя. Вход — блок
+      «Расписание» на «Сегодня» и «Настройки → Структура → Расписание» (вкладки внизу не трогаем).
+    </p>
+
+    <h2>Где видно</h2>
+    <div class="grid" id="row1"></div>
+    <h2>Как собрать</h2>
+    <div class="grid" id="row2"></div>
+
+    <div class="legend">
+      <div><b>Занятие — не дело</b><span>Его не надо отмечать, за него нет очков и долгов. Это рамка дня: когда занят. Дела и привычки живут как раньше.</span></div>
+      <div><b>Зал и привычка</b><span>Занятие можно связать с привычкой («Спорт»): после конца появляется «Отметить», отметка идёт в привычку и её серию.</span></div>
+      <div><b>Шаблоны</b><span>«Пара», «Зал», «Работа», «Своё» — заполняют значок, цвет и длительность. Пара берёт время из звонков по номеру.</span></div>
+      <div><b>Чётная / нечётная</b><span>Включается в «Звонках»: с какой недели считать. У занятия — «Каждую неделю», «По чётным» или «По нечётным».</span></div>
+      <div><b>Напоминания</b><span>За 5–60 минут до начала, через системные уведомления (как у дел), с местом или аудиторией в тексте.</span></div>
+      <div><b>Выходные и каникулы</b><span>«Пауза до…» скрывает расписание на каникулы или больничный, не удаляя его.</span></div>
+    </div>
+
+    <script>
+      const P = {
+        calendar: 'M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5',
+        clock: 'M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0 M12 7v5l3 2',
+        place: 'M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z M9.5 10a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0 -5 0',
+        remind: 'M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z M10 20.5a2 2 0 0 0 4 0',
+        repeat: 'M4 11V9a3 3 0 0 1 3-3h12 M16 3l3 3-3 3 M20 13v2a3 3 0 0 1-3 3H5 M8 21l-3-3 3-3',
+        habits: 'M12 3c1 4 5.5 5.5 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3 2-4.5 2.5-6.5 1.2 1 2 2.5 2 4 1.2-2.2 1.5-5 1-8z',
+        layers: 'M12 3l9 5-9 5-9-5z M3 12.5l9 5 9-5 M3 16.5l9 5 9-5',
+        dumbbell: 'M3 10v4M6 8v8M18 8v8M21 10v4M6 12h12',
+        book: 'M4 5c3-1 6-1 8 1v13c-2-2-5-2-8-1z M20 5c-3-1-6-1-8 1v13c2-2 5-2 8-1z',
+        languages: 'M3 5h10 M8 3v2 M5 5c1 4 4 7 7 8 M11 5c-1 4-4 7-7 8 M13 21l4-9 4 9 M14.5 18h5',
+        wallet: 'M4 7h15v13H4z M4 7l11-4v4 M15 13h4v3h-4z',
+        edit: 'M4 20l1-4L16 5l3 3L8 19z M14 7l3 3',
+        plus: 'M12 5v14M5 12h14',
+        back: 'M19 12H5M11 6l-6 6 6 6',
+        chevron: 'M9 6l6 6-6 6',
+        close: 'M6 6l12 12M18 6L6 18',
+        check: 'M5 12.5l4.5 4.5L19 7',
+        settings: 'M4 7h9M17 7h3M4 17h3M11 17h9 M12.8 7a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0 M6.8 17a2.2 2.2 0 1 0 4.4 0a2.2 2.2 0 1 0 -4.4 0',
+        bell: 'M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15z M10 20.5a2 2 0 0 0 4 0',
+        stats: 'M5 20v-8M12 20V5M19 20V9',
+        today: 'M15 3a9 9 0 1 0 6 13.5A7.5 7.5 0 0 1 15 3z',
+        tasks: 'M5 4h14v16H5z M8.5 12l2.5 2.5 5-5',
+        goals: 'M6 21V4 M6 4h12l-2.5 4 2.5 4H6',
+      };
+      const ic = (n, s = 22, c = 'var(--muted)', rot = 0) =>
+        `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(${rot}deg)"><path d="${P[n]}"/></svg>`;
+      const status = `<div class="status"><span>9:41</span><span>●●● 100%</span></div>`;
+      const C = { study: 'var(--sun)', eng: 'var(--mid)', sport: 'var(--teal)', work: 'var(--violet)' };
+
+      const slot = (o) => `<div class="slot ${o.cls || ''}">
+        <div class="tm">${o.s}<small>${o.e}</small></div>
+        <div class="bar" style="background:${o.c}"></div>
+        <div class="bd">
+          <div class="tt">${o.t}${o.badge ? `<span class="badge">${o.badge}</span>` : ''}${o.btn ? `<span class="mini-btn">${o.btn}</span>` : ''}</div>
+          <div class="sub">${o.kind ? `<span>${o.kind}</span>` : ''}${o.place ? `<span>${ic('place', 13)}${o.place}</span>` : ''}</div>
+          ${o.prog ? `<div class="prog"><i style="width:${o.prog}%"></i></div><div class="meta" style="margin-top:5px">ещё 35 мин · дальше «Английский» в 11:50</div>` : ''}
+        </div>
+      </div>`;
+      const row = (icon, lab, val, opt = {}) =>
+        `<div class="row">${ic(icon)}<div class="lab">${lab}</div><div class="val ${opt.set ? 'set' : ''}">${opt.dot ? `<span class="dot" style="background:${opt.dot}"></span>` : ''}${val}</div>${ic('chevron', 16, 'var(--muted)', opt.open ? 90 : 0)}</div>`;
+
+      // ── 1. Сегодня ─────────────────────────────────────────────
+      const today = `<div class="phone">${status}<div class="pad">
+        <div class="date">Среда, 19 ноября · нечётная неделя</div>
+        <div class="big">Сегодня</div>
+        <div class="card">
+          <div class="card-h"><b>Расписание</b><a>Вся неделя ${ic('chevron', 14, 'var(--sun)')}</a></div>
+          ${slot({ s: '08:30', e: '10:00', c: C.study, t: 'Матанализ', kind: 'лекция', place: 'ауд. 305', cls: 'past' })}
+          ${slot({ s: '10:10', e: '11:40', c: C.study, t: 'Физика', kind: 'практика', place: 'ауд. 412', cls: 'now', badge: 'идёт', prog: 62 })}
+          ${slot({ s: '11:50', e: '13:20', c: C.eng, t: 'Английский', place: 'ауд. 118' })}
+          <div class="gap">окно 4 ч 40 мин</div>
+          ${slot({ s: '18:00', e: '19:30', c: C.sport, t: 'Зал', kind: 'привычка «Спорт»', place: 'Fit Hall' })}
+        </div>
+        <div class="card">
+          <div class="card-h"><b>Задачи на сегодня</b></div>
+          <div class="task"><div class="circ"></div>Сдать лабу по физике</div>
+          <div class="task"><div class="circ"></div>Купить продукты</div>
+        </div>
+      </div></div>`;
+
+      // ── 2. Конструктор: день ───────────────────────────────────
+      const dayDots = (arr) => `<i>${arr.map((c) => `<b style="background:${c}"></b>`).join('')}</i>`;
+      const week = `<div class="phone">${status}<div class="pad">
+        <div class="nav"><div class="rbtn">${ic('back', 20, 'var(--text)')}</div><b>Расписание</b><div class="pill">${ic('bell', 16, 'var(--text)')}Звонки</div></div>
+        <div class="seg"><div>Чётная</div><div class="on">Нечётная · сейчас</div></div>
+        <div class="days">
+          <div>Пн${dayDots([C.study, C.study, C.sport])}</div>
+          <div>Вт${dayDots([C.study, C.eng])}</div>
+          <div class="on">Ср${dayDots(['var(--onSun)', 'var(--onSun)', 'var(--onSun)', 'var(--onSun)'])}</div>
+          <div>Чт${dayDots([C.study, C.work])}</div>
+          <div>Пт${dayDots([C.study, C.study, C.sport])}</div>
+          <div>Сб${dayDots([C.work])}</div>
+          <div class="off">Вс</div>
+        </div>
+        <div class="card" style="padding:8px 16px">
+          ${slot({ s: '08:30', e: '10:00', c: C.study, t: 'Матанализ', kind: '1 пара · лекция', place: 'ауд. 305' })}
+          ${slot({ s: '10:10', e: '11:40', c: C.study, t: 'Физика', kind: '2 пара · практика', place: 'ауд. 412' })}
+          ${slot({ s: '11:50', e: '13:20', c: C.eng, t: 'Английский', kind: '3 пара', place: 'ауд. 118' })}
+          ${slot({ s: '18:00', e: '19:30', c: C.sport, t: 'Зал', kind: 'Пн, Ср, Пт', place: 'Fit Hall' })}
+        </div>
+        <div class="add">${ic('plus', 18)}Занятие в среду</div>
+      </div>
+      <div class="fab">${ic('calendar', 18, 'var(--onSun)')}Неделя сеткой</div></div>`;
+
+      // ── 3. Неделя сеткой ───────────────────────────────────────
+      const H0 = 8, H1 = 21, PX = 40;
+      const y = (t) => { const [h, m] = t.split(':').map(Number); return (h + m / 60 - H0) * PX; };
+      const B = [
+        [0, '08:30', '10:00', C.study, 'Матан'], [0, '10:10', '11:40', C.study, 'Физика'], [0, '18:00', '19:30', C.sport, 'Зал'],
+        [1, '10:10', '11:40', C.study, 'Прога'], [1, '11:50', '13:20', C.eng, 'Англ'],
+        [2, '08:30', '10:00', C.study, 'Матан'], [2, '10:10', '11:40', C.study, 'Физика'], [2, '11:50', '13:20', C.eng, 'Англ'], [2, '18:00', '19:30', C.sport, 'Зал'],
+        [3, '13:30', '15:00', C.study, 'Прога'], [3, '16:00', '20:00', C.work, 'Работа'],
+        [4, '08:30', '10:00', C.study, 'Матан'], [4, '10:10', '11:40', C.study, 'Физика'], [4, '18:00', '19:30', C.sport, 'Зал'],
+        [5, '10:00', '15:00', C.work, 'Работа'],
+      ];
+      const hrs = Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i);
+      const lines = hrs.map((h) => `<div class="hl" style="top:${(h - H0) * PX}px"></div>`).join('');
+      const cols = [0, 1, 2, 3, 4, 5].map((d) => `<div class="col" style="height:${(H1 - H0) * PX}px">${lines}${B.filter((b) => b[0] === d).map((b) => `<div class="blk" style="top:${y(b[1])}px;height:${y(b[2]) - y(b[1]) - 2}px;background:${b[3]}">${b[4]}<br><span style="font-weight:500">${b[1]}</span></div>`).join('')}</div>`).join('');
+      const grid = `<div class="phone">${status}<div class="pad">
+        <div class="nav"><div class="rbtn">${ic('back', 20, 'var(--text)')}</div><b>Неделя</b><div class="pill">Нечётная ${ic('chevron', 14, 'var(--text)', 90)}</div></div>
+        <div class="wk">
+          <div></div>${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'].map((d, i) => `<div class="dh ${i === 2 ? 'on' : ''}">${d}</div>`).join('')}
+          <div class="hrs" style="height:${(H1 - H0) * PX}px">${hrs.map((h) => `<div class="h" style="top:${(h - H0) * PX}px">${h}</div>`).join('')}</div>
+          ${cols}
+          <div class="nowline" style="top:${y('11:05') + 28}px"></div>
+        </div>
+      </div></div>`;
+
+      // ── 4. Новое занятие ───────────────────────────────────────
+      const sheet = (inner, extra = '') => `<div class="phone">${status}<div class="pad">
+        <div class="nav"><div class="rbtn">${ic('back', 20, 'var(--text)')}</div><b>Расписание</b></div></div>
+        <div class="scrim"></div><div class="sheet"><div class="grab"></div>
+        <div class="top"><b>Новое занятие</b><div class="rbtn">${ic('close', 18, 'var(--text)')}</div></div>${inner}</div>${extra}</div>`;
+      const templ = `<div class="chips">
+        <div class="chip on">${ic('book', 17, 'var(--onSun)')}Пара</div>
+        <div class="chip">${ic('dumbbell', 17, 'var(--text)')}Зал</div>
+        <div class="chip">${ic('wallet', 17, 'var(--text)')}Работа</div>
+        <div class="chip">${ic('plus', 17, 'var(--text)')}Своё</div></div>`;
+      const formNew = sheet(`${templ}
+        <div class="title">Физика</div>
+        <div class="row">${ic('layers')}<div class="lab">Вид</div><div class="val set">Практика</div>${ic('chevron', 16)}</div>
+        <div class="row">${ic('repeat')}<div class="lab">Дни</div><div class="val set">Пн, Ср, Пт</div>${ic('chevron', 16, 'var(--muted)', 90)}</div>
+        <div class="body"><div class="dchips">${['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((d, i) => `<div class="${[0, 2, 4].includes(i) ? 'on' : ''}">${d}</div>`).join('')}</div></div>
+        ${row('clock', 'Время', '2 пара · 10:10–11:40', { set: true })}
+        ${row('calendar', 'Недели', 'Каждую')}
+        ${row('place', 'Где', 'ауд. 412', { set: true })}
+        ${row('remind', 'Напомнить', 'за 10 мин', { set: true })}
+        ${row('habits', 'Сфера', 'Учёба', { set: true, dot: C.study })}
+        <div class="btn">Добавить в расписание</div>`);
+
+      // ── 5. Время: пары по номеру ───────────────────────────────
+      const pairs = [['1 пара', '08:30–10:00'], ['2 пара', '10:10–11:40'], ['3 пара', '11:50–13:20'], ['4 пара', '13:30–15:00'], ['5 пара', '15:10–16:40'], ['6 пара', '16:50–18:20']];
+      const menu = `<div class="menu" style="bottom:346px">${pairs.slice(0, 5).map(([n, t], i) => `<div class="mi ${i === 1 ? 'on' : ''}"><span class="n">${n}</span><span class="t">${t}</span>${i === 1 ? ic('check', 18, 'var(--text)') : ''}</div>`).join('')}
+        <div class="mi">${ic('clock', 18)}<span class="t">Своё время…</span></div>
+        <div class="mi">${ic('plus', 18)}<span class="t">Сдвоенная (2–3 пара)</span></div></div>`;
+      const formTime = sheet(`${templ}
+        <div class="title">Физика</div>
+        ${row('layers', 'Вид', 'Практика', { set: true })}
+        ${row('repeat', 'Дни', 'Пн, Ср, Пт', { set: true })}
+        ${row('clock', 'Время', '2 пара · 10:10–11:40', { set: true, open: true })}
+        ${row('calendar', 'Недели', 'Каждую')}
+        ${row('place', 'Где', 'ауд. 412', { set: true })}
+        ${row('remind', 'Напомнить', 'за 10 мин', { set: true })}
+        ${row('habits', 'Сфера', 'Учёба', { set: true, dot: C.study })}
+        <div class="btn">Добавить в расписание</div>`, menu);
+
+      // ── 6. Звонки ──────────────────────────────────────────────
+      const bells = `<div class="phone">${status}<div class="pad">
+        <div class="nav"><div class="rbtn">${ic('back', 20, 'var(--text)')}</div><b>Звонки</b></div>
+        <div class="card" style="padding:4px 16px">
+          ${pairs.map(([n, t], i) => `<div class="bell"><span class="n">${n}</span><span class="t">${t}</span>${ic('edit', 16)}</div>${i < pairs.length - 1 ? `<div class="brk">перемена ${i === 2 ? 10 : 10} мин</div>` : ''}`).join('')}
+          <div class="bell" style="color:var(--muted)">${ic('plus', 18)}<span>Добавить пару</span></div>
+        </div>
+        <div class="card" style="padding:4px 16px">
+          <div class="set">Длина пары<span>90 мин</span></div>
+          <div class="set">Перемена<span>10 мин</span></div>
+          <div class="set">Начало первой<span>08:30</span></div>
+        </div>
+        <div class="card" style="padding:4px 16px">
+          <div class="set">Чётная и нечётная неделя<div class="sw"></div></div>
+          <div class="set">Первая неделя<span>с 1 сентября</span></div>
+          <div class="set">Сейчас<span style="color:var(--text)">нечётная (12-я)</span></div>
+        </div>
+      </div></div>`;
+
+      const col = (name, cap, phone) => `<div><div class="head">${name}</div><div class="cap">${cap}</div>${phone}</div>`;
+      document.getElementById('row1').innerHTML = [
+        col('1 · «Сегодня»', 'Блок «Расписание» над задачами: прошедшие пары серые, текущая выделена — «идёт» и сколько осталось, между занятиями — «окно». После зала — «Отметить» привычку.', today),
+        col('2 · Конструктор: день', 'Полоса дней с цветными точками занятий, переключатель чётной/нечётной недели. Пара показывает номер, вид и аудиторию. «+ Занятие» — в выбранный день.', week),
+        col('3 · Неделя сеткой', 'Обзор всей недели: столбцы дней, часы слева, цветные блоки, красная линия «сейчас». Тап по блоку — правка, по пустому месту — новое занятие в это время.', grid),
+      ].join('');
+      document.getElementById('row2').innerHTML = [
+        col('4 · Новое занятие', 'Шаблон сверху — «Пара», «Зал», «Работа», «Своё»: подставляет значок, цвет и длину. Дальше строки формы, как у дела: дни, время, недели, где, напоминание, сфера.', formNew),
+        col('5 · Время по номеру пары', 'Для пары время выбирается номером из звонков — не надо помнить «10:10–11:40». Есть «Своё время» и сдвоенная пара. Для зала и работы — обычный выбор времени.', formTime),
+        col('6 · Звонки', 'Один раз настроить пары: время каждой или длина + перемена + начало (остальное посчитается). Здесь же чётная/нечётная неделя и с какой даты считать.', bells),
+      ].join('');
+    </script>
+  </body>
+</html>
