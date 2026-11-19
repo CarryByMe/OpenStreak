@@ -7,13 +7,23 @@ import palettes from './palettes.json';
 export type Scheme = 'light' | 'dark';
 /**
  * Оформление: «Обычный» (`normal`, как в монолите CoolTick: мягкие карточки, синий акцент),
- * «Минималистичный» (`minimal`, строгий: линии и один акцент) или «АУФ» (`auf`, мульт с волком).
+ * «Минималистичный» (`minimal`, строгий: линии и один акцент), «АУФ» (`auf`, мульт с волком)
+ * или «Качалка» (`gym`, design/gachi: те же наклейки, но кожа, сталь и латунь, блин вместо луны,
+ * Босс качалки вместо волка).
  */
-export type Design = 'normal' | 'minimal' | 'auf';
-export const DESIGNS: readonly Design[] = ['normal', 'minimal', 'auf'];
+export type Design = 'normal' | 'minimal' | 'auf' | 'gym';
+export const DESIGNS: readonly Design[] = ['normal', 'minimal', 'auf', 'gym'];
 
 export function isDesign(v: unknown): v is Design {
-  return v === 'normal' || v === 'minimal' || v === 'auf';
+  return (DESIGNS as readonly unknown[]).includes(v);
+}
+
+/**
+ * Оформление с наклейками, луной (блином), персонажем, цитатами и званиями: «АУФ» и «Качалка».
+ * Остальные — «простые» (`usePlain`).
+ */
+export function isSticker(d: Design): boolean {
+  return d === 'auf' || d === 'gym';
 }
 /** Что выбрал пользователь: конкретная тема или «как в системе». */
 export type ThemeMode = Scheme | 'system';
@@ -77,12 +87,13 @@ export type Palette = {
   star: string;
 };
 
-type ThemeKey = Scheme | 'minimalLight' | 'minimalDark' | 'normalLight' | 'normalDark';
+type ThemeKey =
+  Scheme | 'minimalLight' | 'minimalDark' | 'normalLight' | 'normalDark' | 'gymLight' | 'gymDark';
 const themes = palettes.themes as Record<ThemeKey, Palette>;
 
 export function themeKey(scheme: Scheme, design: Design): ThemeKey {
   if (design === 'auf') return scheme;
-  const prefix = design === 'normal' ? 'normal' : 'minimal';
+  const prefix = design === 'normal' ? 'normal' : design === 'gym' ? 'gym' : 'minimal';
   return `${prefix}${scheme === 'dark' ? 'Dark' : 'Light'}`;
 }
 

@@ -63,7 +63,8 @@
             "./node_modules/@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf",
             "./node_modules/@expo-google-fonts/rubik/500Medium/Rubik_500Medium.ttf",
             "./node_modules/@expo-google-fonts/rubik/700Bold/Rubik_700Bold.ttf",
-            "./node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf"
+            "./node_modules/@expo-google-fonts/unbounded/700Bold/Unbounded_700Bold.ttf",
+            "./node_modules/@expo-google-fonts/oswald/700Bold/Oswald_700Bold.ttf"
           ],
           "widgets": [
             {

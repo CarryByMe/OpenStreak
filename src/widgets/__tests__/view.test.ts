@@ -78,10 +78,19 @@ function snap(settings: Record<string, unknown> = {}, tasks: Task[] = [], habits
 }
 
 describe('вид виджета «Сегодня»', () => {
-  test('«Обычный» и «Минималистичный» — мягкая карточка, «АУФ» — «Мульт»', () => {
+  test('«Обычный» и «Минималистичный» — мягкая карточка, «АУФ» и «Качалка» — «Мульт»', () => {
     expect(lookOf('normal')).toBe('soft');
     expect(lookOf('minimal')).toBe('soft');
     expect(lookOf('auf')).toBe('mult');
+    expect(lookOf('gym')).toBe('mult');
+  });
+
+  test('«Качалка»: своя палитра, узкие числа и «полный блин»', () => {
+    const done = [task('a', { doneOn: TODAY, doneAt: 5 })];
+    const v = buildTodayView(snap({ design: 'gym' }, done), TODAY, 'dark');
+    expect(v.look).toBe('mult');
+    expect(v.fonts.num).toBe('Oswald_700Bold');
+    expect(v.fullCaption).toBe('полный блин!');
   });
 
   test('тексты шапки и счёта по-русски', () => {

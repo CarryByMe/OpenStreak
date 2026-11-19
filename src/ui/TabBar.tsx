@@ -6,7 +6,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { usePalette, usePlain, useSoft } from '../store/themeStore';
-import { SIZE, SPACE, STROKE } from '../theme/metrics';
+import { RADIUS, SIZE, SPACE, STROKE } from '../theme/metrics';
 import { hardShadow } from '../theme/sticker';
 import { TYPE } from '../theme/type';
 import { Icon, type UiIconName } from './icons';
@@ -193,7 +193,7 @@ const styles = designStyles(() =>
       gap: 2,
       padding: 5,
       borderWidth: STROKE.outline,
-      borderRadius: 22,
+      borderRadius: RADIUS.bar,
     },
     item: {
       flex: 1,
@@ -201,7 +201,7 @@ const styles = designStyles(() =>
       justifyContent: 'center',
       gap: 2,
       borderWidth: STROKE.thin,
-      borderRadius: 15,
+      borderRadius: RADIUS.barItem,
     },
   })
 );

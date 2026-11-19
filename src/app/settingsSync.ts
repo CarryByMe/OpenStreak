@@ -4,7 +4,7 @@
  */
 import { updateSettings } from '../core/actions';
 import { SETTINGS_ID } from '../core/model';
-import { effectiveSettings } from '../core/settings';
+import { effectiveSettings, flavorOf } from '../core/settings';
 import { get, useDataStore } from '../core/store';
 import { storage, THEME_KEY, TONE_KEY } from '../services/storage';
 import { usePrefsStore } from '../store/prefsStore';
@@ -33,7 +33,7 @@ export function followSettings(): void {
     last = key;
     useThemeStore.getState().applyDesign(s.design);
     useThemeStore.getState().applyMode(s.theme);
-    usePrefsStore.getState().apply({ tone: s.tone, locale: s.locale });
+    usePrefsStore.getState().apply({ tone: s.tone, locale: s.locale, flavor: flavorOf(s) });
   };
   apply();
   useDataStore.subscribe((st, prev) => {

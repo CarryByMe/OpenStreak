@@ -175,8 +175,11 @@ export type Bell = { start: ClockTime; end: ClockTime };
 
 export type ThemeChoice = 'dark' | 'light' | 'system';
 export type ToneChoice = 'plain' | 'bro';
-/** Оформление: «Обычный» (монолит), «Минималистичный» (строгий) или «АУФ» (мульт с волком). */
-export type DesignChoice = 'normal' | 'minimal' | 'auf';
+/**
+ * Оформление: «Обычный» (монолит), «Минималистичный» (строгий), «АУФ» (мульт с волком)
+ * или «Качалка» (кожа, сталь и латунь, Босс качалки).
+ */
+export type DesignChoice = 'normal' | 'minimal' | 'auf' | 'gym';
 export type LocaleChoice = 'ru' | 'en' | 'es';
 
 /**
@@ -186,7 +189,7 @@ export type LocaleChoice = 'ru' | 'en' | 'es';
 export type Settings = RecordMeta & {
   /** «Ночь» = dark, «Рассвет» = light */
   theme: ThemeChoice;
-  /** оформление; вне «АУФ» тон, цитаты и звания не действуют */
+  /** оформление; вне «АУФ» и «Качалки» тон, цитаты и звания не действуют */
   design: DesignChoice;
   tone: ToneChoice;
   /** цитата волка (одна в день, только в пацанском тоне) */

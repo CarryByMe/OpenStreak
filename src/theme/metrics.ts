@@ -2,19 +2,18 @@
  * Метрики. «АУФ» (design/mult): наклейки с обводкой и жёсткой тенью, мягкие скругления,
  * наклон — только у украшений (плашки, бейджи). «Минималистичный» (design/serious): тонкие
  * линии, скругление 12, без тени и наклона. «Обычный» (монолит): крупные скругления и мягкая
- * тень карточек (`softShadow`), обводки нет. Зоны нажатия не меньше 44 везде.
+ * тень карточек (`softShadow`), обводки нет. «Качалка» (design/gachi): наклейки «АУФ», но обводка
+ * толще и углы почти прямые. Зоны нажатия не меньше 44 везде.
  *
  * STROKE, RADIUS, SHADOW и TILT — «живые» объекты: значение берётся для текущего оформления
  * в момент чтения, поэтому их можно использовать как раньше.
  */
 import { currentDesign } from './design';
 
-function live<T extends object>(auf: T, minimal: T, normal: T = minimal): T {
+function live<T extends object>(auf: T, minimal: T, normal: T = minimal, gym: T = auf): T {
+  const by = { auf, minimal, normal, gym };
   return new Proxy(auf, {
-    get: (_t, key) => {
-      const d = currentDesign();
-      return (d === 'auf' ? auf : d === 'normal' ? normal : minimal)[key as keyof T];
-    },
+    get: (_t, key) => by[currentDesign()][key as keyof T],
   });
 }
 
@@ -26,7 +25,9 @@ export const STROKE = live(
     thin: 2,
   },
   { outline: 1.5, thin: 1 },
-  { outline: 1.5, thin: 1 }
+  { outline: 1.5, thin: 1 },
+  /** «Качалка»: толще — металл и кожа */
+  { outline: 3, thin: 2 }
 );
 
 export const RADIUS = live(
@@ -45,9 +46,27 @@ export const RADIUS = live(
     sheet: 28,
     /** чипы, сегменты, кнопки-кружки */
     pill: 999,
+    /** главная кнопка-наклейка */
+    action: 18,
+    /** таб-бар-наклейка и выбранная вкладка в нём */
+    bar: 22,
+    barItem: 15,
   },
-  { tag: 4, sm: 10, md: 12, lg: 12, xl: 12, sheet: 20, pill: 10 },
-  { tag: 8, sm: 12, md: 14, lg: 18, xl: 20, sheet: 26, pill: 999 }
+  { tag: 4, sm: 10, md: 12, lg: 12, xl: 12, sheet: 20, pill: 10, action: 18, bar: 22, barItem: 15 },
+  {
+    tag: 8,
+    sm: 12,
+    md: 14,
+    lg: 18,
+    xl: 20,
+    sheet: 26,
+    pill: 999,
+    action: 18,
+    bar: 22,
+    barItem: 15,
+  },
+  /** «Качалка»: жёсткие углы, круглыми остаются только блины */
+  { tag: 3, sm: 4, md: 4, lg: 6, xl: 6, sheet: 12, pill: 4, action: 4, bar: 6, barItem: 4 }
 );
 
 /** Сдвиг жёсткой тени (без размытия) по x и y. */

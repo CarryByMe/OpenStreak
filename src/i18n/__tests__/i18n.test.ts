@@ -2,6 +2,7 @@ import { describe, expect, test } from '@jest/globals';
 import { LOCALES, pluralCategory, quoteCount, translate, type MessageKey } from '..';
 import { en } from '../en';
 import { es } from '../es';
+import { GYM } from '../gym';
 import { ru } from '../ru';
 import type { Locale, Message } from '../types';
 
@@ -61,6 +62,21 @@ describe('translate', () => {
     expect(translate('es', 'bro', 'pack.with', { count: 47 })).toBe('contigo 47 días');
   });
 
+  test('«Качалка»: свои строки поверх обычных, остальное — как было', () => {
+    expect(translate('ru', 'bro', 'rank.alpha', undefined, 'gym')).toBe('Босс качалки');
+    expect(translate('ru', 'bro', 'rank.alpha')).toBe('Альфа');
+    expect(translate('ru', 'bro', 'tab.pack', undefined, 'gym')).toBe('Зал');
+    expect(translate('ru', 'bro', 'today.toFull', { count: 3 }, 'gym')).toBe(
+      'до полного блина — 3'
+    );
+    expect(translate('ru', 'plain', 'widget.allDone', undefined, 'gym')).toBe('всё сделано');
+    expect(translate('ru', 'bro', 'review.mood.5', undefined, 'gym')).toBe('Мощь');
+    expect(translate('ru', 'bro', 'tab.today', undefined, 'gym')).toBe('Сегодня');
+    expect(translate('en', 'bro', 'rank.leader', undefined, 'gym')).toBe('Dungeon master');
+    // Цитат «Качалки» в en нет — показываются обычные.
+    expect(translate('en', 'bro', 'quote.0', undefined, 'gym')).toBe(en['quote.0']);
+  });
+
   test('unknown placeholders are left as is', () => {
     expect(translate('ru', 'bro', 'pack.with', { count: 2, other: 'x' })).toBe('с тобой 2 дня');
   });
@@ -93,6 +109,19 @@ describe('словари', () => {
     for (const key of ruKeys) {
       expect([key, holes(DICTS[locale][key])]).toEqual([key, holes(ru[key as MessageKey])]);
     }
+  });
+
+  test('«Качалка»: ключи из словаря, подстановки те же, слов Босса столько же, сколько цитат', () => {
+    for (const locale of LOCALES) {
+      for (const [key, msg] of Object.entries(GYM[locale])) {
+        expect([key, key in ru]).toEqual([key, true]);
+        const holes = (m: unknown) =>
+          [...new Set(JSON.stringify(m).match(/\{\w+\}/g) ?? [])].sort();
+        expect([key, holes(msg)]).toEqual([key, holes(ru[key as MessageKey])]);
+      }
+    }
+    const gymQuotes = Object.keys(GYM.ru).filter((k) => k.startsWith('quote.'));
+    expect(gymQuotes).toHaveLength(quoteCount('ru'));
   });
 
   test('цитат одинаково во всех языках', () => {

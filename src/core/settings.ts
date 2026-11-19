@@ -38,7 +38,7 @@ export const DEFAULT_SETTINGS: SettingsFields = {
  */
 export function designOf(v: unknown, fallback: DesignChoice = 'normal'): DesignChoice {
   if (v === 'plain') return 'minimal';
-  return v === 'normal' || v === 'minimal' || v === 'auf' ? v : fallback;
+  return v === 'normal' || v === 'minimal' || v === 'auf' || v === 'gym' ? v : fallback;
 }
 
 /** Действующие настройки: сохранённые поверх значений по умолчанию. */
@@ -54,11 +54,21 @@ export function settingsOf(snap: Pick<Snapshot, 'settings'>): SettingsFields {
   };
 }
 
+/** Оформление с персонажем, цитатами и званиями: «АУФ» и «Качалка». */
+export function hasCharacter(design: DesignChoice): boolean {
+  return design === 'auf' || design === 'gym';
+}
+
 /**
- * Настройки, как они действуют в интерфейсе: вне «АУФ» нет пацанского тона, цитат волка
- * и званий, что бы ни было сохранено — сохранённое вернётся при переходе на «АУФ».
+ * Настройки, как они действуют в интерфейсе: вне «АУФ» и «Качалки» нет пацанского тона,
+ * цитат и званий, что бы ни было сохранено — сохранённое вернётся при переходе обратно.
  */
 export function effectiveSettings(snap: Pick<Snapshot, 'settings'>): SettingsFields {
   const s = settingsOf(snap);
-  return s.design === 'auf' ? s : { ...s, tone: 'plain', quotes: false, ranks: false };
+  return hasCharacter(s.design) ? s : { ...s, tone: 'plain', quotes: false, ranks: false };
+}
+
+/** Словарь поверх обычного: у «Качалки» свои звания, Босс вместо волка и блин вместо луны. */
+export function flavorOf(s: Pick<SettingsFields, 'design'>): 'gym' | null {
+  return s.design === 'gym' ? 'gym' : null;
 }

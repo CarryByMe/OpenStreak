@@ -5,15 +5,15 @@
  */
 import { weekday } from '../core/dates';
 import type { ISODate, Snapshot } from '../core/model';
-import { effectiveSettings } from '../core/settings';
+import { effectiveSettings, flavorOf } from '../core/settings';
 import { todayWidgetModel, type WidgetState } from '../core/widget';
 import { translate, type MessageKey } from '../i18n';
-import { resolvePalette, type Design, type Scheme } from '../theme/palette';
+import { isSticker, resolvePalette, type Design, type Scheme } from '../theme/palette';
 import { FONT } from '../theme/fonts';
 import { SCHEME, WIDGET_LINKS } from './links';
 import { ensureContrast } from '../theme/readable';
 
-/** «Обычный» и «Минималистичный» — мягкая карточка; «АУФ» — наклейка «Мульта». */
+/** «Обычный» и «Минималистичный» — мягкая карточка; «АУФ» и «Качалка» — наклейка «Мульта». */
 export type WidgetLook = 'soft' | 'mult';
 
 export type WidgetColors = {
@@ -50,6 +50,8 @@ export function fontsOf(design: Design): WidgetFonts {
   switch (design) {
     case 'auf':
       return { text: FONT.rubik.medium, strong: FONT.rubik.bold, num: FONT.unbounded.bold };
+    case 'gym':
+      return { text: FONT.golos.medium, strong: FONT.golos.bold, num: FONT.oswald.bold };
     case 'minimal':
       return { text: FONT.inter.medium, strong: FONT.inter.bold, num: FONT.inter.bold };
     default:
@@ -113,7 +115,7 @@ export type TodayWidgetView = {
 };
 
 export function lookOf(design: Design): WidgetLook {
-  return design === 'auf' ? 'mult' : 'soft';
+  return isSticker(design) ? 'mult' : 'soft';
 }
 
 const capitalize = (s: string) => (s ? s[0].toUpperCase() + s.slice(1) : s);
@@ -150,7 +152,7 @@ export function buildTodayView(snap: Snapshot, today: ISODate, scheme: Scheme): 
   const design = settings.design;
   const look = lookOf(design);
   const t = (key: MessageKey, params?: Parameters<typeof translate>[3]) =>
-    translate(settings.locale, settings.tone, key, params);
+    translate(settings.locale, settings.tone, key, params, flavorOf(settings));
 
   const m = todayWidgetModel(snap, today);
   const colors = colorsOf(design, scheme);

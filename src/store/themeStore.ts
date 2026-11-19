@@ -5,6 +5,7 @@ import { useDataStore } from '../core/store';
 import { storage, THEME_KEY } from '../services/storage';
 import { setCurrentDesign } from '../theme/design';
 import {
+  isSticker,
   isThemeMode,
   type Design,
   resolvePalette,
@@ -21,7 +22,7 @@ type ThemeStore = {
   system: Scheme | null;
   /** тема, которая реально показывается */
   scheme: Scheme;
-  /** оформление: «Обычный», «Минималистичный» или «АУФ» */
+  /** оформление: «Обычный», «Минималистичный», «АУФ» или «Качалка» */
   design: Design;
   /** палитра текущего оформления и темы */
   palette: Palette;
@@ -94,10 +95,13 @@ export const usePalette = (): Palette => useThemeStore((s) => s.palette);
 export const useDesign = (): Design => useThemeStore((s) => s.design);
 
 /**
- * Не «АУФ»? Тогда нет наклеек, волка, луны и званий: действует «Обычный» или «Минималистичный».
- * Чем они различаются между собой, решает `useSoft`.
+ * Не «АУФ» и не «Качалка»? Тогда нет наклеек, волка, луны и званий: действует «Обычный» или
+ * «Минималистичный». Чем они различаются между собой, решает `useSoft`.
  */
-export const usePlain = (): boolean => useThemeStore((s) => s.design !== 'auf');
+export const usePlain = (): boolean => useThemeStore((s) => !isSticker(s.design));
+
+/** «Качалка»: блин вместо луны, Босс качалки вместо волка. */
+export const useGym = (): boolean => useThemeStore((s) => s.design === 'gym');
 
 /** «Обычный» (монолит): карточки с мягкой тенью, цвет сферы в отметках и плитках. */
 export const useSoft = (): boolean => useThemeStore((s) => s.design === 'normal');

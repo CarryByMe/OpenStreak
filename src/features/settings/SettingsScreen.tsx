@@ -9,7 +9,7 @@ import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as A from '../../core/actions';
 import { live } from '../../core/model';
-import { settingsOf } from '../../core/settings';
+import { hasCharacter, settingsOf } from '../../core/settings';
 import { replaceAll, useDataStore } from '../../core/store';
 import { exportData, importData } from '../../services/exportImport';
 import { askNotificationPermission } from '../../services/notifications';
@@ -18,7 +18,7 @@ import type { WidgetSize } from '../../widgets/android/TodayWidget';
 import { LOCALES } from '../../i18n';
 import { useT } from '../../store/prefsStore';
 import { usePalette, useThemeStore } from '../../store/themeStore';
-import { THEME_MODES, type Scheme, type ThemeMode } from '../../theme/palette';
+import { DESIGNS, THEME_MODES, type Scheme, type ThemeMode } from '../../theme/palette';
 import { SPACE, TILT } from '../../theme/metrics';
 import { TYPE } from '../../theme/type';
 import { Chip } from '../../ui/Chip';
@@ -70,7 +70,7 @@ export function SettingsScreen({
   const scheme = useThemeStore((st) => st.scheme);
   const toast = useToast((st) => st.show);
   const [picker, setPicker] = useState(false);
-  const plain = s.design !== 'auf';
+  const plain = !hasCharacter(s.design);
   const [openRow, setOpenRow] = useState<string | null>(null);
   const [importArmed, setImportArmed] = useState(false);
 
@@ -136,7 +136,7 @@ export function SettingsScreen({
               onPress={() => setOpenRow((cur) => (cur === 'design' ? null : 'design'))}
             >
               <View style={styles.chipRow} accessibilityRole="radiogroup">
-                {(['normal', 'minimal', 'auf'] as const).map((d) => (
+                {DESIGNS.map((d) => (
                   <Chip
                     key={d}
                     size="md"
@@ -176,7 +176,7 @@ export function SettingsScreen({
           <View style={styles.group}>
             <SectionTitle title={t('settings.design')} tone="sun" tilt={TILT.slightLeft} />
             <View style={styles.chipRow} accessibilityRole="radiogroup">
-              {(['normal', 'minimal', 'auf'] as const).map((d) => (
+              {DESIGNS.map((d) => (
                 <Chip
                   key={d}
                   size="md"
@@ -223,11 +223,11 @@ export function SettingsScreen({
 
       <View style={styles.group}>
         <SectionTitle
-          title={t(s.design === 'auf' ? 'settings.character' : 'settings.general')}
+          title={t(plain ? 'settings.general' : 'settings.character')}
           tilt={TILT.slightRight}
         />
         <Card padded={false}>
-          {s.design === 'auf' && (
+          {!plain && (
             <>
               <SettingRow
                 label={t('settings.tone')}
@@ -263,7 +263,7 @@ export function SettingsScreen({
               ))}
             </View>
           </FormRow>
-          {s.design === 'auf' && (
+          {!plain && (
             <SettingRow
               label={t('settings.ranks')}
               value={s.ranks}

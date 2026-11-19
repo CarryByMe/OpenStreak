@@ -58,9 +58,9 @@ export async function askNotificationPermission(): Promise<boolean> {
 }
 
 function content(r: PlannedReminder): Notifications.NotificationContentInput {
-  const { locale, tone } = usePrefsStore.getState();
+  const { locale, tone, flavor } = usePrefsStore.getState();
   const t = (key: MessageKey, vars?: Record<string, string | number>) =>
-    translate(locale, tone, key, vars);
+    translate(locale, tone, key, vars, flavor);
   const data = { kind: r.kind, id: r.subjectId };
   switch (r.kind) {
     case 'task':

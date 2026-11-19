@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 import palettes from '../palettes.json';
 import {
+  isDesign,
+  isSticker,
   isThemeMode,
   moodScale,
   resolvePalette,
@@ -19,11 +21,11 @@ jest.mock('../../services/storage', () => ({
 }));
 
 const SCHEMES: Scheme[] = ['dark', 'light'];
-const DESIGNS: Design[] = ['normal', 'minimal', 'auf'];
+const DESIGNS: Design[] = ['normal', 'minimal', 'auf', 'gym'];
 const ALL = DESIGNS.flatMap((d) => SCHEMES.map((s) => [s, d] as const));
 
 describe('palette', () => {
-  test('all six themes have the same keys, all hex', () => {
+  test('all eight themes have the same keys, all hex', () => {
     const keys = Object.keys(resolvePalette('dark', 'auf')).sort();
     for (const [scheme, design] of ALL) {
       expect(Object.keys(resolvePalette(scheme, design)).sort()).toEqual(keys);
@@ -49,6 +51,17 @@ describe('palette', () => {
       expect(p.sun).not.toBe(p.text);
       expect(p.shadow).toBe(p.bg);
     }
+  });
+
+  test('«Качалка» — своя палитра и наклейки, как у «АУФ»', () => {
+    expect(resolvePalette('light', 'gym')).toBe(palettes.themes.gymLight);
+    expect(resolvePalette('dark', 'gym')).toBe(palettes.themes.gymDark);
+    expect(isDesign('gym')).toBe(true);
+    expect(isDesign('plain')).toBe(false);
+    expect(isSticker('gym')).toBe(true);
+    expect(isSticker('auf')).toBe(true);
+    expect(isSticker('normal')).toBe(false);
+    expect(isSticker('minimal')).toBe(false);
   });
 
   test('шкала лиц настроения: пять цветов заливки, каймы и черт в обеих темах', () => {
@@ -129,5 +142,23 @@ describe('themeStore', () => {
     st.getState().applyDesign('normal');
     expect(st.getState().palette.bg).toBe(palettes.themes.normalLight.bg);
     expect(RADIUS.md).toBe(14);
+  });
+
+  test('«Качалка»: палитра, жёсткие углы, толстая обводка, тень и шрифты', async () => {
+    const { RADIUS, SHADOW, STROKE } =
+      jest.requireActual<typeof import('../metrics')>('../metrics');
+    const { TYPE } = jest.requireActual<typeof import('../type')>('../type');
+    const st = await load();
+    await st.getState().setMode('dark');
+    st.getState().applyDesign('gym');
+    expect(st.getState().palette.bg).toBe(palettes.themes.gymDark.bg);
+    expect(RADIUS.md).toBe(4);
+    expect(RADIUS.pill).toBe(4);
+    expect(STROKE.outline).toBe(3);
+    expect(SHADOW.lg).toBe(5);
+    expect(TYPE.title.fontFamily).toBe('RussoOne_400Regular');
+    expect(TYPE.numberXL.fontFamily).toBe('Oswald_700Bold');
+    expect(TYPE.body.fontFamily).toBe('GolosText_400Regular');
+    st.getState().applyDesign('normal');
   });
 });
