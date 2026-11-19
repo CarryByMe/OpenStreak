@@ -52,6 +52,7 @@ function run(design: 'normal' | 'auf', tasks: Task[], family: string) {
     bells: [],
     weekParity: false,
     parityFrom: null,
+    wakeBefore: null,
   };
   for (const t of tasks) s.tasks[t.id] = t;
   const views = buildTodayViews(s, TODAY);

@@ -20,6 +20,10 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   no marks, points or debts. Off by default (`settings.scheduleEnabled`); bells and odd/even weeks live in
   settings too. Pure helpers in `core/schedule.ts` (time by bell number, week parity, day timeline); screens in
   `features/schedule`.
+- Wake-up alarm before the first class: plan in `core/schedule.ts` (`wakePlan`, `weeklyWake`), native side is the
+  local Expo module `modules/wake-alarm` (iOS 26+ AlarmKit — exact alarms synced like reminders; Android — repeating
+  alarms in the system Clock via `ACTION_SET_ALARM`, set on tap). JS wrapper: `services/alarms.ts`. Where neither
+  works, the wake-up is a notification from `planReminders(…, { wakeNotifications })`. Native code needs a dev build.
 - Reminders are planned by `core/reminders.ts` (pure) and synced to the OS by
   `services/notifications.ts`; never fire reminders from timers in JS.
 - Home-screen widget («Сегодня», M и L): `core/widget.ts` (pure model) → `widgets/view.ts` (texts, colours of

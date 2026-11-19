@@ -206,6 +206,8 @@ export type Settings = RecordMeta & {
   weekParity: boolean;
   /** с какой даты считать недели (первая — нечётная); null — с 1 сентября учебного года */
   parityFrom: ISODate | null;
+  /** будильник до первой пары: за сколько минут до начала; null — не будить */
+  wakeBefore: number | null;
 };
 
 export const SETTINGS_ID = 'me';

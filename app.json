@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.qqqcoder.OpenStreak"
+      "bundleIdentifier": "com.qqqcoder.OpenStreak",
+      "infoPlist": {
+        "NSAlarmKitUsageDescription": "OpenStreak ставит будильник, чтобы разбудить тебя к первой паре по расписанию."
+      }
     },
     "android": {
       "adaptiveIcon": {

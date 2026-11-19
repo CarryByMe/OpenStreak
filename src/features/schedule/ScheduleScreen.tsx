@@ -24,6 +24,7 @@ import { Card } from '../../ui/Sticker';
 import { LessonSheet } from './LessonSheet';
 import { cap, lessonColor } from './scheduleUi';
 import { SlotRow } from './SlotRow';
+import { WakeCard } from './WakeCard';
 
 type Props = { onBack: () => void; onOpenWeek: () => void; onOpenBells: () => void };
 
@@ -125,6 +126,8 @@ export function ScheduleScreen({ onBack, onOpenWeek, onOpenBells }: Props) {
       )}
 
       <AddRow label={t('schedule.add')} onPress={() => open(null)} />
+
+      <WakeCard />
 
       {sheet && (
         <LessonSheet key={sheet.seq} editId={sheet.id} day={day} onClose={() => setSheet(null)} />

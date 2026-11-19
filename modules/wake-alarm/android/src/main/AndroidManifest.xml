@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Нужно, чтобы поставить будильник в системных «Часах» (AlarmClock.ACTION_SET_ALARM). -->
+  <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
+  <!-- Android 11+: без этого «Часы» не видны приложению при проверке, есть ли обработчик. -->
+  <queries>
+    <intent>
+      <action android:name="android.intent.action.SET_ALARM" />
+    </intent>
+    <intent>
+      <action android:name="android.intent.action.SHOW_ALARMS" />
+    </intent>
+  </queries>
+</manifest>

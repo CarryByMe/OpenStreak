@@ -30,6 +30,7 @@ export const DEFAULT_SETTINGS: SettingsFields = {
   bells: DEFAULT_BELLS,
   weekParity: false,
   parityFrom: null,
+  wakeBefore: null,
 };
 
 /**

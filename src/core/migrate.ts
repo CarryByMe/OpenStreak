@@ -274,6 +274,12 @@ function bells(v: unknown, def: Bell[]): Bell[] {
     .slice(0, MAX_BELLS);
 }
 
+/** «Будить за N минут»: от 5 минут до 4 часов, иначе не будить. */
+function wakeMinutes(v: unknown): number | null {
+  const n = num(v);
+  return n !== null && n >= 5 && n <= 240 ? Math.round(n) : null;
+}
+
 export function cleanSettings(x: unknown, now: number): Settings | null {
   if (!isObj(x)) return null;
   const m = meta({ ...x, id: SETTINGS_ID }, now)!;
@@ -292,6 +298,7 @@ export function cleanSettings(x: unknown, now: number): Settings | null {
     bells: bells(x.bells, d.bells),
     weekParity: typeof x.weekParity === 'boolean' ? x.weekParity : d.weekParity,
     parityFrom: date(x.parityFrom),
+    wakeBefore: wakeMinutes(x.wakeBefore),
   };
 }
 

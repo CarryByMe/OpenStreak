@@ -77,6 +77,16 @@ function content(r: PlannedReminder): Notifications.NotificationContentInput {
           : t('notify.lesson', { time: r.start ?? '' }),
         data,
       };
+    case 'wake':
+      return {
+        title: t('wake.notifyTitle'),
+        body: r.place
+          ? t('wake.notifyBodyAt', { title: r.title, time: r.start ?? '', place: r.place })
+          : t('wake.notifyBody', { title: r.title, time: r.start ?? '' }),
+        data,
+        // Заметнее обычного напоминания: проходит «Фокус», если человек это разрешил.
+        interruptionLevel: 'timeSensitive',
+      };
   }
 }
 

@@ -5,6 +5,7 @@
 import { AppState as RNAppState } from 'react-native';
 import { planReminders } from '../core/reminders';
 import { flush, setToday, useDataStore } from '../core/store';
+import { syncWakeAlarms, wakeNotificationsNeeded } from '../services/alarms';
 import { syncGeofences } from '../services/geofence';
 import { syncReminders } from '../services/notifications';
 import { startWidgetSync } from '../widgets/sync';
@@ -38,7 +39,11 @@ async function start(): Promise<void> {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
-      void syncReminders(planReminders(useDataStore.getState().data, new Date()));
+      const data = useDataStore.getState().data;
+      void syncReminders(
+        planReminders(data, new Date(), { wakeNotifications: wakeNotificationsNeeded() })
+      );
+      void syncWakeAlarms(data);
       void syncGeofences();
     }, REMINDER_SYNC_DELAY_MS);
   };
