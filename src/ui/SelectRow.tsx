@@ -30,6 +30,8 @@ export type SelectOption<T> = {
   label: string;
   /** цвет кружка; без него — пустое кольцо */
   dot?: string;
+  /** значок вместо кружка (варианты даты) */
+  icon?: UiIconName;
 };
 
 type Props<T> = {
@@ -135,12 +137,18 @@ export function SelectRow<T>({ icon, label, value, options, onChange, set, actio
                     }}
                     style={({ pressed }) => [styles.item, pressed && { backgroundColor: p.bg }]}
                   >
-                    <View
-                      style={[
-                        styles.dot,
-                        dot ? { backgroundColor: dot } : { borderWidth: 1.5, borderColor: p.muted },
-                      ]}
-                    />
+                    {o.icon ? (
+                      <Icon name={o.icon} size={18} tone="muted" />
+                    ) : (
+                      <View
+                        style={[
+                          styles.dot,
+                          dot
+                            ? { backgroundColor: dot }
+                            : { borderWidth: 1.5, borderColor: p.muted },
+                        ]}
+                      />
+                    )}
                     <Text numberOfLines={1} style={[TYPE.item, styles.label, { color: p.text }]}>
                       {o.label}
                     </Text>

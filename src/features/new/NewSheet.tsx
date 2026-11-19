@@ -315,55 +315,26 @@ function NewSheetForm() {
       <View>
         {kind === 'task' && (
           <>
-            <FormRow
+            <SelectRow<ISODate | null>
               icon="calendar"
               label={cap(t('new.when'))}
-              value={dateLabel}
+              value={date}
               set={date !== null}
-              open={openRow === 'when'}
-              onPress={() => toggleRow('when')}
-            >
-              <View style={styles.chips} accessibilityRole="radiogroup">
-                <Chip
-                  size="md"
-                  role="radio"
-                  label={t('when.today')}
-                  selected={date === today}
-                  onPress={() => setDate(today)}
-                />
-                <Chip
-                  size="md"
-                  role="radio"
-                  label={t('when.tomorrow')}
-                  selected={date === tomorrow}
-                  onPress={() => setDate(tomorrow)}
-                />
-                <Chip
-                  size="md"
-                  role="radio"
-                  label={t('when.none')}
-                  selected={date === null}
-                  onPress={() => setDate(null)}
-                />
-                {custom && (
-                  <Chip
-                    size="md"
-                    role="radio"
-                    label={dayMonth(t, date)}
-                    selected
-                    onPress={() => setPicker('date')}
-                  />
-                )}
-                {HAS_PICKER && (
-                  <Chip
-                    size="md"
-                    icon="calendar"
-                    label={t('form.otherDate')}
-                    onPress={() => setPicker('date')}
-                  />
-                )}
-              </View>
-            </FormRow>
+              onChange={setDate}
+              options={[
+                { value: today, label: t('when.today'), icon: 'today' as const },
+                { value: tomorrow, label: t('when.tomorrow'), icon: 'arrow' as const },
+                { value: null, label: t('when.none'), icon: 'close' as const },
+                ...(custom
+                  ? [{ value: date, label: dayMonth(t, date), icon: 'calendar' as const }]
+                  : []),
+              ]}
+              action={
+                HAS_PICKER
+                  ? { label: t('form.otherDate'), onPress: () => setPicker('date') }
+                  : undefined
+              }
+            />
             <SelectRow<Priority>
               icon="goals"
               label={cap(t('new.priority'))}
