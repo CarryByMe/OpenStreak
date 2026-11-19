@@ -1,0 +1,362 @@
+<!doctype html>
+<!--
+  Макет «Итоги» (концепт): подробная статистика за неделю, месяц и год. «Обычный», тема «Вечер» (normalDark).
+  Данные примера выдуманы, но считаются из того, что приложение уже хранит (дела, отметки, итоги дня,
+  сферы, расписание) — новых полей не нужно.
+  Шрифты берутся из node_modules (после `npm install` открывается как есть).
+  Картинка для просмотра — stats.png рядом.
+-->
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Макет — итоги</title>
+    <style>
+      @font-face { font-family: 'Manrope'; font-weight: 800; src: url('../../node_modules/@expo-google-fonts/manrope/800ExtraBold/Manrope_800ExtraBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 400; src: url('../../node_modules/@expo-google-fonts/golos-text/400Regular/GolosText_400Regular.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 500; src: url('../../node_modules/@expo-google-fonts/golos-text/500Medium/GolosText_500Medium.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 600; src: url('../../node_modules/@expo-google-fonts/golos-text/600SemiBold/GolosText_600SemiBold.ttf'); }
+      @font-face { font-family: 'Golos'; font-weight: 700; src: url('../../node_modules/@expo-google-fonts/golos-text/700Bold/GolosText_700Bold.ttf'); }
+
+      :root {
+        --bg: #0E1217; --surface: #161C24; --text: #EDF1F7; --muted: #9AA6B8; --line: #2A3441;
+        --sun: #5B9BFF; --onSun: #0A1220; --teal: #3DD6A0; --red: #FF8A80; --divider: #26303C; --track: #2A3441;
+        /* категории (сферы) — проверены валидатором на тёмной карточке: полоса L, CVD, контраст */
+        --c1: #4A88F0; --c2: #1E9F72; --c3: #9B6FF0; --c4: #BF8410;
+        /* последовательная шкала (один тон, больше — ярче) */
+        --s0: #1F2733; --s1: #1F3A66; --s2: #2A5596; --s3: #3F77CC; --s4: #6FA3FF;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body { background: #05070a; font-family: 'Golos', sans-serif; color: var(--text); padding: 36px 40px 44px; width: 1300px; }
+      h1 { font: 800 28px 'Manrope'; }
+      h2 { font: 800 13px 'Manrope'; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 6px 0 14px; }
+      .lead { color: var(--muted); font-size: 15px; margin: 8px 0 26px; max-width: 1150px; line-height: 1.45; }
+      .grid { display: grid; grid-template-columns: repeat(3, 380px); gap: 0 40px; margin-bottom: 30px; }
+      .head { font: 800 17px 'Manrope'; margin-bottom: 6px; }
+      .cap { font-size: 13.5px; line-height: 1.45; color: var(--muted); min-height: 82px; margin-bottom: 10px; }
+      .phone { width: 380px; height: 820px; border-radius: 34px; overflow: hidden; background: var(--bg); box-shadow: 0 0 0 8px #1a1f27; position: relative; }
+      .status { height: 30px; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 13px; font-weight: 600; }
+      .pad { padding: 0 18px; }
+      svg { display: block; overflow: visible; }
+
+      .nav { display: flex; align-items: center; gap: 12px; margin: 6px 0 12px; }
+      .nav b { font: 800 26px 'Manrope'; flex: 1; }
+      .rbtn { width: 38px; height: 38px; border-radius: 19px; background: var(--surface); display: grid; place-items: center; }
+      .seg { display: flex; background: var(--surface); border-radius: 14px; padding: 4px; margin-bottom: 10px; }
+      .seg div { flex: 1; text-align: center; padding: 7px 0; font-weight: 600; font-size: 14px; border-radius: 11px; color: var(--muted); }
+      .seg .on { background: var(--sun); color: var(--onSun); }
+      .period { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; font-weight: 600; font-size: 15px; }
+      .period span { color: var(--muted); font-size: 18px; width: 30px; text-align: center; }
+
+      .card { background: var(--surface); border-radius: 20px; padding: 14px 14px 12px; margin-bottom: 10px; }
+      .card-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+      .card-h b { font: 800 15px 'Manrope'; }
+      .card-h span { font-size: 12.5px; color: var(--muted); }
+      .hero { display: flex; align-items: flex-end; gap: 10px; }
+      .hero .num { font: 800 46px/1 'Manrope'; }
+      .hero .sub { font-size: 13px; color: var(--muted); padding-bottom: 6px; line-height: 1.35; }
+      .delta { color: var(--teal); font-weight: 600; }
+      .delta.down { color: var(--muted); }
+      .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+      .kpi { background: var(--surface); border-radius: 16px; padding: 10px 12px; }
+      .kpi .v { font: 800 22px 'Manrope'; display: flex; align-items: baseline; gap: 6px; }
+      .kpi .v small { font: 600 12px 'Golos'; }
+      .kpi .l { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+      .legend-row { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 6px; }
+      .legend-row i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+      .note { font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 6px; }
+      .note b { color: var(--text); font-weight: 600; }
+
+      /* список-измеритель */
+      .meter { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 7px 0; border-top: 1px solid var(--divider); }
+      .meter:first-of-type { border-top: none; }
+      .meter .n { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+      .meter .n i { width: 10px; height: 10px; border-radius: 5px; display: inline-block; }
+      .meter .f { font-size: 13px; font-weight: 600; text-align: right; }
+      .meter .f small { color: var(--muted); font-weight: 400; margin-left: 4px; }
+      .meter .bar { grid-column: 1 / 3; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+      .meter .bar b { display: block; height: 100%; border-radius: 3px; }
+      .tag { font-size: 11px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+
+      .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+      .fact { background: var(--surface); border-radius: 16px; padding: 12px; }
+      .fact .k { font-size: 12px; color: var(--muted); }
+      .fact .v { font: 800 18px 'Manrope'; margin-top: 3px; }
+      .fact .s { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+      .legend { background: var(--surface); border-radius: 20px; padding: 18px 24px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 36px; font-size: 14px; line-height: 1.45; }
+      .legend b { display: block; font: 800 14px 'Manrope'; margin-bottom: 3px; }
+      .legend span { color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>Итоги: подробная статистика</h1>
+    <p class="lead">
+      «Итоги» получают переключатель «Неделя · Месяц · Год» и стрелки периода. Первый экран — обзор: процент
+      выполненного, сравнение с прошлым периодом и график по дням. Ниже — разделы, каждый открывается
+      отдельным экраном: привычки, дела, сферы, настроение. В конце года — «Итоги года». Всё считается из того,
+      что приложение уже хранит: новых полей не нужно.
+    </p>
+
+    <h2>Обзор и привычки</h2>
+    <div class="grid" id="row1"></div>
+    <h2>Дела, сферы, год</h2>
+    <div class="grid" id="row2"></div>
+
+    <div class="legend">
+      <div><b>Сравнение с прошлым</b><span>У каждого числа — разница с прошлым периодом той же длины: «+6% к октябрю». Рост — зелёным со стрелкой, спад — серым, без красного: это не срыв.</span></div>
+      <div><b>Нажатие вместо наведения</b><span>Нажатие на столбик, клетку или точку показывает подсказку со значением и датой; долгое нажатие на день — открывает «Итог дня».</span></div>
+      <div><b>Цвета</b><span>Один тон для «сколько» (столбики, клетки года), цвет сферы — только там, где важно, какая это сфера. Красный — только долги и срывы.</span></div>
+      <div><b>Мало данных</b><span>Раздел без данных за период не показывается; первые две недели вместо процентов — «копим данные».</span></div>
+      <div><b>Доступность</b><span>У каждого графика есть подпись для чтения с экрана и вид «таблицей» (кнопка «Числа»).</span></div>
+      <div><b>В «Мульте»</b><span>Те же графики наклейками: обводка, жёсткая тень, луны вместо кружков; цифры — шрифтом заголовков.</span></div>
+    </div>
+
+    <script>
+      // ── детерминированные «данные» ─────────────────────────────
+      let seed = 7;
+      const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+      const P = {
+        back: 'M19 12H5M11 6l-6 6 6 6',
+        chevron: 'M9 6l6 6-6 6',
+        up: 'M12 19V5M6 11l6-6 6 6',
+        down: 'M12 5v14M6 13l6 6 6-6',
+        stats: 'M5 20v-8M12 20V5M19 20V9',
+        table: 'M4 5h16v14H4z M4 10h16 M10 5v14',
+      };
+      const ic = (n, s = 18, c = 'var(--muted)') =>
+        `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="${P[n]}"/></svg>`;
+      const status = `<div class="status"><span>9:41</span><span>●●● 100%</span></div>`;
+      const seg = (on) => `<div class="seg">${['Неделя', 'Месяц', 'Год'].map((x) => `<div class="${x === on ? 'on' : ''}">${x}</div>`).join('')}</div>`;
+      const period = (t) => `<div class="period"><span>‹</span>${t}<span>›</span></div>`;
+      const topBar = (title, back) => `<div class="nav">${back ? `<div class="rbtn">${ic('back', 18, 'var(--text)')}</div>` : ''}<b>${title}</b><div class="rbtn">${ic('table', 17, 'var(--text)')}</div></div>`;
+
+      // Столбики: скруглённый верх 4px у базовой линии, зазор, редкая сетка, подписи — текстовыми токенами.
+      function columns(vals, { w = 316, h = 120, max = null, hl = -1, labels = [], color = 'var(--s3)', avg = null, fmt = (v) => v } = {}) {
+        const m = max ?? Math.max(...vals);
+        const n = vals.length, gap = n > 20 ? 2 : 4, bw = (w - 26 - gap * (n - 1)) / n;
+        const y0 = h - 18;
+        const sy = (v) => y0 - (v / m) * (y0 - 8);
+        let s = `<svg width="${w}" height="${h}">`;
+        for (const g of [0.5, 1]) s += `<line x1="26" x2="${w}" y1="${sy(m * g)}" y2="${sy(m * g)}" stroke="var(--divider)" stroke-dasharray="2 3"/><text x="0" y="${sy(m * g) + 4}" font-size="10" fill="var(--muted)">${fmt(Math.round(m * g))}</text>`;
+        vals.forEach((v, i) => {
+          const x = 26 + i * (bw + gap), y = sy(v), r = Math.min(4, bw / 2);
+          const c = i === hl ? 'var(--s4)' : color;
+          if (v > 0) s += `<path d="M${x} ${y0} V${y + r} Q${x} ${y} ${x + r} ${y} H${x + bw - r} Q${x + bw} ${y} ${x + bw} ${y + r} V${y0} Z" fill="${c}"/>`;
+          if (labels[i]) s += `<text x="${x + bw / 2}" y="${h - 3}" font-size="10" fill="${i === hl ? 'var(--text)' : 'var(--muted)'}" text-anchor="middle">${labels[i]}</text>`;
+        });
+        s += `<line x1="26" x2="${w}" y1="${y0}" y2="${y0}" stroke="var(--line)"/>`;
+        if (avg !== null) s += `<line x1="26" x2="${w}" y1="${sy(avg)}" y2="${sy(avg)}" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="5 4"/><text x="${w}" y="${sy(avg) - 4}" font-size="10" fill="var(--text)" text-anchor="end">среднее ${fmt(avg)}</text>`;
+        return s + '</svg>';
+      }
+
+      // Линия: 2px, точки ≥ 8px только на последней и на лучшей.
+      function line(vals, { w = 316, h = 110, min, max, labels = [], color = 'var(--sun)', mark = [], target = null, fmt = (v) => v } = {}) {
+        const lo = min ?? Math.min(...vals), hi = max ?? Math.max(...vals);
+        const x = (i) => 26 + (i * (w - 30)) / (vals.length - 1);
+        const y0 = h - 18, y = (v) => y0 - ((v - lo) / (hi - lo)) * (y0 - 8);
+        let s = `<svg width="${w}" height="${h}">`;
+        for (const g of [lo, (lo + hi) / 2, hi]) s += `<line x1="26" x2="${w}" y1="${y(g)}" y2="${y(g)}" stroke="var(--divider)" stroke-dasharray="2 3"/><text x="0" y="${y(g) + 4}" font-size="10" fill="var(--muted)">${fmt(g)}</text>`;
+        if (target !== null) s += `<line x1="26" x2="${w}" y1="${y(target)}" y2="${y(target)}" stroke="var(--text)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+        s += `<path d="${vals.map((v, i) => `${i ? 'L' : 'M'}${x(i)} ${y(v)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+        for (const i of mark) s += `<circle cx="${x(i)}" cy="${y(vals[i])}" r="4.5" fill="${color}" stroke="var(--surface)" stroke-width="2"/>`;
+        labels.forEach((l, i) => l && (s += `<text x="${x(i)}" y="${h - 3}" font-size="10" fill="var(--muted)" text-anchor="middle">${l}</text>`));
+        return s + '</svg>';
+      }
+
+      // Тепловая карта года: 53 недели × 7 дней, один тон.
+      function yearHeat(level, { w = 316, cell = 4.4, gap = 1.2 } = {}) {
+        const cols = 53;
+        let s = `<svg width="${w}" height="${7 * (cell + gap) + 16}">`;
+        const months = ['я', 'ф', 'м', 'а', 'м', 'и', 'и', 'а', 'с', 'о', 'н', 'д'];
+        months.forEach((m, i) => (s += `<text x="${12 + i * (cols / 12) * (cell + gap)}" y="9" font-size="9.5" fill="var(--muted)">${m}</text>`));
+        for (let c = 0; c < cols; c++)
+          for (let r = 0; r < 7; r++) {
+            const lv = level(c, r);
+            if (lv < 0) continue;
+            s += `<rect x="${12 + c * (cell + gap)}" y="${14 + r * (cell + gap)}" width="${cell}" height="${cell}" rx="1.4" fill="var(--s${lv})"/>`;
+          }
+        ['пн', 'ср', 'пт'].forEach((d, i) => (s += `<text x="0" y="${14 + (i * 2 + 1) * (cell + gap) - 0.5}" font-size="8" fill="var(--muted)">${d[0]}</text>`));
+        return s + '</svg>';
+      }
+
+      const scale = `<div class="legend-row"><span>меньше</span>${[0, 1, 2, 3, 4].map((i) => `<i style="background:var(--s${i});margin:0"></i>`).join('')}<span>больше</span></div>`;
+      const delta = (txt, down) => `<span class="delta ${down ? 'down' : ''}">${down ? '↓' : '↑'} ${txt}</span>`;
+      const kpi = (v, l, d, down) => `<div class="kpi"><div class="v">${v}${d ? `<small class="delta ${down ? 'down' : ''}">${down ? '↓' : '↑'}${d}</small>` : ''}</div><div class="l">${l}</div></div>`;
+      const meter = (name, pct, figure, color, extra = '') =>
+        `<div class="meter"><div class="n">${color ? `<i style="background:${color}"></i>` : ''}${name}${extra}</div><div class="f">${figure}</div><div class="bar"><b style="width:${pct}%;background:${color || 'var(--s3)'}"></b></div></div>`;
+
+      // ── 1. Обзор месяца ───────────────────────────────────────
+      const days = Array.from({ length: 30 }, (_, i) => (i > 18 ? 0 : Math.round(45 + rnd() * 50)));
+      days[18] = 72;
+      const overview = `<div class="phone">${status}<div class="pad">
+        ${topBar('Итоги')}
+        ${seg('Месяц')}
+        ${period('Ноябрь 2026')}
+        <div class="card">
+          <div class="hero"><div class="num">78%</div><div class="sub">запланированного сделано<br>${delta('6% к октябрю')}</div></div>
+        </div>
+        <div class="kpis">
+          ${kpi('47', 'дел сделано', '+8')}
+          ${kpi('112', 'отметок привычек', '+14')}
+          ${kpi('14 дн', 'лучшая серия привычки')}
+          ${kpi('3,8', 'средний итог дня', '0,2', true)}
+        </div>
+        <div class="card">
+          <div class="card-h"><b>По дням</b><span>% сделанного</span></div>
+          ${columns(days.slice(0, 30), { max: 100, hl: 18, avg: 68, labels: days.map((_, i) => ([0, 6, 13, 20, 27].includes(i) ? i + 1 : '')), fmt: (v) => v + '%' })}
+          <div class="note">Лучший день — <b>вторник</b>: в среднем 84%. Хуже всего — <b>суббота</b>, 51%.</div>
+        </div>
+        <div class="card" style="padding:4px 14px">
+          ${[['Привычки', '82%'], ['Дела', '47 · вовремя 81%'], ['Сферы', '4'], ['Настроение', '3,8']].map(([a, b]) => `<div class="meter" style="padding:11px 0"><div class="n">${a}</div><div class="f" style="display:flex;gap:6px;align-items:center;font-weight:500;color:var(--muted)">${b}${ic('chevron', 14)}</div></div>`).join('')}
+        </div>
+      </div></div>`;
+
+      // ── 2. Привычки ───────────────────────────────────────────
+      const habits = `<div class="phone">${status}<div class="pad">
+        ${topBar('Привычки', true)}
+        ${seg('Месяц')}
+        ${period('Ноябрь 2026')}
+        <div class="card">
+          <div class="card-h"><b>Выполнение</b><span>по плану, без выходных</span></div>
+          ${meter('Вода', 96, '96%<small>8 стаканов</small>')}
+          ${meter('Спорт', 88, '88%<small>серия 14</small>')}
+          ${meter('Чтение', 74, '74%<small>серия 3</small>')}
+          ${meter('Английский', 61, '61%<small>серия 0</small>')}
+          ${meter('Без сладкого', 83, '83%<small>2 срыва</small>', null, ' <span class="tag">вредная</span>')}
+        </div>
+        <div class="card">
+          <div class="card-h"><b>По дням недели</b><span>все привычки</span></div>
+          ${columns([86, 91, 84, 80, 77, 58, 64], { max: 100, h: 112, hl: 1, labels: ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс'], fmt: (v) => v + '%' })}
+          <div class="note">Выходные проседают: в субботу на <b>30%</b> меньше, чем во вторник.</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>Всего отметок</b><span>по неделям</span></div>
+          ${columns([18, 22, 25, 21, 27, 24, 29, 28], { h: 96, hl: 7, labels: ['', '', '', '', '', '', '', 'сейчас'] })}
+        </div>
+      </div></div>`;
+
+      // ── 3. Одна привычка за год ──────────────────────────────
+      const startCol = 12;
+      const heat = yearHeat((c, r) => {
+        if (c < startCol) return -1;
+        if (c > 46 || (c === 46 && r > 3)) return -1;
+        const p = 0.3 + (c - startCol) / 60;
+        const v = rnd();
+        return v < 1 - p - 0.15 ? 0 : v < 0.55 ? 2 : v < 0.85 ? 3 : 4;
+      });
+      const habitYear = `<div class="phone">${status}<div class="pad">
+        ${topBar('Спорт', true)}
+        ${seg('Год')}
+        ${period('2026')}
+        <div class="card">
+          <div class="card-h"><b>Каждый день года</b><span>мин в зале</span></div>
+          ${heat}
+          ${scale}
+        </div>
+        <div class="facts" style="margin-bottom:10px">
+          <div class="fact"><div class="k">Серия сейчас</div><div class="v">14 дн</div><div class="s">лучшая — 23 (июль)</div></div>
+          <div class="fact"><div class="k">Выполнено</div><div class="v">71%</div><div class="s">${delta('12% ко 2-му полугодию')}</div></div>
+          <div class="fact"><div class="k">Всего</div><div class="v">146 раз</div><div class="s">≈ 182 часа</div></div>
+          <div class="fact"><div class="k">Чаще срывается</div><div class="v">суббота</div><div class="s">48% против 79% в будни</div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>По месяцам</b><span>% выполнения</span></div>
+          ${line([0, 0, 0, 52, 58, 61, 77, 70, 66, 74, 81, 84].slice(3), { h: 104, min: 40, max: 100, mark: [8], labels: ['апр', '', 'июн', '', 'авг', '', 'окт', '', 'дек'], fmt: (v) => Math.round(v) + '%' })}
+        </div>
+      </div></div>`;
+
+      // ── 4. Дела ───────────────────────────────────────────────
+      const hours = [0, 0, 0, 0, 0, 0, 0, 1, 3, 5, 7, 6, 4, 3, 4, 5, 4, 3, 4, 6, 7, 5, 2, 1];
+      const tasks = `<div class="phone">${status}<div class="pad">
+        ${topBar('Дела', true)}
+        ${seg('Месяц')}
+        ${period('Ноябрь 2026')}
+        <div class="kpis">
+          ${kpi('47', 'сделано', '+8')}
+          ${kpi('81%', 'вовремя, без долга', '+5')}
+          ${kpi('1,4 дн', 'средняя задержка долга', '0,3', true)}
+          ${kpi('6', 'висят дольше недели')}
+        </div>
+        <div class="card">
+          <div class="card-h"><b>Когда делаешь</b><span>по часам</span></div>
+          ${columns(hours.slice(6), { h: 108, hl: 14, labels: hours.slice(6).map((_, i) => ((i + 6) % 4 === 0 ? i + 6 : '')) })}
+          <div class="note">Пики — <b>10–11</b> и <b>19–21</b>. Напоминания на это время срабатывают чаще.</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>По приоритету</b><span>сделано / всего</span></div>
+          ${meter('Высокий', 92, '11 из 12<small>92%</small>', 'var(--red)')}
+          ${meter('Средний', 80, '16 из 20<small>80%</small>', 'var(--c4)')}
+          ${meter('Низкий', 64, '9 из 14<small>64%</small>', 'var(--c1)')}
+          ${meter('Без приоритета', 73, '11 из 15<small>73%</small>', '#6B7789')}
+        </div>
+      </div></div>`;
+
+      // ── 5. Сферы и настроение ─────────────────────────────────
+      const mood = [3, 4, 3, 4, 5, 3, 2, 3, 4, 4, 5, 4, 3, 4, 4, 5, 3, 4, 4];
+      const areas = `<div class="phone">${status}<div class="pad">
+        ${topBar('Сферы', true)}
+        ${seg('Месяц')}
+        ${period('Ноябрь 2026')}
+        <div class="card">
+          <div class="card-h"><b>Куда ушли силы</b><span>дела + отметки</span></div>
+          ${meter('Учёба', 100, '64<small>40%</small>', 'var(--c1)')}
+          ${meter('Здоровье', 72, '46<small>29%</small>', 'var(--c2)')}
+          ${meter('Работа', 45, '29<small>18%</small>', 'var(--c3)')}
+          ${meter('Дом', 31, '20<small>13%</small>', 'var(--c4)')}
+          <div class="note">«Дом» отстаёт третью неделю подряд — <b>5 дел в долгах</b>.</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>Настроение и дела</b><span>дел в день</span></div>
+          <svg width="316" height="132">
+            ${[1, 2, 3, 4, 5].map((m, i) => {
+              const v = [1.6, 2.4, 3.9, 5.2, 6.1][i];
+              const y = 6 + i * 24, w = (v / 6.5) * 240;
+              return `<text x="0" y="${y + 13}" font-size="11.5" fill="var(--muted)">оценка ${m}</text>
+                <rect x="58" y="${y + 2}" width="${w}" height="14" rx="4" fill="var(--s3)" />
+                <text x="${64 + w}" y="${y + 13}" font-size="11.5" fill="var(--text)">${v.toFixed(1).replace('.', ',')}</text>`;
+            }).join('')}
+          </svg>
+          <div class="note">В дни с оценкой 4–5 закрываешь в среднем <b>5,6 дела</b>, с оценкой 1–2 — <b>2</b>.</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>Настроение по дням</b><span>1–5</span></div>
+          ${line(mood, { h: 96, min: 1, max: 5, mark: [mood.length - 1], labels: mood.map((_, i) => ([0, 6, 13, 18].includes(i) ? i + 1 : '')), fmt: (v) => Math.round(v) })}
+        </div>
+      </div></div>`;
+
+      // ── 6. Итоги года ─────────────────────────────────────────
+      const yearMonths = [52, 58, 61, 63, 66, 59, 70, 68, 74, 77, 78, 80];
+      const year = `<div class="phone">${status}<div class="pad">
+        ${topBar('Твой 2026', true)}
+        <div class="card" style="padding:18px 16px">
+          <div class="hero"><div class="num">1 284</div><div class="sub">дела и отметки<br>за год</div></div>
+          <div class="note" style="margin-top:10px">Это на <b>38%</b> больше, чем в 2025. Каждый месяц второго полугодия — лучше предыдущего.</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><b>По месяцам</b><span>% выполнения</span></div>
+          ${columns(yearMonths, { h: 112, max: 100, hl: 11, labels: ['я', 'ф', 'м', 'а', 'м', 'и', 'и', 'а', 'с', 'о', 'н', 'д'], fmt: (v) => v + '%' })}
+        </div>
+        <div class="facts">
+          <div class="fact"><div class="k">Лучший месяц</div><div class="v">декабрь</div><div class="s">80% сделанного</div></div>
+          <div class="fact"><div class="k">Самая длинная серия</div><div class="v">41 день</div><div class="s">«Вода», март–апрель</div></div>
+          <div class="fact"><div class="k">В зале</div><div class="v">182 ч</div><div class="s">146 тренировок</div></div>
+          <div class="fact"><div class="k">Пар отсидел</div><div class="v">318</div><div class="s">≈ 477 часов</div></div>
+          <div class="fact"><div class="k">Целей закрыто</div><div class="v">7 из 9</div><div class="s">«Сдать сессию без троек»</div></div>
+          <div class="fact"><div class="k">Средний итог дня</div><div class="v">3,9</div><div class="s">${delta('0,4 к 2025')}</div></div>
+        </div>
+      </div></div>`;
+
+      const col = (name, cap, phone) => `<div><div class="head">${name}</div><div class="cap">${cap}</div>${phone}</div>`;
+      document.getElementById('row1').innerHTML = [
+        col('1 · Обзор', 'Главное число — процент запланированного, что сделано, и разница с прошлым месяцем. Четыре плитки, график по дням со средней линией и вывод словами. Ниже — разделы.', overview),
+        col('2 · Привычки за месяц', 'Каждая привычка — полоса выполнения по плану (выходные не считаются) с серией или срывами. По дням недели видно, где проседаешь.', habits),
+        col('3 · Одна привычка за год', 'Каждый день года клеткой: ярче — больше (минут, стаканов) или просто отмечено. Серии, итог, день, когда чаще срывается, и тренд по месяцам.', habitYear),
+      ].join('');
+      document.getElementById('row2').innerHTML = [
+        col('4 · Дела', 'Сколько сделано и сколько вовремя, средняя задержка долгов, что висит дольше недели. Когда ты делаешь дела — по часам. Выполнение по приоритету.', tasks),
+        col('5 · Сферы и настроение', 'Куда ушли силы — сферы своими цветами. Связь настроения и дел: сколько закрываешь в дни с разной оценкой. Настроение по дням линией.', areas),
+        col('6 · Итоги года', 'В декабре — экран «Твой 2026»: сколько всего, лучший месяц, самая длинная серия, часы в зале и на парах (из расписания), закрытые цели. Можно поделиться картинкой.', year),
+      ].join('');
+    </script>
+  </body>
+</html>
