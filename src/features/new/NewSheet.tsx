@@ -28,6 +28,7 @@ import { FormRow } from '../../ui/FormRow';
 import { OptionTile } from '../../ui/OptionTile';
 import { PriorityPicker } from '../../ui/Priority';
 import { Segmented } from '../../ui/Segmented';
+import { SelectRow } from '../../ui/SelectRow';
 import { Sheet } from '../../ui/Sheet';
 import { NO_WEB_OUTLINE, TextField } from '../../ui/TextField';
 import { useToast } from '../../ui/toast';
@@ -247,43 +248,24 @@ function NewSheetForm() {
   const pal = usePalette();
   const cap = (x: string) => x.charAt(0).toUpperCase() + x.slice(1);
 
-  const areaName = areaId ? areaList.find((a) => a.id === areaId)?.name : undefined;
   const pickArea = (id: string | null) => setAreaId(id);
   // Привычка в сфере берёт цвет сферы; свой цвет задаётся только у привычки без сферы.
   const areaColor = areaId ? areaList.find((a) => a.id === areaId)?.color : undefined;
   const shownColor = areaColor ?? color;
 
   const areaRow = (
-    <FormRow
+    <SelectRow<string | null>
       icon="habits"
       label={cap(t('new.area'))}
-      value={areaName ?? t('area.none')}
+      value={areaId}
       set={areaId !== null}
-      open={openRow === 'area'}
-      onPress={() => toggleRow('area')}
-    >
-      <View style={styles.chips} accessibilityRole="radiogroup">
-        <Chip
-          size="md"
-          role="radio"
-          label={t('area.none')}
-          selected={areaId === null}
-          onPress={() => pickArea(null)}
-        />
-        {areaList.map((a) => (
-          <Chip
-            key={a.id}
-            size="md"
-            role="radio"
-            label={a.name}
-            dot={a.color}
-            selected={areaId === a.id}
-            onPress={() => pickArea(a.id)}
-          />
-        ))}
-        <Chip size="md" dashed label={t('area.add')} onPress={() => setAreaSheet(true)} />
-      </View>
-    </FormRow>
+      onChange={pickArea}
+      options={[
+        { value: null, label: t('area.none') },
+        ...areaList.map((a) => ({ value: a.id, label: a.name, dot: a.color })),
+      ]}
+      action={{ label: t('area.add'), onPress: () => setAreaSheet(true) }}
+    />
   );
   const dateLabel =
     date === null
@@ -382,27 +364,18 @@ function NewSheetForm() {
                 )}
               </View>
             </FormRow>
-            <FormRow
+            <SelectRow<Priority>
               icon="goals"
               label={cap(t('new.priority'))}
-              value={t(`priority.${priority}` as MessageKey)}
+              value={priority}
               set={priority > 0}
-              open={openRow === 'priority'}
-              onPress={() => toggleRow('priority')}
-            >
-              <View style={styles.chips} accessibilityRole="radiogroup">
-                {([0, 1, 2, 3] as const).map((n) => (
-                  <Chip
-                    key={n}
-                    size="md"
-                    role="radio"
-                    label={t(`priority.${n}` as MessageKey)}
-                    selected={priority === n}
-                    onPress={() => setPriority(n)}
-                  />
-                ))}
-              </View>
-            </FormRow>
+              onChange={setPriority}
+              options={([3, 2, 1, 0] as const).map((n) => ({
+                value: n,
+                label: t(`priority.${n}` as MessageKey),
+                dot: [undefined, pal.prioLow, pal.prioMid, pal.red][n],
+              }))}
+            />
             {areaRow}
           </>
         )}

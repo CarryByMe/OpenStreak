@@ -1,10 +1,10 @@
 /**
- * Блок «Пункты» в форме дела: список пунктов, поле нового пункта и подсказка про вставку.
+ * Блок «Подзадачи» в форме дела: список подзадач и поле новой подзадачи.
  * Enter добавляет пункт и оставляет поле для следующего; вставленный текст с переносами строк
  * делится на пункты (маркеры списков убираются). Сохраняет форма (`A.saveSubtasks`).
  */
 import React from 'react';
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { MAX_SUBTASKS, MAX_SUBTASK_TITLE, splitPasted } from '../../core/subtasks';
 import { useT } from '../../store/prefsStore';
 import { usePalette, usePlain } from '../../store/themeStore';
@@ -104,9 +104,6 @@ export function SubtasksEditor({ items, onChange, draft, onDraft }: Props) {
           />
         </View>
       )}
-      <Text style={[TYPE.meta, styles.hint, { color: p.text, backgroundColor: p.tag }]}>
-        {t('sub.paste')}
-      </Text>
     </View>
   );
 }
@@ -123,10 +120,4 @@ const styles = StyleSheet.create({
   mark: { width: 28, alignItems: 'center' },
   input: { flex: 1, paddingVertical: SPACE.sm },
   remove: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  hint: {
-    marginTop: SPACE.sm,
-    paddingHorizontal: SPACE.md,
-    paddingVertical: SPACE.sm,
-    borderRadius: 12,
-  },
 });

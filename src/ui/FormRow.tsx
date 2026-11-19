@@ -19,6 +19,8 @@ type Props = {
   valueNode?: React.ReactNode;
   /** значение задано (не по умолчанию): рисуется акцентом */
   set?: boolean;
+  /** цветной кружок перед значением: приоритет, цвет сферы (цвет уже готов к показу) */
+  dot?: string;
   open: boolean;
   onPress: () => void;
   /** раскрытое содержимое: чипы вариантов, поле ввода */
@@ -31,6 +33,7 @@ export function FormRow({
   value,
   valueNode,
   set = false,
+  dot,
   open,
   onPress,
   children,
@@ -54,6 +57,7 @@ export function FormRow({
       >
         {icon && <Icon name={icon} size={22} tone="muted" />}
         <Text style={[TYPE.item, styles.label, { color: p.text }]}>{label}</Text>
+        {!valueNode && dot && <View style={[styles.dot, { backgroundColor: dot }]} />}
         {valueNode ?? (
           <Text
             numberOfLines={1}
@@ -82,5 +86,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 54 },
   label: { flex: 1 },
   value: { maxWidth: '55%' },
+  dot: { width: 12, height: 12, borderRadius: 6, marginRight: -6 },
   body: { paddingLeft: 36, paddingBottom: SPACE.md, gap: SPACE.sm },
 });
