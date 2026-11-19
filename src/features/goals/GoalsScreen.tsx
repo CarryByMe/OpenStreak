@@ -204,7 +204,7 @@ function Contract({
   }
 
   return (
-    <Card radius={RADIUS.xl} style={styles.contract}>
+    <Card hero radius={RADIUS.xl} style={styles.contract}>
       <View style={plain ? styles.numberPlain : styles.number}>
         <Tag label={area ? `${number} · ${area}` : number} tilt={-3} header={false} />
       </View>

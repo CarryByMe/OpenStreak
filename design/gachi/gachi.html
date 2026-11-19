@@ -1,0 +1,495 @@
+<!doctype html>
+<!--
+  Макет «Качалка» (концепт четвёртого оформления, design gym). Две темы: «Подземелье» (вечер) и «Бетон» (день).
+  Шрифты — Google Fonts (Russo One, Oswald, Golos Text). Картинка для просмотра — gachi.png рядом, приложение — app.png.
+-->
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>
+<title>Дизайн «Качалка»</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Oswald:wght@500;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: лист-презентация — шапка, четыре телефона в ряд (стопкой на узком), затем лист стиля: палитра, шрифты, детали, правила. */
+:root {
+  /* страница вокруг макетов (тёмная по умолчанию) */
+  --pg-bg: #0B0A0A; --pg-card: #161313; --pg-fg: #F1EBE5; --pg-muted: #AFA49C; --pg-line: #3A3132; --pg-accent: #EBAB3C;
+  --f-display: 'Russo One', 'Arial Black', Impact, sans-serif;
+  --f-num: 'Oswald', 'Arial Narrow', Impact, sans-serif;
+  --f-body: 'Golos Text', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --pg-bg: #E7E4DF; --pg-card: #F5F3EF; --pg-fg: #151213; --pg-muted: #4E4743; --pg-line: #BDB7AF; --pg-accent: #7A5410; color-scheme: light; } }
+:root[data-theme="light"] { --pg-bg: #E7E4DF; --pg-card: #F5F3EF; --pg-fg: #151213; --pg-muted: #4E4743; --pg-line: #BDB7AF; --pg-accent: #7A5410; color-scheme: light; }
+
+/* Токены самой темы «Качалка»: Подземелье (вечер) и Бетон (день) */
+.gym {
+  --bg: #0F0D0E; --surface: #1D1819; --surface2: #2A2223; --text: #F3EDE7; --muted: #B8ACA3;
+  --line: #7D6A6C; --ink: #000000; --shadow: #000000;
+  --brass: #EBAB3C; --onBrass: #1A1208; --brassText: #EBAB3C; --arc: #EBAB3C;
+  --done: #5FD49A; --onDone: #07160E; --red: #FF7366; --onRed: #1E0604;
+  --chrome: #9AA1AB; --track: #3A3031; --stitch: #5B4A4C; --rivet: #9AA1AB;
+  --plateA: #171314; --plateB: #211B1C; --tab: #070606;
+  background: var(--bg); color: var(--text);
+}
+.gym[data-t="day"] {
+  --bg: #D4D1CC; --surface: #F2F0EC; --surface2: #E3E0DB; --text: #151213; --muted: #4E4743;
+  --line: #151213; --ink: #151213; --shadow: #151213;
+  --brass: #E3A132; --onBrass: #151213; --brassText: #6E4B0C; --arc: #7A5410;
+  --done: #1D6B4B; --onDone: #FFFFFF; --red: #B42318; --onRed: #FFFFFF;
+  --chrome: #5E636B; --track: #C9C5BF; --stitch: #A9A39B; --rivet: #5E636B;
+  --plateA: #CBC7C1; --plateB: #C1BDB6; --tab: #151213;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--pg-bg); color: var(--pg-fg); font-family: var(--f-body); margin: 0; }
+.wrap { max-width: 1560px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 40px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 3px solid var(--pg-accent); outline-offset: 3px; }
+
+.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.top h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(36px, 6vw, 64px); line-height: 1; letter-spacing: .01em; }
+.top h1 .mars { color: var(--pg-accent); }
+.eyebrow { font-family: var(--f-num); font-weight: 500; font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--pg-muted); margin-bottom: 10px; }
+.lead { max-width: 64ch; color: var(--pg-muted); font-size: 16px; line-height: 1.5; margin-top: 14px; }
+.lead b { color: var(--pg-fg); font-weight: 600; }
+
+.seg { display: inline-flex; border: 3px solid var(--pg-fg); border-radius: 4px; overflow: hidden; }
+.seg button { font: 600 15px var(--f-body); padding: 10px 18px; border: 0; background: var(--pg-card); color: var(--pg-fg); cursor: pointer; }
+.seg button + button { border-left: 3px solid var(--pg-fg); }
+.seg button[aria-pressed="true"] { background: var(--pg-fg); color: var(--pg-bg); }
+
+.phones { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px 28px; justify-items: center; }
+.shot { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+.shot h3 { font: 700 18px var(--f-num); letter-spacing: .06em; text-transform: uppercase; }
+.shot .cap { font-size: 14px; line-height: 1.45; color: var(--pg-muted); min-height: 84px; }
+
+/* ── телефон ── */
+.phone { width: 100%; max-width: 360px; height: 760px; border-radius: 30px; overflow: hidden; position: relative; box-shadow: 0 0 0 7px #000, 0 0 0 9px var(--pg-line); font-family: var(--f-body); }
+.scr { padding: 38px 14px 96px; display: flex; flex-direction: column; gap: 12px; height: 100%; overflow: hidden; }
+.scr > * { flex-shrink: 0; }
+.row { display: flex; align-items: center; gap: 10px; }
+.between { justify-content: space-between; }
+.h1 { font-family: var(--f-display); font-weight: 400; font-size: 30px; line-height: 1.05; letter-spacing: .01em; }
+.mars { color: var(--brassText); }
+.lbl { font: 500 13px var(--f-num); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--f-num); font-weight: 700; font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+
+.tag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; font: 700 13px var(--f-num); letter-spacing: .08em; text-transform: uppercase; background: var(--brass); color: var(--onBrass); border: 2.5px solid var(--ink); box-shadow: 3px 3px 0 var(--shadow); transform: rotate(-3deg); border-radius: 3px; }
+.tag.steel { background: var(--surface2); color: var(--text); }
+.tag.red { background: var(--red); color: var(--onRed); transform: none; box-shadow: none; padding: 3px 7px; font-size: 12px; }
+
+.ibtn { width: 44px; height: 44px; flex: none; display: grid; place-items: center; background: var(--surface); color: var(--text); border: 3px solid var(--ink); border-radius: 4px; box-shadow: 3px 3px 0 var(--shadow); }
+.ibtn.brass { background: var(--brass); color: var(--onBrass); }
+.gym[data-t="night"] .ibtn, .gym[data-t="night"] .card, .gym[data-t="night"] .tag.steel, .gym[data-t="night"] .chk { border-color: var(--line); }
+
+.card { background: var(--surface); border: 3px solid var(--ink); border-radius: 6px; box-shadow: 5px 5px 0 var(--shadow); padding: 14px; position: relative; }
+/* кожа: строчка внутри */
+.card.leather { outline: 1.5px dashed var(--stitch); outline-offset: -8px; }
+/* заклёпки по углам — только у главных плашек */
+.card.riv { background:
+  radial-gradient(circle at 9px 9px, var(--rivet) 2.6px, transparent 3.2px),
+  radial-gradient(circle at calc(100% - 9px) 9px, var(--rivet) 2.6px, transparent 3.2px),
+  radial-gradient(circle at 9px calc(100% - 9px), var(--rivet) 2.6px, transparent 3.2px),
+  radial-gradient(circle at calc(100% - 9px) calc(100% - 9px), var(--rivet) 2.6px, transparent 3.2px),
+  var(--surface); }
+
+.hero { display: flex; gap: 14px; align-items: center; padding: 16px; }
+.hero .stats { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.big { font: 700 34px/1 var(--f-num); font-variant-numeric: tabular-nums; }
+.big small { font-size: 16px; font-weight: 500; color: var(--muted); letter-spacing: .04em; }
+.chain { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+.chain svg { color: var(--brassText); }
+
+.boss { display: flex; gap: 12px; align-items: flex-start; }
+.medal { width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--brass); color: var(--onBrass); border: 3px solid var(--ink); box-shadow: 2px 2px 0 var(--shadow); font: 400 24px var(--f-display); }
+.boss .who { font: 700 13px var(--f-num); letter-spacing: .1em; text-transform: uppercase; color: var(--brassText); }
+.boss .say { font-size: 15px; line-height: 1.4; margin-top: 3px; }
+
+.input { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; background: var(--surface2); border: 3px solid var(--ink); border-radius: 4px; color: var(--muted); font-size: 15px; }
+.gym[data-t="night"] .input { border-color: var(--line); }
+.input .ibtn { width: 34px; height: 34px; box-shadow: none; border-width: 2.5px; margin-left: auto; }
+
+.sect { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+.sect::after { content: ""; flex: 1; height: 8px; background: radial-gradient(ellipse 5px 3px at 6px 4px, transparent 2.4px, var(--chrome) 2.6px 3.6px, transparent 3.8px) 0 0 / 11px 8px repeat-x; }
+
+.list { display: flex; flex-direction: column; border: 3px solid var(--ink); border-radius: 6px; background: var(--surface); box-shadow: 5px 5px 0 var(--shadow); }
+.gym[data-t="night"] .list { border-color: var(--line); }
+.item { display: flex; align-items: center; gap: 12px; padding: 11px 12px; min-height: 52px; }
+.item + .item { border-top: 2px solid var(--track); }
+.item .t { font-size: 15px; font-weight: 500; line-height: 1.25; min-width: 0; }
+.item .s { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.item .end { margin-left: auto; flex: none; text-align: right; }
+.chk { width: 26px; height: 26px; flex: none; border: 3px solid var(--ink); border-radius: 3px; background: var(--surface2); display: grid; place-items: center; }
+.chk.on { background: var(--done); color: var(--onDone); border-color: var(--ink) !important; }
+.chk.debt { border-color: var(--red) !important; }
+.prio { display: inline-flex; gap: 3px; }
+.prio i { width: 6px; height: 14px; background: var(--brassText); display: block; transform: skewX(-12deg); }
+.prio i.off { background: var(--track); }
+.log .item { min-height: 40px; padding: 8px 12px; }
+.log .time { font: 500 14px var(--f-num); color: var(--muted); width: 42px; flex: none; font-variant-numeric: tabular-nums; }
+.pts { font: 700 15px var(--f-num); color: var(--done); font-variant-numeric: tabular-nums; }
+
+/* таб-бар: рифлёнка */
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; height: 78px; display: flex; padding: 8px 8px 16px; gap: 2px;
+  background: repeating-linear-gradient(45deg, transparent 0 6px, rgba(255,255,255,.05) 6px 8px), repeating-linear-gradient(-45deg, transparent 0 6px, rgba(255,255,255,.05) 6px 8px), var(--tab);
+  border-top: 3px solid var(--brass); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #B8ACA3; font: 500 11px var(--f-num); letter-spacing: .08em; text-transform: uppercase; border-radius: 4px; }
+.tab.on { background: var(--brass); color: #1A1208; }
+
+/* привычки */
+.filter { display: flex; border: 3px solid var(--ink); border-radius: 4px; overflow: hidden; }
+.gym[data-t="night"] .filter { border-color: var(--line); }
+.filter span { flex: 1; text-align: center; padding: 9px 0; font-size: 14px; font-weight: 600; background: var(--surface); }
+.filter span + span { border-left: 3px solid var(--ink); }
+.gym[data-t="night"] .filter span + span { border-left-color: var(--line); }
+.filter span.on { background: var(--text); color: var(--bg); }
+.hab { display: flex; flex-direction: column; gap: 12px; padding: 13px; }
+.ico { width: 42px; height: 42px; flex: none; display: grid; place-items: center; background: var(--surface2); color: var(--text); border: 2.5px solid var(--ink); border-radius: 4px; }
+.gym[data-t="night"] .ico { border-color: var(--line); }
+.ico.brass { background: var(--brass); color: var(--onBrass); border-color: var(--ink) !important; }
+.week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.week .d { font: 500 11px var(--f-num); color: var(--muted); letter-spacing: .06em; }
+.wp { display: grid; place-items: center; }
+.streak { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font: 700 15px var(--f-num); padding: 4px 8px; border: 2.5px solid var(--ink); border-radius: 3px; background: var(--surface2); transform: rotate(2deg); }
+.gym[data-t="night"] .streak { border-color: var(--line); }
+.streak svg { color: var(--brassText); }
+.streak.red { color: var(--onRed); background: var(--red); border-color: var(--ink); }
+.streak.red svg { color: var(--onRed); }
+
+/* зал */
+.rankcard { text-align: left; display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.rank { font: 400 25px/1.1 var(--f-display); }
+.bar { position: relative; height: 46px; }
+.bar .rod { position: absolute; left: 0; right: 0; top: 20px; height: 6px; background: var(--chrome); border-radius: 2px; }
+.bar .pl { position: absolute; top: 3px; height: 40px; width: 13px; border: 2.5px solid var(--ink); border-radius: 3px; }
+.ladder .item { min-height: 46px; }
+.ladder .lv { width: 30px; height: 30px; flex: none; display: grid; place-items: center; font: 700 15px var(--f-num); border: 2.5px solid var(--ink); border-radius: 3px; background: var(--surface2); }
+.gym[data-t="night"] .ladder .lv { border-color: var(--line); }
+.ladder .item.cur { background: var(--brass); color: var(--onBrass); }
+.ladder .item.cur .s { color: var(--onBrass); }
+.ladder .item.cur .lv { background: var(--onBrass); color: var(--brass); border-color: var(--onBrass); }
+.ladder .item.lock .t { color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { padding: 11px 12px; box-shadow: 3px 3px 0 var(--shadow); }
+.tile .big { font-size: 28px; }
+
+/* итог */
+.stamp { align-self: center; margin: 18px 0 6px; padding: 12px 18px; border: 4px solid var(--red); color: var(--red); font: 400 30px/1 var(--f-display); letter-spacing: .03em; transform: rotate(-4deg); border-radius: 4px; text-align: center; box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 5px var(--red); }
+.stamp.ok { border-color: var(--done); color: var(--done); box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 5px var(--done); }
+.stamp small { display: block; font: 500 13px var(--f-num); letter-spacing: .16em; margin-top: 6px; }
+.rate { display: flex; justify-content: space-between; gap: 4px; }
+.rate .r { display: flex; flex-direction: column; align-items: center; gap: 4px; font: 500 12px var(--f-num); color: var(--muted); letter-spacing: .04em; }
+.rate .r.on { color: var(--text); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 10px; height: 56px; border: 3px solid var(--ink); border-radius: 4px; font: 400 18px var(--f-display); letter-spacing: .04em; box-shadow: 5px 5px 0 var(--shadow); }
+.btn.brass { background: var(--brass); color: var(--onBrass); }
+.btn.ghost { background: transparent; color: var(--text); box-shadow: none; height: 48px; font: 600 15px var(--f-body); border-color: var(--line); }
+.sum .item { min-height: 44px; }
+
+/* ── лист стиля ── */
+.sheet { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px; }
+.panel { background: var(--pg-card); border: 2px solid var(--pg-line); border-radius: 8px; padding: 22px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.panel h2 { font: 700 20px var(--f-num); letter-spacing: .08em; text-transform: uppercase; }
+.panel .note { color: var(--pg-muted); font-size: 14px; line-height: 1.45; }
+.pal { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; padding: 14px; border-radius: 6px; }
+.sw { display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.sw .chip { height: 54px; border-radius: 4px; border: 2.5px solid var(--ink); display: flex; align-items: flex-end; padding: 6px 8px; font: 700 15px var(--f-num); }
+.sw .k { font-weight: 600; }
+.sw .v { color: var(--muted); font-variant-numeric: tabular-nums; }
+.ratios { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid var(--pg-line); white-space: nowrap; }
+th { font: 500 12px var(--f-num); letter-spacing: .1em; text-transform: uppercase; color: var(--pg-muted); }
+td.ok { color: var(--pg-fg); font-weight: 600; }
+.spec { display: flex; flex-direction: column; gap: 14px; }
+.spec .s1 { font: 400 40px/1 var(--f-display); }
+.spec .s2 { font: 700 30px/1 var(--f-num); letter-spacing: .02em; }
+.spec .s3 { font: 400 16px/1.45 var(--f-body); max-width: 52ch; }
+.spec .k { font: 500 12px var(--f-num); letter-spacing: .12em; text-transform: uppercase; color: var(--pg-muted); margin-bottom: 4px; }
+.demo { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 18px; border-radius: 6px; }
+.rules { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 9px; line-height: 1.45; font-size: 15px; }
+.rules b { font-weight: 600; }
+.rules code { font-size: 13px; background: var(--pg-bg); padding: 1px 5px; border-radius: 3px; }
+@media (prefers-reduced-motion: no-preference) { .tag, .stamp { transition: transform .2s; } .shot:hover .stamp { transform: rotate(-7deg) scale(1.03); } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">OpenStreak · концепт четвёртого дизайна</div>
+      <h1>Качалка <span class="mars">♂</span></h1>
+      <p class="lead">Брутальная тема для тех, кому «Мульт» слишком мил. <b>Кожа, сталь и латунь</b>: жёсткие углы, обводка 3&nbsp;px, тень без размытия, заклёпки и строчка на главных плашках. Луна дня становится <b>блином от штанги</b>, серия — <b>цепью</b>, волк — <b>Боссом качалки</b>. Логика приложения та же, меняется только шкура.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Тема макетов">
+      <button type="button" id="t-night" aria-pressed="true" data-t="night">Подземелье · вечер</button>
+      <button type="button" id="t-day" aria-pressed="false" data-t="day">Бетон · день</button>
+    </div>
+  </header>
+
+  <section class="phones" aria-label="Экраны">
+    <!-- 1. Сегодня -->
+    <div class="shot">
+      <h3>Сегодня</h3>
+      <p class="cap">Блин дня вместо луны: дуга — сколько подходов сделано, внутри счёт. Босс качалки говорит одну фразу в день. Долг — только красным.</p>
+      <div class="phone gym" data-t="night">
+        <div class="scr">
+          <div class="row between">
+            <span class="tag">Чт · 19 ноя</span>
+            <span class="ibtn" aria-label="Настройки"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M4 7h9M18 7h2M4 17h3M12 17h8M15.5 4.5v5M9.5 14.5v5"/></svg></span>
+          </div>
+          <div class="h1">Сегодня <span class="mars">♂</span></div>
+          <div class="card riv leather hero">
+            <span data-plate="0.67" data-label="6/9" data-sub="подходов" data-size="112"></span>
+            <div class="stats">
+              <div class="big">+140 <small>очков</small></div>
+              <div class="chain"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M9 15l6-6M10.5 6.5L12 5a3.5 3.5 0 0 1 5 5l-1.5 1.5M13.5 17.5L12 19a3.5 3.5 0 0 1-5-5l1.5-1.5"/></svg>Серия 12 дней</div>
+              <div class="lbl">День 47 · осталось 3</div>
+            </div>
+          </div>
+          <div class="card boss">
+            <span class="medal" aria-hidden="true">♂</span>
+            <div><div class="who">Босс качалки</div><p class="say">Боль уходит, серия остаётся. Ещё один подход, салага.</p></div>
+          </div>
+          <div class="input">Запиши дело…<span class="ibtn brass" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square"><path d="M7 2v10M2 7h10"/></svg></span></div>
+          <div class="sect"><span class="lbl">Осталось · 3</span></div>
+          <div class="list">
+            <div class="item"><span class="chk debt"></span><div><div class="t">Отжимания, 50 раз</div><div class="s">Каждый день</div></div><div class="end"><span class="tag red">Долг · 2 дня</span></div></div>
+            <div class="item"><span class="chk"></span><div><div class="t">Сдать отчёт по курсовой</div><div class="s">до 18:00</div></div><div class="end"><span class="prio"><i></i><i></i><i class="off"></i></span></div></div>
+            <div class="item"><span class="chk"></span><div><div class="t">Кардио 20 минут</div><div class="s">19:30 · зал</div></div></div>
+          </div>
+          <div class="sect"><span class="lbl">Сделано · 6</span></div>
+          <div class="list log">
+            <div class="item"><span class="time">07:10</span><span class="t">Подъём без будильника</span><span class="end pts">+10</span></div>
+            <div class="item"><span class="time">12:40</span><span class="t">Жим лёжа 5×5</span><span class="end pts">+20</span></div>
+          </div>
+        </div>
+        <nav class="tabs" data-tabs="0"></nav>
+      </div>
+    </div>
+
+    <!-- 2. Подходы (привычки) -->
+    <div class="shot">
+      <h3>Подходы</h3>
+      <p class="cap">Привычки — это подходы. Неделя блинами: зелёный — зачёт, красный крест — слив, латунная обводка — сегодня. Серия висит цепью под наклоном.</p>
+      <div class="phone gym" data-t="night">
+        <div class="scr">
+          <div class="row between" style="align-items:flex-end">
+            <div><div class="lbl">5 в деле · 1 вредная</div><div class="h1">Подходы</div></div>
+            <span class="ibtn brass" aria-label="Новая привычка"><svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square"><path d="M7 2v10M2 7h10"/></svg></span>
+          </div>
+          <div class="filter"><span class="on">Все</span><span>Полезные</span><span>Вредные</span></div>
+          <div class="card riv hab" data-week="1,1,1,1,1,1,t">
+            <div class="row"><span class="ico brass"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M6 7v10M18 7v10M3 9.5v5M21 9.5v5M6 12h12"/></svg></span><div><div class="t" style="font-weight:600;font-size:16px">Тренировка</div><div class="s muted" style="font-size:13px">Пн, Ср, Пт, Сб · +20</div></div><span class="streak"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 15l6-6M10.5 6.5L12 5a3.5 3.5 0 0 1 5 5l-1.5 1.5M13.5 17.5L12 19a3.5 3.5 0 0 1-5-5l1.5-1.5"/></svg>12</span></div>
+          </div>
+          <div class="card hab" data-week="1,1,0,1,1,1,t">
+            <div class="row"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M12 3v10M8 7l4-4 4 4M5 15c2 2 3 2 4.5 0s3-2 4.5 0 3 2 5 0M5 20c2 2 3 2 4.5 0s3-2 4.5 0 3 2 5 0"/></svg></span><div><div class="t" style="font-weight:600;font-size:16px">Холодный душ</div><div class="s muted" style="font-size:13px">Каждый день · +10</div></div><span class="streak"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 15l6-6M10.5 6.5L12 5a3.5 3.5 0 0 1 5 5l-1.5 1.5M13.5 17.5L12 19a3.5 3.5 0 0 1-5-5l1.5-1.5"/></svg>3</span></div>
+          </div>
+          <div class="card hab" data-week="1,0,0,1,0,0,t">
+            <div class="row"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M5 5l14 14M8 4h8l1 6H7zM7 10l1.5 10h7L17 10"/></svg></span><div><div class="t" style="font-weight:600;font-size:16px">Без сладкого</div><div class="s muted" style="font-size:13px">Вредная · держаться</div></div><span class="streak red">Слив</span></div>
+          </div>
+          <div class="card hab" data-week="1,1,1,0,1,1,t">
+            <div class="row"><span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></span><div><div class="t" style="font-weight:600;font-size:16px">Отбой до 23:30</div><div class="s muted" style="font-size:13px">Каждый день · +10</div></div><span class="streak"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M9 15l6-6M10.5 6.5L12 5a3.5 3.5 0 0 1 5 5l-1.5 1.5M13.5 17.5L12 19a3.5 3.5 0 0 1-5-5l1.5-1.5"/></svg>2</span></div>
+          </div>
+        </div>
+        <nav class="tabs" data-tabs="2"></nav>
+      </div>
+    </div>
+
+    <!-- 3. Зал (звания) -->
+    <div class="shot">
+      <h3>Зал</h3>
+      <p class="cap">Вместо «Стаи» — звания зала. Прогресс до следующего звания — гриф, на который вешаются блины. Числа — узким шрифтом, крупно.</p>
+      <div class="phone gym" data-t="night">
+        <div class="scr">
+          <div class="h1">Зал <span class="mars">♂</span></div>
+          <div class="card riv leather rankcard">
+            <span class="tag steel" style="align-self:flex-start">Звание 4 из 5</span>
+            <div class="rank">Мастер подземелья</div>
+            <div class="bar" aria-label="Заполнено 72%"><div class="rod"></div></div>
+            <div class="row between"><span class="num" style="font-size:18px">4 140 / 5 000</span><span class="muted" style="font-size:14px">ещё 860 до Босса</span></div>
+          </div>
+          <div class="sect"><span class="lbl">Лестница званий</span></div>
+          <div class="list ladder">
+            <div class="item"><span class="lv">1</span><div><div class="t">Новичок в зале</div><div class="s">0 очков</div></div></div>
+            <div class="item"><span class="lv">2</span><div><div class="t">Парень по соседству</div><div class="s">500</div></div></div>
+            <div class="item"><span class="lv">3</span><div><div class="t">Качок</div><div class="s">1 500</div></div></div>
+            <div class="item cur"><span class="lv">4</span><div><div class="t" style="font-weight:700">Мастер подземелья</div><div class="s">3 000 · ты здесь</div></div></div>
+            <div class="item lock"><span class="lv">5</span><div><div class="t">Босс качалки</div><div class="s">5 000</div></div></div>
+          </div>
+          <div class="grid2">
+            <div class="card tile"><div class="lbl">Идеальных дней</div><div class="big">18</div></div>
+            <div class="card tile"><div class="lbl">Лучшая серия</div><div class="big">31</div></div>
+          </div>
+        </div>
+        <nav class="tabs" data-tabs="3"></nav>
+      </div>
+    </div>
+
+    <!-- 4. Итог дня -->
+    <div class="shot">
+      <h3>Итог дня</h3>
+      <p class="cap">День закрывается штампом. Оценку ставят блинами: сколько веса взял сегодня. Вердикт Босса — коротко и по делу.</p>
+      <div class="phone gym" data-t="night">
+        <div class="scr">
+          <div class="row between"><span class="tag">Чт · 19 ноя</span><span class="lbl">День 47</span></div>
+          <div class="stamp ok">День закрыт ♂<small>9 из 9 подходов</small></div>
+          <div class="card boss">
+            <span class="medal" aria-hidden="true">♂</span>
+            <div><div class="who">Вердикт Босса</div><p class="say">Крепко. Ни одного слива. Завтра вешаем больше веса.</p></div>
+          </div>
+          <div class="sect"><span class="lbl">Сколько взял</span></div>
+          <div class="card rate" id="rate"></div>
+          <div class="list sum">
+            <div class="item"><span class="t">Сделано</span><span class="end num" style="font-size:18px">9 / 9</span></div>
+            <div class="item"><span class="t">Очки за день</span><span class="end pts" style="font-size:18px">+190</span></div>
+            <div class="item"><span class="t">Серия</span><span class="end num" style="font-size:18px">13 дней</span></div>
+          </div>
+          <div class="btn brass">Закрыть день</div>
+          <div class="btn ghost">Вернуться к делам</div>
+        </div>
+        <nav class="tabs" data-tabs="4"></nav>
+      </div>
+    </div>
+  </section>
+
+  <section class="sheet" aria-label="Лист стиля">
+    <div class="panel">
+      <h2>Палитра</h2>
+      <p class="note">Цвет со смыслом, как в «Мульте»: латунь — блин дня и главное действие, зелёный — зачёт, красный — только сливы и долги. Сталь — заклёпки, гриф, цепь.</p>
+      <div class="pal gym" data-t="night" id="pal-night"></div>
+      <div class="pal gym" data-t="day" id="pal-day"></div>
+    </div>
+    <div class="panel">
+      <h2>Контраст</h2>
+      <p class="note">Посчитано по WCAG 2.x. Текст ≥ 4.5, значки и блины ≥ 3, в обеих темах. Пары пойдут в <code style="font-size:13px">checks</code> в palettes.json.</p>
+      <div class="ratios"><table id="ratios"><thead><tr><th>Пара</th><th>Подземелье</th><th>Бетон</th><th>Нужно</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2>Шрифты</h2>
+      <div class="spec">
+        <div><div class="k">Заголовки и штамп · Russo One</div><div class="s1">Сегодня ♂</div></div>
+        <div><div class="k">Числа и метки · Oswald</div><div class="s2">+140 · 6/9 · 4 140</div></div>
+        <div><div class="k">Текст · Golos Text (как в приложении)</div><p class="s3">Отжимания, 50 раз. Долг два дня — Босс помнит. Строки и текст всегда ровные, наклон только у ярлыков.</p></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>Детали</h2>
+      <div class="demo gym" data-t="night" id="demo-night"></div>
+      <div class="demo gym" data-t="day" id="demo-day"></div>
+    </div>
+    <div class="panel" style="grid-column: 1 / -1">
+      <h2>Правила</h2>
+      <ol class="rules">
+        <li><b>Углы 3–6 px, обводка 3 px, тень 5/5 без размытия.</b> Ничего круглого, кроме блинов и медали Босса.</li>
+        <li><b>Заклёпки и строчка — только у главной плашки экрана</b> (блин дня, звание). На списках их нет, иначе экран рябит.</li>
+        <li><b>♂ — приправа.</b> Ставится в заголовке экрана, на медали Босса и в штампе. В названиях дел, числах и кнопках его нет.</li>
+        <li><b>Капс — только в метках, ярлыках и штампе</b>, узким Oswald с разрядкой. Текст дел — обычный регистр.</li>
+        <li><b>Наклон −3°…+2° — только у украшений</b>: ярлык даты, серия, штамп. Строки ровные.</li>
+        <li><b>Босс качалки — свой персонаж</b>, без лиц и примет реальных людей. Голос: короткие фразы, «салага», «подход», «вес», без пошлости.</li>
+        <li><b>Звания:</b> Новичок в зале → Парень по соседству → Качок → Мастер подземелья → Босс качалки. Пороги те же, что у званий «Стаи».</li>
+        <li><b>В коде:</b> <code>Design = 'gym'</code>, палитры <code>gymDark</code> / <code>gymLight</code> в palettes.json, тень и обводка — вариант <code>theme/sticker.ts</code>, иконки прежние из <code>ui/icons/paths.ts</code>.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+
+  // Блин от штанги: обод-дорожка, дуга прогресса, лицо, подпись
+  function plate(p, label, sub, size) {
+    var s = el('svg', { width: size, height: size, viewBox: '0 0 100 100', role: 'img', 'aria-label': label + ' ' + (sub || '') });
+    el('circle', { cx: 50, cy: 50, r: 47, fill: 'var(--surface2)', stroke: 'var(--ink)', 'stroke-width': 3 }, s);
+    el('circle', { cx: 50, cy: 50, r: 41, fill: 'none', stroke: 'var(--track)', 'stroke-width': 7 }, s);
+    var C = 2 * Math.PI * 41;
+    el('circle', { cx: 50, cy: 50, r: 41, fill: 'none', stroke: 'var(--arc)', 'stroke-width': 7, 'stroke-dasharray': (C * p) + ' ' + C, transform: 'rotate(-90 50 50)' }, s);
+    el('circle', { cx: 50, cy: 50, r: 33, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2.5 }, s);
+    for (var i = 0; i < 4; i++) { var a = Math.PI / 4 + i * Math.PI / 2; el('circle', { cx: 50 + 27 * Math.cos(a), cy: 50 + 27 * Math.sin(a), r: 1.8, fill: 'var(--rivet)' }, s); }
+    var t = el('text', { x: 50, y: sub ? 54 : 58, 'text-anchor': 'middle', fill: 'var(--text)', 'font-family': 'Oswald, Arial Narrow, sans-serif', 'font-weight': 700, 'font-size': sub ? 22 : 26 }, s); t.textContent = label;
+    if (sub) { var u = el('text', { x: 50, y: 67, 'text-anchor': 'middle', fill: 'var(--muted)', 'font-family': 'Oswald, Arial Narrow, sans-serif', 'font-weight': 500, 'font-size': 8.5, 'letter-spacing': 1 }, s); u.textContent = sub.toUpperCase(); }
+    return s;
+  }
+  // Маленький блин недели: 1 — зачёт, 0 — слив, t — сегодня
+  function mini(st) {
+    var s = el('svg', { width: 26, height: 26, viewBox: '0 0 26 26', 'aria-hidden': 'true' });
+    if (st === '1') { el('circle', { cx: 13, cy: 13, r: 11, fill: 'var(--done)', stroke: 'var(--ink)', 'stroke-width': 2 }, s); el('circle', { cx: 13, cy: 13, r: 3.2, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 1.5 }, s); }
+    else if (st === '0') { el('circle', { cx: 13, cy: 13, r: 10.5, fill: 'none', stroke: 'var(--red)', 'stroke-width': 2.5 }, s); el('path', { d: 'M9 9l8 8M17 9l-8 8', stroke: 'var(--red)', 'stroke-width': 2.5, 'stroke-linecap': 'square' }, s); }
+    else { el('circle', { cx: 13, cy: 13, r: 10.5, fill: 'none', stroke: 'var(--arc)', 'stroke-width': 2.5, 'stroke-dasharray': '4 3' }, s); }
+    return s;
+  }
+  document.querySelectorAll('[data-plate]').forEach(function (n) { n.appendChild(plate(+n.dataset.plate, n.dataset.label, n.dataset.sub, +n.dataset.size)); n.style.flex = 'none'; n.style.display = 'block'; });
+  var days = ['Пт', 'Сб', 'Вс', 'Пн', 'Вт', 'Ср', 'Чт'];
+  document.querySelectorAll('[data-week]').forEach(function (c) {
+    var w = document.createElement('div'); w.className = 'week';
+    c.dataset.week.split(',').forEach(function (st, i) { var d = document.createElement('div'); d.innerHTML = '<div class="d">' + days[i] + '</div>'; var p = document.createElement('div'); p.className = 'wp'; p.appendChild(mini(st)); d.appendChild(p); w.appendChild(d); });
+    c.appendChild(w);
+  });
+
+  // гриф с блинами: 72% заполнено
+  document.querySelectorAll('.bar').forEach(function (b) {
+    var cols = ['var(--brass)', 'var(--brass)', 'var(--done)', 'var(--done)', 'var(--brass)'];
+    var n = 9, filled = Math.round(n * 0.72);
+    for (var i = 0; i < n; i++) { var p = document.createElement('span'); p.className = 'pl'; p.style.left = (4 + i * 10.6) + '%'; p.style.background = i < filled ? 'var(--brass)' : 'var(--surface2)'; if (i >= filled) p.style.borderStyle = 'dashed'; b.appendChild(p); }
+  });
+
+  // оценка блинами 5..25 кг
+  var rate = document.getElementById('rate');
+  ['5', '10', '15', '20', '25'].forEach(function (kg, i) {
+    var r = document.createElement('div'); r.className = 'r' + (i === 3 ? ' on' : '');
+    var sz = 30 + i * 6; var s = el('svg', { width: 54, height: 54, viewBox: '0 0 54 54', 'aria-hidden': 'true' });
+    var rr = sz / 2 - 2;
+    el('circle', { cx: 27, cy: 27, r: rr, fill: i <= 3 ? 'var(--brass)' : 'var(--surface2)', stroke: i === 3 ? 'var(--text)' : 'var(--ink)', 'stroke-width': i === 3 ? 3.5 : 2.5 }, s);
+    el('circle', { cx: 27, cy: 27, r: 4, fill: 'var(--surface)', stroke: 'var(--ink)', 'stroke-width': 2 }, s);
+    r.appendChild(s); var l = document.createElement('span'); l.textContent = kg + ' кг'; r.appendChild(l); rate.appendChild(r);
+  });
+
+  // таб-бар
+  var TABS = [['Сегодня', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 9.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z'], ['Дела', 'M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1'], ['Подходы', 'M6 7v10M18 7v10M3 9.5v5M21 9.5v5M6 12h12'], ['Зал', 'M4 19h16M5 19L4 8l5 4 3-6 3 6 5-4-1 11'], ['Итоги', 'M5 20V11M12 20V4M19 20v-6']];
+  document.querySelectorAll('[data-tabs]').forEach(function (nav) {
+    var on = +nav.dataset.tabs;
+    TABS.forEach(function (t, i) { var d = document.createElement('span'); d.className = 'tab' + (i === on ? ' on' : '');
+      d.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="square" stroke-linejoin="miter"><path d="' + t[1] + '"/></svg>' + t[0]; nav.appendChild(d); });
+  });
+
+  // палитра и контраст
+  var T = {
+    night: { bg: '#0F0D0E', surface: '#1D1819', surface2: '#2A2223', text: '#F3EDE7', muted: '#B8ACA3', brass: '#EBAB3C', onBrass: '#1A1208', brassText: '#EBAB3C', arc: '#EBAB3C', done: '#5FD49A', onDone: '#07160E', red: '#FF7366', onRed: '#1E0604', chrome: '#9AA1AB', line: '#7D6A6C' },
+    day: { bg: '#D4D1CC', surface: '#F2F0EC', surface2: '#E3E0DB', text: '#151213', muted: '#4E4743', brass: '#E3A132', onBrass: '#151213', brassText: '#6E4B0C', arc: '#7A5410', done: '#1D6B4B', onDone: '#FFFFFF', red: '#B42318', onRed: '#FFFFFF', chrome: '#5E636B', line: '#151213' }
+  };
+  function lum(h) { var c = [1, 3, 5].map(function (i) { var v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; }
+  function ratio(a, b) { var x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }
+  var SW = [['bg', 'Фон', 'text'], ['surface', 'Кожа', 'text'], ['brass', 'Латунь', 'onBrass'], ['done', 'Зачёт', 'onDone'], ['red', 'Слив, долг', 'onRed'], ['chrome', 'Сталь', 'bg']];
+  ['night', 'day'].forEach(function (th) {
+    var box = document.getElementById('pal-' + th);
+    SW.forEach(function (s) { var d = document.createElement('div'); d.className = 'sw';
+      d.innerHTML = '<div class="chip" style="background:' + T[th][s[0]] + ';color:' + T[th][s[2]] + '">Аа</div><div class="k">' + s[1] + '</div><div class="v">' + T[th][s[0]] + '</div>'; box.appendChild(d); });
+  });
+  var PAIRS = [['Текст / фон', 'text', 'bg', 4.5], ['Текст / кожа', 'text', 'surface', 4.5], ['Подпись / кожа', 'muted', 'surface', 4.5], ['Подпись / фон', 'muted', 'bg', 4.5], ['На латуни', 'onBrass', 'brass', 4.5], ['На зачёте', 'onDone', 'done', 4.5], ['На сливе', 'onRed', 'red', 4.5], ['Латунный текст / кожа', 'brassText', 'surface', 4.5], ['Зелёные очки / кожа', 'done', 'surface', 4.5], ['Дуга блина / кожа', 'arc', 'surface2', 3], ['Крест слива / кожа', 'red', 'surface', 3], ['Обводка / кожа', 'line', 'surface', 3]];
+  var tb = document.querySelector('#ratios tbody');
+  PAIRS.forEach(function (p) { var tr = document.createElement('tr');
+    var a = ratio(T.night[p[1]], T.night[p[2]]), b = ratio(T.day[p[1]], T.day[p[2]]);
+    tr.innerHTML = '<td>' + p[0] + '</td><td class="ok">' + a.toFixed(2) + (a >= p[3] ? ' ✓' : ' ✗') + '</td><td class="ok">' + b.toFixed(2) + (b >= p[3] ? ' ✓' : ' ✗') + '</td><td>≥ ' + p[3] + '</td>'; tb.appendChild(tr); });
+
+  // детали: кнопки, ярлыки, чекбоксы, блины
+  ['night', 'day'].forEach(function (th) {
+    var d = document.getElementById('demo-' + th);
+    d.innerHTML = '<span class="btn brass" style="padding:0 18px;height:48px;font-size:16px">Записать</span>' +
+      '<span class="tag">Чт · 19 ноя</span><span class="tag red">Долг · 2 дня</span>' +
+      '<span class="chk"></span><span class="chk on"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="square"><path d="M5 12.5l4.5 4.5L19 7"/></svg></span><span class="chk debt"></span>';
+    [0, 0.33, 1].forEach(function (p, i) { var s = plate(p, ['0/9', '3/9', '9/9'][i], '', 56); d.appendChild(s); });
+  });
+
+  // переключатель темы макетов
+  var btns = document.querySelectorAll('.seg button');
+  btns.forEach(function (b) { b.addEventListener('click', function () {
+    btns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    document.querySelectorAll('.phones .gym').forEach(function (p) { p.dataset.t = b.dataset.t; });
+  }); });
+})();
+</script>
+</body></html>

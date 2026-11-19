@@ -291,8 +291,9 @@ export const es: Record<MessageKey, Message> = {
   'design.normal': 'Normal',
   'design.minimal': 'Minimalista',
   'design.auf': 'AUF',
+  'design.gym': 'Gimnasio',
   'settings.designHint':
-    '«Normal» es el aspecto habitual. «Minimalista» es serio, con un solo acento. «AUF» trae el lobo, citas y rangos.',
+    '«Normal» es el aspecto habitual. «Minimalista» es serio, con un solo acento. «AUF» trae el lobo, citas y rangos. «Gimnasio» es cuero, acero y el jefe del gimnasio.',
   'settings.character': 'Carácter',
   'settings.tone': 'Modo calle',
   'settings.toneHint': 'desactivado — lenguaje neutro',

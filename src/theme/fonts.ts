@@ -25,6 +25,15 @@ export const FONT = {
     semibold: 'GolosText_600SemiBold',
     bold: 'GolosText_700Bold',
   },
+  /** «Качалка»: заголовки, кнопки, звание (одно начертание) */
+  russo: {
+    regular: 'RussoOne_400Regular',
+  },
+  /** «Качалка»: числа, метки, вкладки — узкий */
+  oswald: {
+    medium: 'Oswald_500Medium',
+    bold: 'Oswald_700Bold',
+  },
   /** «Минималистичный»: единый нейтральный шрифт */
   inter: {
     regular: 'Inter_400Regular',

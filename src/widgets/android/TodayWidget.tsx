@@ -75,7 +75,7 @@ function Mark({ row, v }: { row: WidgetRowView; v: TodayWidgetView }) {
   if (row.done) {
     // Только что отмечена: «Мульт» — луна становится полной, «Обычный» — залитая отметка с галочкой.
     return v.look === 'mult' ? (
-      <SvgWidget svg={moonSvg(24, 1, c)} style={{ width: 24, height: 24 }} />
+      <SvgWidget svg={moonSvg(24, 1, c, { plate: v.plate })} style={{ width: 24, height: 24 }} />
     ) : (
       <SvgWidget
         svg={doneMarkSvg(22, row.kind === 'habit' ? 'square' : 'circle', row.color, c)}
@@ -86,7 +86,10 @@ function Mark({ row, v }: { row: WidgetRowView; v: TodayWidgetView }) {
   if (v.look === 'mult') {
     return (
       <SvgWidget
-        svg={moonSvg(24, row.debt ? 0 : row.fraction, c, { ring: row.debt ? c.red : c.ring })}
+        svg={moonSvg(24, row.debt ? 0 : row.fraction, c, {
+          ring: row.debt ? c.red : c.ring,
+          plate: v.plate,
+        })}
         style={{ width: 24, height: 24 }}
       />
     );
@@ -177,7 +180,12 @@ function DayDial({ v, size }: { v: TodayWidgetView; size: number }) {
   const c = v.colors;
   const full = v.total > 0 && v.done === v.total;
   if (v.look === 'mult') {
-    return <SvgWidget svg={moonSvg(size, v.phase, c)} style={{ width: size, height: size }} />;
+    return (
+      <SvgWidget
+        svg={moonSvg(size, v.phase, c, { plate: v.plate })}
+        style={{ width: size, height: size }}
+      />
+    );
   }
   return (
     <SvgWidget

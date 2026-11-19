@@ -1,13 +1,14 @@
 /**
  * Волк «Мульта» (design/mult, M-Wolf): свой персонаж в духе мультфильмов 70-х — стально-синий,
  * с зазубриной на левом ухе. Три настроения: в деле (ухмылка), красава (доволен), слил.
- * Без героев и примет чужих мультфильмов.
+ * Без героев и примет чужих мультфильмов. В «Качалке» на его месте — Босс качалки (`GymBoss`).
  */
 import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Ellipse, G, Path } from 'react-native-svg';
 import { useT } from '../../store/prefsStore';
-import { usePalette } from '../../store/themeStore';
+import { useGym, usePalette } from '../../store/themeStore';
+import { GymBoss } from './GymBoss';
 
 export type WolfMood = 'smirk' | 'proud' | 'meh';
 
@@ -18,6 +19,9 @@ type Props = { mood?: WolfMood; size?: number };
 export function Wolf({ mood = 'smirk', size = 76 }: Props) {
   const p = usePalette();
   const t = useT();
+  const gym = useGym();
+  // «Качалка»: вместо волка — Босс качалки (медаль с ♂).
+  if (gym) return <GymBoss mood={mood} size={size} label={t(LABEL[mood])} p={p} />;
   const ink = p.line;
   const stroke = { stroke: ink, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
   return (

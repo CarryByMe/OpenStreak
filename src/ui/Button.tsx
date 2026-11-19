@@ -51,7 +51,7 @@ export function Button({ label, onPress, variant = 'primary', disabled, style }:
           backgroundColor: bg,
           borderColor: danger ? p.red : p.line,
           borderWidth: plain ? 0 : STROKE.outline,
-          borderRadius: primary && !plain ? 18 : RADIUS.md,
+          borderRadius: primary && !plain ? RADIUS.action : RADIUS.md,
         },
         !danger && !disabled && !soft && (down ? pressed(shadow) : hardShadow(p, shadow)),
         softStyle,

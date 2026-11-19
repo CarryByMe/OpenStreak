@@ -137,7 +137,7 @@ export function TodayScreen({
           )}
         </View>
       ) : (
-        <Card radius={RADIUS.xl} style={styles.hero}>
+        <Card hero radius={RADIUS.xl} style={styles.hero}>
           <View
             style={styles.heroRow}
             accessible

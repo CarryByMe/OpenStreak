@@ -31,6 +31,8 @@ import {
   GolosText_600SemiBold,
   GolosText_700Bold,
 } from '@expo-google-fonts/golos-text';
+import { useFonts as useRusso, RussoOne_400Regular } from '@expo-google-fonts/russo-one';
+import { useFonts as useOswald, Oswald_500Medium, Oswald_700Bold } from '@expo-google-fonts/oswald';
 
 export function useAppFonts() {
   // «Обычный»: Manrope — заголовки и числа, Golos Text — текст.
@@ -60,5 +62,8 @@ export function useAppFonts() {
     Unbounded_700Bold,
     Unbounded_800ExtraBold,
   });
-  return rLoaded && uLoaded && iLoaded && mLoaded && gLoaded;
+  // «Качалка»: Russo One — заголовки, Oswald — числа и метки (текст — Golos Text).
+  const [ruLoaded] = useRusso({ RussoOne_400Regular });
+  const [oLoaded] = useOswald({ Oswald_500Medium, Oswald_700Bold });
+  return rLoaded && uLoaded && iLoaded && mLoaded && gLoaded && ruLoaded && oLoaded;
 }

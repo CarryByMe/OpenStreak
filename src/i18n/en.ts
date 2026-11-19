@@ -290,8 +290,9 @@ export const en: Record<MessageKey, Message> = {
   'design.normal': 'Normal',
   'design.minimal': 'Minimal',
   'design.auf': 'AUF',
+  'design.gym': 'Gym',
   'settings.designHint':
-    '“Normal” is the familiar look. “Minimal” is strict, with one accent. “AUF” has the wolf, quotes and ranks.',
+    '“Normal” is the familiar look. “Minimal” is strict, with one accent. “AUF” has the wolf, quotes and ranks. “Gym” is leather, steel and the gym boss.',
   'settings.character': 'Character',
   'settings.tone': 'Street talk',
   'settings.toneHint': 'off — plain wording',

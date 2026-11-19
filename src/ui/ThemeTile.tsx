@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { usePalette } from '../store/themeStore';
+import { useDesign, usePalette } from '../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../theme/metrics';
 import { resolvePalette, type Scheme } from '../theme/palette';
 import { hardShadow, tilt } from '../theme/sticker';
@@ -25,6 +25,7 @@ const TILE_HEIGHT = 96;
 
 export function ThemeTile({ label, schemes, selected, onPress, lean = -2 }: Props) {
   const p = usePalette();
+  const design = useDesign();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -40,7 +41,7 @@ export function ThemeTile({ label, schemes, selected, onPress, lean = -2 }: Prop
     >
       <View style={styles.preview}>
         {schemes.map((s) => {
-          const c = resolvePalette(s);
+          const c = resolvePalette(s, design);
           return (
             <View key={s} style={[styles.half, { backgroundColor: c.bg }]}>
               <View style={[styles.moon, { backgroundColor: c.sun, borderColor: c.line }]} />

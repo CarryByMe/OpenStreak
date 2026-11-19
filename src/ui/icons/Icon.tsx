@@ -24,7 +24,8 @@ type Props = {
 /**
  * Один набор рисунков на все оформления; меняется только линия. «АУФ» — толстая, со скруглёнными
  * концами; «Обычный» — чуть тоньше; «Минималистичный» — тонкая, с прямыми концами и острыми
- * углами. Мелкие иконки рисуем чуть толще, чтобы линия не терялась.
+ * углами; «Качалка» — самая толстая, с прямыми концами. Мелкие иконки рисуем чуть толще, чтобы
+ * линия не терялась.
  */
 function lineStyle(design: Design, size: number) {
   const small = size <= 20;
@@ -33,6 +34,9 @@ function lineStyle(design: Design, size: number) {
   }
   if (design === 'normal') {
     return { width: small ? 2.2 : 2, cap: 'round' as const, join: 'round' as const };
+  }
+  if (design === 'gym') {
+    return { width: small ? 2.6 : 2.4, cap: 'square' as const, join: 'miter' as const };
   }
   return { width: small ? 2.4 : 2.2, cap: 'round' as const, join: 'round' as const };
 }

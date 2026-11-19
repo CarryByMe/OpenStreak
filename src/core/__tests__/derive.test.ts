@@ -26,7 +26,7 @@ import {
   totalPoints,
 } from '../points';
 import { quoteOfDay } from '../quotes';
-import { DEFAULT_SETTINGS, settingsOf } from '../settings';
+import { DEFAULT_SETTINGS, effectiveSettings, flavorOf, settingsOf } from '../settings';
 import { MemoryStorage } from '../storage/memory';
 import { initData, resetForTests, setClock, useDataStore } from '../store';
 import { taskCounts, taskGroups } from '../tasks';
@@ -495,6 +495,28 @@ describe('настройки и новые операции', () => {
     };
     const snap = { settings: { [SETTINGS_ID]: saved } };
     expect(settingsOf(snap as never).design).toBe('minimal');
+  });
+
+  test('«Качалка»: сохраняется, держит тон, цитаты и звания, включает свой словарь', () => {
+    expect(cleanSettings({ design: 'gym' }, NOW)?.design).toBe('gym');
+    const saved = (design: string) => ({
+      settings: {
+        [SETTINGS_ID]: {
+          ...DEFAULT_SETTINGS,
+          id: SETTINGS_ID,
+          createdAt: 1,
+          updatedAt: 1,
+          deletedAt: null,
+          design,
+        },
+      },
+    });
+    const gym = effectiveSettings(saved('gym') as never);
+    expect(gym).toMatchObject({ design: 'gym', tone: 'bro', quotes: true, ranks: true });
+    expect(flavorOf(gym)).toBe('gym');
+    const normal = effectiveSettings(saved('normal') as never);
+    expect(normal).toMatchObject({ tone: 'plain', quotes: false, ranks: false });
+    expect(flavorOf(normal)).toBeNull();
   });
 
   test('выполнение дела запоминает момент; возврат — сбрасывает', () => {

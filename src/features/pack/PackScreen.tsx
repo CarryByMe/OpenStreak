@@ -82,7 +82,7 @@ export function PackScreen({ onOpenDay, onOpenHistory }: Props) {
       <ScreenHeader kicker={t('pack.with', { count: days })} title={t('tab.pack')} />
 
       {settings.ranks && (
-        <Card radius={RADIUS.xl} style={styles.rank}>
+        <Card hero radius={RADIUS.xl} style={styles.rank}>
           <View style={styles.rankHead}>
             <Wolf mood={rank.next ? 'smirk' : 'proud'} size={84} />
             <View style={styles.rankText}>

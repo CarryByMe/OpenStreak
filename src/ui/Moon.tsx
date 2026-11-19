@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { usePalette } from '../store/themeStore';
-import { litPath } from './moon';
+import { useGym, usePalette } from '../store/themeStore';
+import { clampPhase, litPath, PLATE, plateDash } from './moon';
 
 type Props = {
   /** 0 — новолуние, 1 — полнолуние */
@@ -25,8 +25,14 @@ function ringWidth(size: number) {
 /**
  * Луна «Мульта» (design/mult, M-Moon): тёмная сторона, жёлтая освещённая часть и кольцо;
  * у полной луны — кратеры. Декоративная: смысл передаёт подпись родителя (кнопка, строка).
+ * В «Качалке» вместо луны рисуется блин от штанги (`Plate`) с той же фазой.
  */
-export function Moon({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = false }: Props) {
+export function Moon(props: Props) {
+  const gym = useGym();
+  return gym ? <Plate {...props} /> : <MoonDisc {...props} />;
+}
+
+function MoonDisc({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = false }: Props) {
   const p = usePalette();
   const d = dashed ? null : litPath(phase);
   const full = !dashed && phase >= 0.999;
@@ -51,6 +57,53 @@ export function Moon({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = f
         strokeWidth={ringWidth(size)}
         strokeDasharray={dashed ? '12 10' : undefined}
         strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+/**
+ * Блин от штанги — луна «Качалки» (design/gachi): полоса по кругу набирается по часовой стрелке
+ * от 12 часов, в середине — ступица с отверстием. Полный блин залит целиком.
+ */
+function Plate({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = false }: Props) {
+  const p = usePalette();
+  const ph = dashed ? 0 : clampPhase(phase);
+  const full = ph >= 0.999;
+  const w = ringWidth(size);
+  return (
+    <Svg width={size} height={size} viewBox="0 0 100 100">
+      {!dashed && <Circle cx={50} cy={50} r={46} fill={full ? p[tone] : p.track} />}
+      {ph > 0.001 && !full && (
+        <Circle
+          cx={50}
+          cy={50}
+          r={PLATE.BAND_R}
+          fill="none"
+          stroke={p[tone]}
+          strokeWidth={PLATE.BAND_W}
+          strokeDasharray={plateDash(ph).join(' ')}
+          transform="rotate(-90 50 50)"
+        />
+      )}
+      <Circle
+        cx={50}
+        cy={50}
+        r={PLATE.HUB_R}
+        fill={dashed ? 'none' : p.track}
+        stroke={p[ring]}
+        strokeWidth={w}
+        strokeDasharray={dashed ? '8 7' : undefined}
+      />
+      {!dashed && <Circle cx={50} cy={50} r={PLATE.BOLT_R} fill={p[ring]} />}
+      <Circle
+        cx={50}
+        cy={50}
+        r={46}
+        fill="none"
+        stroke={p[ring]}
+        strokeWidth={w}
+        strokeDasharray={dashed ? '12 10' : undefined}
       />
     </Svg>
   );

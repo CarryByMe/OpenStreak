@@ -5,10 +5,11 @@
 import { pickForm } from './plural';
 import { en } from './en';
 import { es } from './es';
+import { GYM } from './gym';
 import { ru, type MessageKey } from './ru';
-import type { Locale, Message, Tone, Variant } from './types';
+import type { Flavor, Locale, Message, Tone, Variant } from './types';
 
-export type { Locale, MessageKey, Tone };
+export type { Flavor, Locale, MessageKey, Tone };
 export { pluralCategory } from './plural';
 
 const DICTS: Record<Locale, Record<MessageKey, Message>> = { ru, en, es };
@@ -22,8 +23,19 @@ function isToned(m: Message): m is { plain: Variant; bro: Variant } {
   return typeof m === 'object' && 'plain' in m;
 }
 
-export function translate(locale: Locale, tone: Tone, key: MessageKey, params?: Params): string {
-  const msg = DICTS[locale][key];
+/** Строка оформления (`flavor`, см. `gym.ts`), если она есть, иначе обычная. */
+function lookup(locale: Locale, key: MessageKey, flavor: Flavor): Message {
+  return (flavor === 'gym' ? GYM[locale][key] : undefined) ?? DICTS[locale][key];
+}
+
+export function translate(
+  locale: Locale,
+  tone: Tone,
+  key: MessageKey,
+  params?: Params,
+  flavor: Flavor = null
+): string {
+  const msg = lookup(locale, key, flavor);
   const variant = isToned(msg) ? msg[tone] : msg;
   const text =
     typeof variant === 'string' ? variant : pickForm(locale, variant, params?.count ?? 0);

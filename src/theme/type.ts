@@ -4,6 +4,7 @@
  */
 import type { TextStyle } from 'react-native';
 import { currentDesign } from './design';
+import type { Design } from './palette';
 import { FONT } from './fonts';
 
 type Variant = Pick<
@@ -139,15 +140,42 @@ const TYPE_NORMAL = Object.fromEntries(
   Object.entries(TYPE_AUF).map(([k, v]) => [k, normalVariant(v)])
 ) as Record<TypeVariant, Variant>;
 
+/**
+ * Шкала «Качалки» (design/gachi): Russo One — заголовки, кнопки и звание; узкий Oswald — числа,
+ * метки и вкладки (он уже, поэтому числа на ступень крупнее); текст — Golos Text, как в «Обычном».
+ */
+const russo = (size: number, lh = 1.15) => make(FONT.russo.regular, size, lh, 0);
+const oswald = (size: number, weight: keyof typeof FONT.oswald, lh = 1.15, tracking = 0) =>
+  make(FONT.oswald[weight], size, lh, tracking);
+
+const TYPE_GYM: Record<TypeVariant, Variant> = {
+  ...TYPE_NORMAL,
+  display: russo(36, 1.1),
+  numberXL: oswald(50, 'bold', 1.05),
+  numberXLLight: oswald(50, 'medium', 1.05),
+  numberScore: oswald(38, 'bold', 1.05),
+  numberScoreLight: oswald(38, 'medium', 1.05),
+  title: russo(28, 1.15),
+  rank: russo(28, 1.15),
+  numberL: oswald(32, 'bold', 1.1),
+  numberM: oswald(22, 'bold', 1.15),
+  heading: russo(20, 1.2),
+  button: russo(17, 1.25),
+  dateLine: oswald(16, 'bold', 1.3, 0.06),
+  badge: oswald(14, 'bold', 1.3, 0.04),
+  label: oswald(15, 'medium', 1.3, 0.06),
+  tab: oswald(12, 'medium', 1.25, 0.06),
+};
+
+const BY_DESIGN: Record<Design, Record<TypeVariant, Variant>> = {
+  auf: TYPE_AUF,
+  normal: TYPE_NORMAL,
+  minimal: TYPE_PLAIN,
+  gym: TYPE_GYM,
+};
+
 /** Шкала текста текущего оформления (читается в момент отрисовки). */
 export const TYPE: Record<TypeVariant, Variant> = new Proxy(
   TYPE_AUF as Record<TypeVariant, Variant>,
-  {
-    get: (_t, key) => {
-      const d = currentDesign();
-      return (d === 'auf' ? TYPE_AUF : d === 'normal' ? TYPE_NORMAL : TYPE_PLAIN)[
-        key as TypeVariant
-      ];
-    },
-  }
+  { get: (_t, key) => BY_DESIGN[currentDesign()][key as TypeVariant] }
 );

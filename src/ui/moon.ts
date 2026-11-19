@@ -70,3 +70,16 @@ export function moonLook(state: DayState, partial = 0.5): MoonLook {
       return { phase: 0, tone: 'sun', ring: 'ring', dashed: false };
   }
 }
+
+/**
+ * Блин от штанги — луна «Качалки» (design/gachi), в координатах 0…100: полоса загрузки идёт от
+ * ступицы до края (середина BAND_R, ширина BAND_W) и набирается по часовой стрелке от 12 часов;
+ * в середине — ступица HUB_R и болт BOLT_R. Общие для `Moon.tsx` и виджета.
+ */
+export const PLATE = { BAND_R: 34, BAND_W: 24, HUB_R: 18, BOLT_R: 6 } as const;
+
+/** Длина полосы загрузки блина для фазы (для `stroke-dasharray`): [заполнено, вся окружность]. */
+export function plateDash(phase: number): [number, number] {
+  const c = 2 * Math.PI * PLATE.BAND_R;
+  return [c * clampPhase(phase), c];
+}

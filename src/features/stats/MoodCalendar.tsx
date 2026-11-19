@@ -16,6 +16,7 @@ import type { MessageKey } from '../../i18n';
 import { useT } from '../../store/prefsStore';
 import { useDesign, usePalette, usePlain, useSoft } from '../../store/themeStore';
 import { SPACE } from '../../theme/metrics';
+import { isSticker } from '../../theme/palette';
 import { TYPE } from '../../theme/type';
 import { MoodFace } from '../../ui/MoodFace';
 import { Moon } from '../../ui/Moon';
@@ -94,8 +95,8 @@ type CalendarProps = {
 
 export function MoodCalendar({ onOpenDay, onOpenHistory }: CalendarProps) {
   const p = usePalette();
-  // Ссылка акцентом; в «АУФ» жёлтый на кремовом не проходит контраст — там бирюзовый.
-  const link = useDesign() === 'auf' ? p.teal : p.sun;
+  // Ссылка акцентом; в «АУФ» и «Качалке» жёлтый на светлом не проходит контраст — там бирюзовый.
+  const link = isSticker(useDesign()) ? p.teal : p.sun;
   const t = useT();
   const data = useDataStore((s) => s.data);
   const today = useDataStore((s) => s.today);

@@ -1,10 +1,10 @@
 /**
- * Картинки виджета строками SVG: луна, кольцо прогресса, отметки, кнопка «+».
+ * Картинки виджета строками SVG: луна (в «Качалке» — блин), кольцо прогресса, отметки, кнопка «+».
  * Android-виджет рисует их через `SvgWidget`: канвы и `react-native-svg` в фоновой задаче нет.
  * Чистые функции, цвета приходят снаружи (из `WidgetColors`).
  */
 import { readableOn } from '../theme/readable';
-import { litPath } from '../ui/moon';
+import { clampPhase, litPath, PLATE, plateDash } from '../ui/moon';
 import { UI_ICONS } from '../ui/icons/paths';
 import type { WidgetColors } from './view';
 
@@ -69,8 +69,9 @@ export function moonSvg(
   size: number,
   phase: number,
   c: WidgetColors,
-  opts: { tone?: 'sun' | 'red'; ring?: string; ringWidth?: number } = {}
+  opts: { tone?: 'sun' | 'red'; ring?: string; ringWidth?: number; plate?: boolean } = {}
 ): string {
+  if (opts.plate) return plateSvg(size, phase, c, opts);
   const tone = opts.tone ?? 'sun';
   const lit = tone === 'red' ? c.red : c.accent;
   const crater = tone === 'red' ? c.craterRed : c.crater;
@@ -87,6 +88,36 @@ export function moonSvg(
       (full
         ? `<circle cx="36" cy="38" r="8" fill="${crater}"/><circle cx="62" cy="62" r="11" fill="${crater}"/><circle cx="66" cy="32" r="5" fill="${crater}"/>`
         : '') +
+      `<circle cx="50" cy="50" r="46" fill="none" stroke="${ring}" stroke-width="${rw}"/>`
+  );
+}
+
+/**
+ * Блин от штанги «Качалки» (как `Plate` в `ui/Moon.tsx`): полоса загрузки по кругу, ступица с
+ * болтом, кольцо; полный блин залит целиком. `tone` — цвет загрузки: латунь или красный (долг).
+ */
+export function plateSvg(
+  size: number,
+  phase: number,
+  c: WidgetColors,
+  opts: { tone?: 'sun' | 'red'; ring?: string; ringWidth?: number } = {}
+): string {
+  const fill = opts.tone === 'red' ? c.red : c.accent;
+  const ring = opts.ring ?? c.ring;
+  const rw = opts.ringWidth ?? (size <= 36 ? 8 : 5);
+  const ph = clampPhase(phase);
+  const full = ph >= 0.999;
+  const [done, all] = plateDash(ph);
+  return svg(
+    size,
+    size,
+    '0 0 100 100',
+    `<circle cx="50" cy="50" r="46" fill="${full ? fill : c.track}"/>` +
+      (ph > 0.001 && !full
+        ? `<circle cx="50" cy="50" r="${PLATE.BAND_R}" fill="none" stroke="${fill}" stroke-width="${PLATE.BAND_W}" stroke-dasharray="${num(done)} ${num(all)}" transform="rotate(-90 50 50)"/>`
+        : '') +
+      `<circle cx="50" cy="50" r="${PLATE.HUB_R}" fill="${c.track}" stroke="${ring}" stroke-width="${rw}"/>` +
+      `<circle cx="50" cy="50" r="${PLATE.BOLT_R}" fill="${ring}"/>` +
       `<circle cx="50" cy="50" r="46" fill="none" stroke="${ring}" stroke-width="${rw}"/>`
   );
 }
