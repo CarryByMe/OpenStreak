@@ -267,14 +267,6 @@ function NewSheetForm() {
       action={{ label: t('area.add'), onPress: () => setAreaSheet(true) }}
     />
   );
-  const dateLabel =
-    date === null
-      ? t(kind === 'goal' ? 'deadline.none' : 'when.none')
-      : date === today
-        ? t('when.today')
-        : date === tomorrow
-          ? t('when.tomorrow')
-          : dayMonth(t, date);
   const placeName = placeId ? (placeList.find((x) => x.id === placeId)?.name ?? '') : '';
   const short = (x: string) => (x.length > 22 ? `${x.slice(0, 21)}…` : x);
   const titleKey = kind === 'task' ? 'new.task' : kind === 'habit' ? 'new.habit' : 'new.goal';
@@ -441,41 +433,24 @@ function NewSheetForm() {
 
         {kind === 'goal' && (
           <>
-            <FormRow
+            <SelectRow<ISODate | null>
               icon="calendar"
               label={cap(t('new.deadline'))}
-              value={dateLabel}
+              value={date}
               set={date !== null}
-              open={openRow === 'deadline'}
-              onPress={() => toggleRow('deadline')}
-            >
-              <View style={styles.chips} accessibilityRole="radiogroup">
-                <Chip
-                  size="md"
-                  role="radio"
-                  label={t('deadline.none')}
-                  selected={date === null}
-                  onPress={() => setDate(null)}
-                />
-                {date !== null && (
-                  <Chip
-                    size="md"
-                    role="radio"
-                    label={dayMonth(t, date)}
-                    selected
-                    onPress={() => setPicker('date')}
-                  />
-                )}
-                {HAS_PICKER && (
-                  <Chip
-                    size="md"
-                    icon="calendar"
-                    label={t('form.otherDate')}
-                    onPress={() => setPicker('date')}
-                  />
-                )}
-              </View>
-            </FormRow>
+              onChange={setDate}
+              options={[
+                { value: null, label: t('deadline.none'), icon: 'close' as const },
+                ...(date !== null
+                  ? [{ value: date, label: dayMonth(t, date), icon: 'calendar' as const }]
+                  : []),
+              ]}
+              action={
+                HAS_PICKER
+                  ? { label: t('form.otherDate'), onPress: () => setPicker('date') }
+                  : undefined
+              }
+            />
             {(
               [
                 ['criterion', 'tasks', 'goal.criterion', criterion, setCriterion],
