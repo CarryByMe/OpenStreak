@@ -84,6 +84,8 @@ export type WidgetLinkSet = { open: string; add: string; review: string };
 
 export type TodayWidgetView = {
   look: WidgetLook;
+  /** «Качалка»: вместо луны — блин от штанги */
+  plate: boolean;
   scheme: Scheme;
   colors: WidgetColors;
   fonts: WidgetFonts;
@@ -202,6 +204,7 @@ export function buildTodayView(snap: Snapshot, today: ISODate, scheme: Scheme): 
 
   return {
     look,
+    plate: design === 'gym',
     scheme,
     colors,
     fonts: fontsOf(design),

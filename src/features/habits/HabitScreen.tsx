@@ -270,7 +270,7 @@ export function HabitScreen({ habitId, onBack }: { habitId: string; onBack: () =
         </View>
       </View>
 
-      <Card radius={RADIUS.xl} style={styles.progress}>
+      <Card hero radius={RADIUS.xl} style={styles.progress}>
         <View style={styles.progressRow}>
           {plain ? (
             <PlainMark

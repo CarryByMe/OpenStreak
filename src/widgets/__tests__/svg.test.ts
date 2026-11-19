@@ -61,6 +61,16 @@ describe('SVG виджета', () => {
     expect(moonSvg(24, 0.5, c).match(/<path/g)).toHaveLength(1);
   });
 
+  test('«Качалка»: блин — полоса загрузки по фазе, полный залит, луны нет', () => {
+    const half = moonSvg(24, 0.5, c, { plate: true });
+    expect(half).toContain('stroke-dasharray');
+    expect(half.match(/<path/g)).toBeNull();
+    expect(moonSvg(24, 0, c, { plate: true })).not.toContain('stroke-dasharray');
+    const full = moonSvg(24, 1, c, { plate: true });
+    expect(full).not.toContain('stroke-dasharray');
+    expect(full).toContain(`r="46" fill="${c.accent}"`);
+  });
+
   test('долг рисуется красной луной и красной рамкой', () => {
     expect(moonSvg(24, 1, c, { tone: 'red', ring: c.red })).toContain(c.red);
     expect(markSvg(22, 'circle', 0, '#2f7cf6', c, true)).toContain(c.red);

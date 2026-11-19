@@ -126,7 +126,7 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
       </HStack>
     ));
 
-  /** Круг дня: дуга («Обычный») или луна («Мульт»). */
+  /** Круг дня: дуга («Обычный»), луна («Мульт») или блин со ступицей («Качалка»). */
   const dial = (size: number) =>
     mult ? (
       <ZStack modifiers={[frame({ width: size, height: size })]}>
@@ -137,6 +137,20 @@ const TodayWidget = (props: TodayWidgetProps, env: WidgetEnvironment) => {
             modifiers={[foregroundStyle(c.accent), frame({ width: size, height: size * v.phase })]}
           />
         </VStack>
+        {v.plate && (
+          // «Качалка»: ступица блина поверх заливки — тёмный круг и кольцо
+          <Circle
+            modifiers={[foregroundStyle(c.track), frame({ width: size * 0.36, height: size * 0.36 })]}
+          />
+        )}
+        {v.plate && (
+          <Circle
+            modifiers={[
+              strokeBorder({ content: c.ring, style: { lineWidth: 2.5 }, shape: 'circle' }),
+              frame({ width: size * 0.36, height: size * 0.36 }),
+            ]}
+          />
+        )}
         <Circle
           modifiers={[
             strokeBorder({ content: c.ring, style: { lineWidth: 2.5 }, shape: 'circle' }),

@@ -2,7 +2,6 @@
  * Строки «Качалки» (design/gachi) поверх обычного словаря: Босс качалки вместо волка, звания
  * зала, блин от штанги вместо луны. Ключей, которых здесь нет, оформление не меняет.
  * Голос Босса — короткие фразы про зал и подходы, без пошлости; свой персонаж, не реальный человек.
- * Цитаты — только по-русски; в en и es показываются обычные.
  */
 import type { MessageKey } from './ru';
 import type { Locale, Message } from './types';
@@ -10,6 +9,7 @@ import type { Locale, Message } from './types';
 type Overrides = Partial<Record<MessageKey, Message>>;
 
 const ru: Overrides = {
+  'tab.habits': 'Подходы',
   'tab.pack': 'Зал',
 
   'wolf.smirk': 'Босс качалки в деле',
@@ -71,6 +71,7 @@ const ru: Overrides = {
 };
 
 const en: Overrides = {
+  'tab.habits': 'Sets',
   'tab.pack': 'Gym',
 
   'wolf.smirk': 'The gym boss is on it',
@@ -92,9 +93,41 @@ const en: Overrides = {
   'rank.alpha': 'Gym boss',
 
   'closed.title': 'Day closed ♂',
+
+  // Boss quotes — one a day, instead of the wolf quotes
+  'quote.0': 'Pain leaves, the streak stays. One more set.',
+  'quote.1': 'Weakness leaves with the sweat. Sweat.',
+  'quote.2': 'This gym has one boss. Today it is you.',
+  'quote.3': 'The couch never lifts. That is why nobody grows on it.',
+  'quote.4': 'No mood? You have a training plan.',
+  'quote.5': 'A debt is a rep you did not finish. Finish it.',
+  'quote.6': 'Set first, talk later.',
+  'quote.7': 'A streak is not a number. It is calluses.',
+  'quote.8': 'Light weight never made anyone a master.',
+  'quote.9': 'Leather creaks, the bar bends, the work gets done.',
+  'quote.10': 'Do not wait for Monday. Lift today.',
+  'quote.11': 'Missed a set — fine. Quit the gym — not fine.',
+  'quote.12': 'Motivation is the warm-up. Habit is the working weight.',
+  'quote.13': 'Nobody whines in the dungeon. In the dungeon we work.',
+  'quote.14': 'Every plate on the bar was loaded by hand.',
+  'quote.15': 'Want yesterday? Lift like yesterday. Want more? Add weight.',
+  'quote.16': 'Pain is temporary. The check mark is forever.',
+  'quote.17': 'Walk in quiet, put in the work, walk out. Let the results talk.',
+  'quote.18': 'Tired? Good. That means you are working.',
+  'quote.19': 'Slipped? Get up and finish the reps.',
+  'quote.20': 'Rest is a set too. Just not all day.',
+  'quote.21': 'Nobody is born a dungeon master. You earn it rep by rep.',
+  'quote.22': 'Missed a day? Tomorrow — no excuses, no skipping.',
+  'quote.23': 'Your to-do list is your training plan. Open it.',
+  'quote.24': 'A strong day is built one rep at a time.',
+  'quote.25': 'Do not compare weights. Compare yourself to yesterday.',
+  'quote.26': 'Want respect in this gym? Close the day.',
+  'quote.27': 'One more set, rookie. Then one more.',
+  'quote.28': 'Strength is not in the muscles. It is in showing up.',
 };
 
 const es: Overrides = {
+  'tab.habits': 'Series',
   'tab.pack': 'Gimnasio',
 
   'wolf.smirk': 'El jefe del gimnasio está en ello',
@@ -116,6 +149,37 @@ const es: Overrides = {
   'rank.alpha': 'Jefe del gimnasio',
 
   'closed.title': 'Día cerrado ♂',
+
+  // Frases del jefe — una al día, en lugar de las del lobo
+  'quote.0': 'El dolor se va, la racha se queda. Una serie más.',
+  'quote.1': 'La debilidad se va con el sudor. Suda.',
+  'quote.2': 'Este gimnasio tiene un jefe. Hoy eres tú.',
+  'quote.3': 'El sofá no levanta pesas. Por eso nadie crece en él.',
+  'quote.4': '¿Sin ganas? Tienes un plan de entrenamiento.',
+  'quote.5': 'Una deuda es una repetición sin terminar. Termínala.',
+  'quote.6': 'Primero la serie, luego la charla.',
+  'quote.7': 'Una racha no es un número. Son callos.',
+  'quote.8': 'El peso ligero no hizo maestro a nadie.',
+  'quote.9': 'El cuero cruje, la barra se dobla, el trabajo se hace.',
+  'quote.10': 'No esperes al lunes. Levanta hoy.',
+  'quote.11': '¿Fallaste una serie? Pasa. ¿Dejaste el gimnasio? Eso no.',
+  'quote.12': 'La motivación es el calentamiento. El hábito es el peso de trabajo.',
+  'quote.13': 'En la mazmorra nadie se queja. En la mazmorra se trabaja.',
+  'quote.14': 'Cada disco de la barra lo puso alguien con sus manos.',
+  'quote.15': '¿Quieres lo de ayer? Levanta como ayer. ¿Quieres más? Pon más peso.',
+  'quote.16': 'El dolor es temporal. La marca es para siempre.',
+  'quote.17': 'Entra en silencio, trabaja, sal. Que hablen los resultados.',
+  'quote.18': '¿Cansado? Bien. Significa que estás trabajando.',
+  'quote.19': '¿Fallaste? Levántate y termina las repeticiones.',
+  'quote.20': 'Descansar también es una serie. Pero no todo el día.',
+  'quote.21': 'Nadie nace amo de la mazmorra. Se gana repetición a repetición.',
+  'quote.22': '¿Perdiste un día? Mañana, sin excusas y sin faltar.',
+  'quote.23': 'Tu lista de tareas es tu plan de entrenamiento. Ábrela.',
+  'quote.24': 'Un día fuerte se construye repetición a repetición.',
+  'quote.25': 'No compares pesos. Compárate con el de ayer.',
+  'quote.26': '¿Quieres respeto en el gimnasio? Cierra el día.',
+  'quote.27': 'Una serie más, novato. Y luego otra.',
+  'quote.28': 'La fuerza no está en los músculos. Está en venir.',
 };
 
 export const GYM: Record<Locale, Overrides> = { ru, en, es };

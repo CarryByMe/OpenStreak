@@ -91,6 +91,8 @@ describe('вид виджета «Сегодня»', () => {
     expect(v.look).toBe('mult');
     expect(v.fonts.num).toBe('Oswald_700Bold');
     expect(v.fullCaption).toBe('полный блин!');
+    expect(v.plate).toBe(true);
+    expect(buildTodayView(snap({ design: 'auf' }, done), TODAY, 'dark').plate).toBe(false);
   });
 
   test('тексты шапки и счёта по-русски', () => {

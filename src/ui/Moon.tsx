@@ -1,7 +1,7 @@
 import React from 'react';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useGym, usePalette } from '../store/themeStore';
-import { clampPhase, litPath } from './moon';
+import { clampPhase, litPath, PLATE, plateDash } from './moon';
 
 type Props = {
   /** 0 — новолуние, 1 — полнолуние */
@@ -62,11 +62,6 @@ function MoonDisc({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = fals
   );
 }
 
-/** Радиус середины полосы загрузки блина и её ширина: полоса идёт от ступицы до края. */
-const BAND_R = 34;
-const BAND_W = 24;
-const BAND_C = 2 * Math.PI * BAND_R;
-
 /**
  * Блин от штанги — луна «Качалки» (design/gachi): полоса по кругу набирается по часовой стрелке
  * от 12 часов, в середине — ступица с отверстием. Полный блин залит целиком.
@@ -83,24 +78,24 @@ function Plate({ phase, size = 28, tone = 'sun', ring = 'ring', dashed = false }
         <Circle
           cx={50}
           cy={50}
-          r={BAND_R}
+          r={PLATE.BAND_R}
           fill="none"
           stroke={p[tone]}
-          strokeWidth={BAND_W}
-          strokeDasharray={`${BAND_C * ph} ${BAND_C}`}
+          strokeWidth={PLATE.BAND_W}
+          strokeDasharray={plateDash(ph).join(' ')}
           transform="rotate(-90 50 50)"
         />
       )}
       <Circle
         cx={50}
         cy={50}
-        r={18}
+        r={PLATE.HUB_R}
         fill={dashed ? 'none' : p.track}
         stroke={p[ring]}
         strokeWidth={w}
         strokeDasharray={dashed ? '8 7' : undefined}
       />
-      {!dashed && <Circle cx={50} cy={50} r={6} fill={p[ring]} />}
+      {!dashed && <Circle cx={50} cy={50} r={PLATE.BOLT_R} fill={p[ring]} />}
       <Circle
         cx={50}
         cy={50}

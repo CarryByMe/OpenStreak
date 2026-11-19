@@ -45,8 +45,9 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   (`core/settings.ts#designOf`).
 - **Design `gym` is «Качалка»** (`design/gachi`): the «Мульт» stickers in leather, steel and brass —
   palettes `gymLight` («Бетон») / `gymDark` («Подземелье»), outline 3, near-square corners, Russo One for
-  titles, Oswald for numbers, Golos Text for text. `Moon` draws a barbell plate, `Wolf` draws the gym boss
-  medal (`ui/icons/GymBoss.tsx`). Its copy (ranks, the boss, «блин» instead of «луна», boss quotes) lives
+  titles, Oswald for numbers, Golos Text for text. `Moon` draws a barbell plate (geometry `ui/moon.ts#PLATE`,
+  also `widgets/svg.ts#plateSvg`), `Wolf` draws the gym boss medal (`ui/icons/GymBoss.tsx`). Rivets and
+  stitching go only on the main plate of a screen: `<Card hero>`. Its copy (ranks, the boss, «блин» instead of «луна», boss quotes) lives
   in `i18n/gym.ts` on top of the normal dictionary: `translate(..., flavor)`, `flavorOf(settings)`.
   Keep the boss an original character: no real people, nothing lewd.
 - **Design `auf` is «Мульт»** (`design/mult`, rules in `ROADMAP.md` → «Принятые решения»): stickers with a

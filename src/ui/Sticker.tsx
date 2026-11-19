@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { usePalette, usePlain, useSoft } from '../store/themeStore';
+import { useGym, usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, SPACE, STROKE } from '../theme/metrics';
 import type { Palette } from '../theme/palette';
 import { hardShadow, softShadow, tilt as tiltStyle, type ShadowSize } from '../theme/sticker';
@@ -33,6 +33,8 @@ type CardProps = {
   radius?: number;
   /** внутренние поля: стандартные или без них (для списка строк — свои поля у строк) */
   padded?: boolean;
+  /** главная плашка экрана (луна дня, звание, договор): в «Качалке» — заклёпки и строчка */
+  hero?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -43,11 +45,13 @@ export function Card({
   shadow = 'lg',
   radius = RADIUS.lg,
   padded = true,
+  hero = false,
   style,
 }: CardProps) {
   const p = usePalette();
   const plain = usePlain();
   const soft = useSoft();
+  const gym = useGym();
   if (soft) {
     // «Обычный» (монолит): карточка с мягкой тенью, без рамки. Цветной блок — заливкой.
     return (
@@ -100,7 +104,40 @@ export function Card({
         style,
       ]}
     >
+      {/* под содержимым: бейджи и луна ложатся поверх строчки */}
+      {gym && hero && <Leather radius={radius} p={p} />}
       {children}
+    </View>
+  );
+}
+
+/** Отступ строчки от обводки и размер заклёпки «Качалки». */
+const STITCH = 5;
+const RIVET = 7;
+const RIVET_AT = STITCH - RIVET / 2;
+
+/**
+ * Кожа «Качалки» поверх главной плашки: пунктирная строчка вдоль обводки и четыре стальные
+ * заклёпки по углам. Украшение — не перехватывает нажатия и не читается с экрана.
+ */
+function Leather({ radius, p }: { radius: number; p: Palette }) {
+  const rivet = { backgroundColor: p.ring, borderRadius: RIVET / 2 };
+  return (
+    <View
+      pointerEvents="none"
+      style={StyleSheet.absoluteFill}
+      importantForAccessibility="no-hide-descendants"
+    >
+      <View
+        style={[
+          styles.stitch,
+          { borderColor: p.muted, borderRadius: Math.max(2, radius - STITCH - STROKE.outline) },
+        ]}
+      />
+      <View style={[styles.rivet, rivet, { top: RIVET_AT, left: RIVET_AT }]} />
+      <View style={[styles.rivet, rivet, { top: RIVET_AT, right: RIVET_AT }]} />
+      <View style={[styles.rivet, rivet, { bottom: RIVET_AT, left: RIVET_AT }]} />
+      <View style={[styles.rivet, rivet, { bottom: RIVET_AT, right: RIVET_AT }]} />
     </View>
   );
 }
@@ -298,6 +335,16 @@ export function WolfQuote({
 
 const styles = designStyles(() =>
   StyleSheet.create({
+    stitch: {
+      position: 'absolute',
+      top: STITCH,
+      left: STITCH,
+      right: STITCH,
+      bottom: STITCH,
+      borderWidth: 1.5,
+      borderStyle: 'dashed',
+    },
+    rivet: { position: 'absolute', width: RIVET, height: RIVET },
     padded: { padding: SPACE.lg },
     tag: {
       alignSelf: 'flex-start',

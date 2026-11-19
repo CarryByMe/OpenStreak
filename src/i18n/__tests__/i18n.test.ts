@@ -73,8 +73,8 @@ describe('translate', () => {
     expect(translate('ru', 'bro', 'review.mood.5', undefined, 'gym')).toBe('Мощь');
     expect(translate('ru', 'bro', 'tab.today', undefined, 'gym')).toBe('Сегодня');
     expect(translate('en', 'bro', 'rank.leader', undefined, 'gym')).toBe('Dungeon master');
-    // Цитат «Качалки» в en нет — показываются обычные.
-    expect(translate('en', 'bro', 'quote.0', undefined, 'gym')).toBe(en['quote.0']);
+    expect(translate('ru', 'bro', 'tab.habits', undefined, 'gym')).toBe('Подходы');
+    expect(translate('en', 'bro', 'quote.0', undefined, 'gym')).not.toBe(en['quote.0']);
   });
 
   test('unknown placeholders are left as is', () => {
@@ -120,8 +120,10 @@ describe('словари', () => {
         expect([key, holes(msg)]).toEqual([key, holes(ru[key as MessageKey])]);
       }
     }
-    const gymQuotes = Object.keys(GYM.ru).filter((k) => k.startsWith('quote.'));
-    expect(gymQuotes).toHaveLength(quoteCount('ru'));
+    for (const locale of LOCALES) {
+      const gymQuotes = Object.keys(GYM[locale]).filter((k) => k.startsWith('quote.'));
+      expect([locale, gymQuotes.length]).toEqual([locale, quoteCount(locale)]);
+    }
   });
 
   test('цитат одинаково во всех языках', () => {
