@@ -2,7 +2,7 @@
  * Расписание — чистые функции: время занятия по звонкам, чётность недели, занятия дня,
  * что идёт сейчас и где «окна». Экраны только рисуют результат.
  */
-import { addDays, diffDays, startOfWeek, weekday } from './dates';
+import { addDays, clockOf, diffDays, dstr, startOfWeek, weekday } from './dates';
 import { live, type Bell, type ClockTime, type ISODate, type Lesson, type Snapshot } from './model';
 import { settingsOf, type SettingsFields } from './settings';
 
@@ -175,4 +175,100 @@ export function weekDays(weekStart: 0 | 1): number[] {
 export function dateInWeek(date: ISODate, day: number, weekStart: 0 | 1): ISODate {
   const first = startOfWeek(date, weekStart);
   return addDays(first, (day - weekStart + 7) % 7);
+}
+
+// ── Будильник до первой пары ─────────────────────────────────────────────────
+
+/** Варианты «будить за …» в минутах. */
+export const WAKE_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 150] as const;
+/** На сколько дней вперёд ставятся точные будильники (iOS) и запасные уведомления. */
+export const WAKE_HORIZON_DAYS = 14;
+
+/** Время подъёма: начало первой пары минус `before` минут (не раньше полуночи того же дня). */
+export function wakeTime(start: ClockTime, before: number): ClockTime | null {
+  const m = minutesOf(start);
+  return m === null ? null : clockFromMinutes(m - before);
+}
+
+export type WakeAlarm = {
+  /** стабильный идентификатор: меняется, только если меняется день или время */
+  id: string;
+  date: ISODate;
+  /** во сколько будить */
+  time: ClockTime;
+  /** первое занятие дня */
+  lesson: { title: string; start: ClockTime; place: string };
+};
+
+/**
+ * Будильники на ближайшие дни: в каждый день с занятиями — за `wakeBefore` минут до первого
+ * (с учётом чётной и нечётной недели). Прошедшее время не ставится. Выключено расписание или
+ * будильник — пусто.
+ */
+export function wakePlan(snap: Snapshot, now: Date, days = WAKE_HORIZON_DAYS): WakeAlarm[] {
+  const s = settingsOf(snap);
+  if (!s.scheduleEnabled || s.wakeBefore === null) return [];
+  const lessons = live(snap.lessons);
+  const today = dstr(now);
+  const nowClock = clockOf(now.getTime());
+  const out: WakeAlarm[] = [];
+  for (let i = 0; i < days; i++) {
+    const date = addDays(today, i);
+    const first = slotsOf(lessons, date, s)[0];
+    if (!first) continue;
+    const time = wakeTime(first.start, s.wakeBefore);
+    if (!time || (date === today && time <= nowClock)) continue;
+    out.push({
+      id: `wake:${date}:${time}`,
+      date,
+      time,
+      lesson: { title: first.lesson.title, start: first.start, place: first.lesson.place },
+    });
+  }
+  return out;
+}
+
+export type WeeklyWake = { time: ClockTime; days: number[]; lesson: string; start: ClockTime };
+
+/**
+ * Будильники по дням недели — для системных «Часов» Android, которые повторяют будильник
+ * каждую неделю. Дни с одинаковым временем объединяются. Если из-за чётной и нечётной недели
+ * время в соседние недели разное, берётся более раннее, а `approximate` = true: будильник может
+ * прозвенеть и в неделю без пар.
+ */
+export function weeklyWake(
+  snap: Snapshot,
+  today: ISODate
+): { alarms: WeeklyWake[]; approximate: boolean } {
+  const s = settingsOf(snap);
+  const before = s.wakeBefore;
+  if (!s.scheduleEnabled || before === null) return { alarms: [], approximate: false };
+  const lessons = live(snap.lessons);
+  let approximate = false;
+  const byTime = new Map<ClockTime, WeeklyWake>();
+  for (const day of weekDays(s.weekStart)) {
+    const thisWeek = dateInWeek(today, day, s.weekStart);
+    const firsts = [thisWeek, addDays(thisWeek, 7)].map((d) => slotsOf(lessons, d, s)[0] ?? null);
+    const times = firsts.map((f) => (f ? wakeTime(f.start, before) : null));
+    if (times[0] !== times[1]) approximate = true;
+    const known = firsts
+      .map((f, i) => ({ f, time: times[i] }))
+      .filter((x): x is { f: DaySlot; time: ClockTime } => x.f !== null && x.time !== null)
+      .sort((a, b) => a.time.localeCompare(b.time));
+    const earliest = known[0];
+    if (!earliest) continue;
+    const entry = byTime.get(earliest.time);
+    if (entry) entry.days.push(day);
+    else
+      byTime.set(earliest.time, {
+        time: earliest.time,
+        days: [day],
+        lesson: earliest.f.lesson.title,
+        start: earliest.f.start,
+      });
+  }
+  return {
+    alarms: [...byTime.values()].sort((a, b) => a.time.localeCompare(b.time)),
+    approximate,
+  };
 }

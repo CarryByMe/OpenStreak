@@ -12,8 +12,11 @@ import {
   slotProgress,
   slotState,
   timeline,
+  wakePlan,
+  wakeTime,
   weekDays,
   weekOf,
+  weeklyWake,
 } from '../schedule';
 import { DEFAULT_BELLS, DEFAULT_SETTINGS, settingsOf } from '../settings';
 import { MemoryStorage } from '../storage/memory';
@@ -301,5 +304,80 @@ describe('бэкап', () => {
     expect(s.scheduleEnabled).toBe(false);
     expect(s.bells).toEqual([]);
     expect(cleanSettings({}, NOW)!.bells).toEqual(DEFAULT_SETTINGS.bells);
+  });
+});
+
+describe('будильник до пар', () => {
+  test('выключен — будильников нет; время — начало минус «за сколько»', () => {
+    A.updateSettings({ scheduleEnabled: true });
+    lesson({ pair: 1 });
+    expect(wakePlan(data(), new Date(NOW))).toEqual([]);
+    expect(wakeTime('08:30', 90)).toBe('07:00');
+    expect(wakeTime('00:30', 90)).toBe('00:00');
+  });
+
+  test('по первой паре каждого дня; прошедшее сегодня не ставится', () => {
+    A.updateSettings({ scheduleEnabled: true, wakeBefore: 90 });
+    lesson({ title: 'Матан', pair: 1 }); // чт 08:30
+    lesson({ title: 'Англ', pair: 3 }); // чт 11:50 — не первая
+    lesson({ title: 'Физика', pair: 2, days: [5], place: 'ауд. 412' }); // пт 10:10
+    const plan = wakePlan(data(), new Date(NOW));
+    // сегодня 07:00 уже прошло (сейчас 11:00)
+    expect(plan[0]).toEqual({
+      id: 'wake:2026-11-20:08:40',
+      date: '2026-11-20',
+      time: '08:40',
+      lesson: { title: 'Физика', start: '10:10', place: 'ауд. 412' },
+    });
+    expect(plan[1]).toMatchObject({ date: '2026-11-26', time: '07:00' });
+    // 14 дней: пт 20, чт 26, пт 27 ноября
+    expect(plan).toHaveLength(3);
+  });
+
+  test('при выключенном расписании не будит', () => {
+    A.updateSettings({ wakeBefore: 60 });
+    lesson();
+    expect(wakePlan(data(), new Date(NOW))).toEqual([]);
+    expect(weeklyWake(data(), TODAY).alarms).toEqual([]);
+  });
+
+  test('по дням недели для «Часов»: одинаковое время — один будильник', () => {
+    A.updateSettings({ scheduleEnabled: true, wakeBefore: 90 });
+    lesson({ title: 'Матан', pair: 1, days: [1, 3] });
+    lesson({ title: 'Физика', pair: 2, days: [5] });
+    const w = weeklyWake(data(), TODAY);
+    expect(w.approximate).toBe(false);
+    expect(w.alarms).toEqual([
+      { time: '07:00', days: [1, 3], lesson: 'Матан', start: '08:30' },
+      { time: '08:40', days: [5], lesson: 'Физика', start: '10:10' },
+    ]);
+  });
+
+  test('чётная и нечётная неделя — раннее время и пометка «примерно»', () => {
+    A.updateSettings({ scheduleEnabled: true, wakeBefore: 60, weekParity: true });
+    lesson({ title: 'Матан', pair: 1, days: [2], weeks: 'odd' });
+    lesson({ title: 'Физика', pair: 3, days: [2] });
+    const w = weeklyWake(data(), TODAY);
+    expect(w.approximate).toBe(true);
+    expect(w.alarms).toEqual([{ time: '07:30', days: [2], lesson: 'Матан', start: '08:30' }]);
+  });
+
+  test('уведомлением — только когда попросили', () => {
+    A.updateSettings({ scheduleEnabled: true, wakeBefore: 90 });
+    lesson({ pair: 2, days: [5] });
+    const at = new Date(NOW);
+    expect(planReminders(data(), at).some((r) => r.kind === 'wake')).toBe(false);
+    const wake = planReminders(data(), at, { wakeNotifications: true }).filter(
+      (r) => r.kind === 'wake'
+    );
+    expect(wake[0]).toMatchObject({ title: 'Физика', start: '10:10' });
+    expect(wake[0].at.getTime()).toBe(new Date('2026-11-20T08:40:00').getTime());
+  });
+
+  test('«будить за» из бэкапа проверяется', () => {
+    expect(cleanSettings({ wakeBefore: 90 }, NOW)!.wakeBefore).toBe(90);
+    expect(cleanSettings({ wakeBefore: 2 }, NOW)!.wakeBefore).toBeNull();
+    expect(cleanSettings({ wakeBefore: 'утро' }, NOW)!.wakeBefore).toBeNull();
+    expect(cleanSettings({}, NOW)!.wakeBefore).toBeNull();
   });
 });

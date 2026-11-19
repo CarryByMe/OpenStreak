@@ -733,4 +733,32 @@ export const es: Record<MessageKey, Message> = {
   'stats.timeHint': '{days} d · «{habit}»',
   'stats.yearTime': 'Tiempo en un hábito',
   'stats.moodPrev': '{prev} el año pasado',
+
+  // Будильник до пар
+  'wake.notifyTitle': 'Hora de levantarse',
+  'wake.notifyBody': 'Primera clase a las {time}: {title}',
+  'wake.notifyBodyAt': 'Primera clase a las {time}: {title} · {place}',
+  'wake.alarmTitle': '{title} a las {time}',
+  'wake.clockLabel': 'OpenStreak: {title} a las {time}',
+  'wake.title': 'Despertador antes de clase',
+  'wake.hint': 'Los días con sesiones — este tiempo antes de la primera',
+  'wake.off': 'No despertar',
+  'wake.before': '{time} antes',
+  'wake.next': 'Próximo: {day}, {time} — para «{title}» a las {start}',
+  'wake.none': 'No hay sesiones en las próximas dos semanas',
+  'wake.ios.enable': 'Permitir alarmas',
+  'wake.ios.enabled': 'Las alarmas están en el sistema y suenan incluso en silencio',
+  'wake.ios.denied':
+    'Las alarmas están desactivadas en los ajustes del iPhone — usaremos una notificación, que puede no sonar en silencio',
+  'wake.ios.old':
+    'Esta versión de iOS no deja a las apps poner alarmas (hace falta iOS 26) — usaremos una notificación, que puede no sonar en silencio',
+  'wake.android.set': 'Poner en Reloj',
+  'wake.android.hint':
+    'Las alarmas aparecerán en la app Reloj por día de la semana. Si cambias el horario, vuelve a ponerlas y borra las antiguas en Reloj.',
+  'wake.android.approx':
+    'Por las semanas pares e impares, la alarma puede sonar también en una semana sin clases.',
+  'wake.android.done': 'Alarmas puestas: {count}',
+  'wake.android.failed': 'No se pudo abrir Reloj',
+  'wake.android.open': 'Abrir Reloj',
+  'wake.web': 'El despertador funciona en la app del teléfono',
 };

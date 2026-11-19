@@ -728,4 +728,32 @@ export const en: Record<MessageKey, Message> = {
   'stats.timeHint': '{days} d · “{habit}”',
   'stats.yearTime': 'Time on a habit',
   'stats.moodPrev': '{prev} last year',
+
+  // Будильник до пар
+  'wake.notifyTitle': 'Time to get up',
+  'wake.notifyBody': 'First class at {time}: {title}',
+  'wake.notifyBodyAt': 'First class at {time}: {title} · {place}',
+  'wake.alarmTitle': '{title} at {time}',
+  'wake.clockLabel': 'OpenStreak: {title} at {time}',
+  'wake.title': 'Wake-up before classes',
+  'wake.hint': 'On days with sessions — this long before the first one',
+  'wake.off': 'Off',
+  'wake.before': '{time} before',
+  'wake.next': 'Next: {day}, {time} — for “{title}” at {start}',
+  'wake.none': 'No sessions in the next two weeks',
+  'wake.ios.enable': 'Allow alarms',
+  'wake.ios.enabled': 'Alarms are set in the system and ring even in silent mode',
+  'wake.ios.denied':
+    'Alarms are turned off in iPhone settings — we’ll use a notification, which may stay silent in silent mode',
+  'wake.ios.old':
+    'This iOS version doesn’t let apps set alarms (iOS 26 needed) — we’ll use a notification, which may stay silent in silent mode',
+  'wake.android.set': 'Set in Clock',
+  'wake.android.hint':
+    'Alarms will appear in the Clock app by weekday. Changed the schedule? Set them again and delete the old ones in Clock.',
+  'wake.android.approx':
+    'Because of odd and even weeks, an alarm may also ring in a week without classes.',
+  'wake.android.done': 'Alarms set: {count}',
+  'wake.android.failed': 'Couldn’t open Clock',
+  'wake.android.open': 'Open Clock',
+  'wake.web': 'The wake-up alarm works in the phone app',
 };

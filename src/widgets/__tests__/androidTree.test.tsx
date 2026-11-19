@@ -45,6 +45,7 @@ function snap(design: 'normal' | 'minimal' | 'auf', tasks: Task[]): Snapshot {
     bells: [],
     weekParity: false,
     parityFrom: null,
+    wakeBefore: null,
   };
   for (const t of tasks) s.tasks[t.id] = t;
   return s;

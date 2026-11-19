@@ -865,6 +865,34 @@ export const ru = {
   'stats.timeHint': '{days} дн · «{habit}»',
   'stats.yearTime': 'Время на привычку',
   'stats.moodPrev': '{prev} в прошлом году',
+
+  // Будильник до пар
+  'wake.notifyTitle': 'Пора вставать',
+  'wake.notifyBody': 'Первая пара в {time}: {title}',
+  'wake.notifyBodyAt': 'Первая пара в {time}: {title} · {place}',
+  'wake.alarmTitle': '{title} в {time}',
+  'wake.clockLabel': 'OpenStreak: {title} в {time}',
+  'wake.title': 'Будильник до пар',
+  'wake.hint': 'В дни с занятиями — за выбранное время до первого',
+  'wake.off': 'Не будить',
+  'wake.before': 'за {time}',
+  'wake.next': 'Ближайший: {day}, {time} — к «{title}» в {start}',
+  'wake.none': 'В ближайшие две недели занятий нет',
+  'wake.ios.enable': 'Разрешить будильники',
+  'wake.ios.enabled': 'Будильники стоят в системе и звонят даже в беззвучном режиме',
+  'wake.ios.denied':
+    'Будильники запрещены в настройках iPhone — будим уведомлением; в беззвучном режиме оно может не прозвучать',
+  'wake.ios.old':
+    'На этой версии iOS приложение не может ставить будильники (нужна iOS 26) — будим уведомлением; в беззвучном режиме оно может не прозвучать',
+  'wake.android.set': 'Поставить в «Часах»',
+  'wake.android.hint':
+    'Будильники появятся в стандартных «Часах» по дням недели. Изменили расписание — поставьте заново и удалите старые в «Часах».',
+  'wake.android.approx':
+    'Из-за чётной и нечётной недели будильник может прозвенеть и в неделю без пар.',
+  'wake.android.done': 'Поставлено будильников: {count}',
+  'wake.android.failed': 'Не удалось открыть «Часы»',
+  'wake.android.open': 'Открыть «Часы»',
+  'wake.web': 'Будильник работает в приложении на телефоне',
 } as const satisfies Record<string, Message>;
 
 export type MessageKey = keyof typeof ru;

@@ -11,13 +11,13 @@ import {
   type RestPeriod,
   type Snapshot,
 } from './model';
-import { clockFromMinutes, lessonOn, lessonTime, minutesOf } from './schedule';
+import { clockFromMinutes, lessonOn, lessonTime, minutesOf, wakePlan } from './schedule';
 import { settingsOf } from './settings';
 
 export type PlannedReminder = {
   /** Стабильный идентификатор: меняется, только если меняется смысл или время. */
   id: string;
-  kind: 'task' | 'habit' | 'review' | 'lesson';
+  kind: 'task' | 'habit' | 'review' | 'lesson' | 'wake';
   subjectId: string;
   /** название задачи/привычки (для итога дня — пусто) — текст уведомления собирает сервис */
   title: string;
@@ -42,7 +42,19 @@ function scheduledOn(h: Habit, date: ISODate): boolean {
   return !h.days || h.days.includes(new Date(`${date}T00:00`).getDay());
 }
 
-export function planReminders(snap: Snapshot, now: Date): PlannedReminder[] {
+export type PlanOptions = {
+  /**
+   * Будильник до пар уведомлением — там, где настоящего будильника нет (iOS до 26 или без
+   * разрешения). Где будильник ставит система, уведомление его не дублирует.
+   */
+  wakeNotifications?: boolean;
+};
+
+export function planReminders(
+  snap: Snapshot,
+  now: Date,
+  options: PlanOptions = {}
+): PlannedReminder[] {
   const out: PlannedReminder[] = [];
   const today = dstr(now);
   const taskLimit = addDays(today, TASK_HORIZON_DAYS);
@@ -140,6 +152,20 @@ export function planReminders(snap: Snapshot, now: Date): PlannedReminder[] {
           place: l.place,
         });
       }
+    }
+  }
+
+  if (options.wakeNotifications) {
+    for (const w of wakePlan(snap, now, HABIT_HORIZON_DAYS)) {
+      out.push({
+        id: `${REMINDER_ID_PREFIX}w:${w.date}:${w.time}`,
+        kind: 'wake',
+        subjectId: w.date,
+        title: w.lesson.title,
+        at: at(w.date, w.time),
+        start: w.lesson.start,
+        place: w.lesson.place,
+      });
     }
   }
 
