@@ -104,6 +104,8 @@ export const es: Record<MessageKey, Message> = {
   'row.restUndone': 'Día libre cancelado',
   'new.subtasks': 'subtareas',
   'sub.add': 'Subtarea — Enter añade la siguiente',
+  'sub.addShort': 'Añadir',
+  'sub.none': 'Ninguna',
   'sub.remove': 'Quitar subtarea: {title}',
   'sub.edit': 'Subtarea {n}',
   'sub.addRow': 'subtarea',

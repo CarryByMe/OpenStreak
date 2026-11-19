@@ -343,18 +343,6 @@ function NewSheetForm() {
           </>
         )}
 
-        {kind === 'task' && (
-          <View style={styles.subtasks}>
-            <Text style={[TYPE.meta, { color: pal.muted }]}>{cap(t('new.subtasks'))}</Text>
-            <SubtasksEditor
-              items={subtasks}
-              onChange={setSubtasks}
-              draft={subtaskDraft}
-              onDraft={setSubtaskDraft}
-            />
-          </View>
-        )}
-
         {kind === 'habit' && (
           <FormRow
             icon="pack"
@@ -555,6 +543,27 @@ function NewSheetForm() {
             </View>
           </FormRow>
         )}
+
+        {/* Подзадачи — последней строкой перед «Записать»; список раскрывается по сетке формы. */}
+        {kind === 'task' && (
+          <FormRow
+            icon="tasks"
+            label={cap(t('new.subtasks'))}
+            value={subtasks.length ? String(subtasks.length) : t('sub.none')}
+            set={subtasks.length > 0}
+            open={openRow === 'subtasks'}
+            onPress={() => toggleRow('subtasks')}
+            flush
+          >
+            <SubtasksEditor
+              items={subtasks}
+              onChange={setSubtasks}
+              draft={subtaskDraft}
+              onDraft={setSubtaskDraft}
+              grid
+            />
+          </FormRow>
+        )}
       </View>
     </>
   );
@@ -716,17 +725,6 @@ function NewSheetForm() {
             </Group>
           )}
 
-          {kind === 'task' && (
-            <Group title={t('new.subtasks')}>
-              <SubtasksEditor
-                items={subtasks}
-                onChange={setSubtasks}
-                draft={subtaskDraft}
-                onDraft={setSubtaskDraft}
-              />
-            </Group>
-          )}
-
           {(kind === 'task' || kind === 'habit') && (
             <Group title={t('new.area')}>
               <View style={styles.chips} accessibilityRole="radiogroup">
@@ -836,6 +834,17 @@ function NewSheetForm() {
               )}
             </Group>
           )}
+
+          {kind === 'task' && (
+            <Group title={t('new.subtasks')}>
+              <SubtasksEditor
+                items={subtasks}
+                onChange={setSubtasks}
+                draft={subtaskDraft}
+                onDraft={setSubtaskDraft}
+              />
+            </Group>
+          )}
         </>
       )}
 
@@ -925,7 +934,6 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', gap: SPACE.md },
   grow: { flex: 1 },
   group: { gap: SPACE.sm },
-  subtasks: { gap: SPACE.sm, marginTop: SPACE.lg },
   colorDot: { width: 24, height: 24, borderRadius: 12 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACE.sm, alignItems: 'center' },
   titleInput: {

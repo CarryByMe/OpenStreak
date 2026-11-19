@@ -117,6 +117,8 @@ export const ru = {
   'row.restUndone': 'Выходной отменён',
   'new.subtasks': 'подзадачи',
   'sub.add': 'Подзадача — Enter добавит следующую',
+  'sub.addShort': 'Добавить',
+  'sub.none': 'Нет',
   'sub.remove': 'Убрать подзадачу: {title}',
   'sub.edit': 'Подзадача {n}',
   'sub.addRow': 'подзадача',

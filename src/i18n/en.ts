@@ -104,6 +104,8 @@ export const en: Record<MessageKey, Message> = {
   'row.restUndone': 'Day off cancelled',
   'new.subtasks': 'subtasks',
   'sub.add': 'Subtask — Enter adds the next one',
+  'sub.addShort': 'Add',
+  'sub.none': 'None',
   'sub.remove': 'Remove subtask: {title}',
   'sub.edit': 'Subtask {n}',
   'sub.addRow': 'subtask',

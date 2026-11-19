@@ -25,6 +25,8 @@ type Props = {
   onPress: () => void;
   /** раскрытое содержимое: чипы вариантов, поле ввода */
   children?: React.ReactNode;
+  /** содержимое — строки той же сетки (подзадачи): без отступа слева и снизу */
+  flush?: boolean;
 };
 
 export function FormRow({
@@ -37,6 +39,7 @@ export function FormRow({
   open,
   onPress,
   children,
+  flush = false,
 }: Props) {
   const p = usePalette();
   const design = useDesign();
@@ -75,7 +78,7 @@ export function FormRow({
         </View>
       </Pressable>
       {open && !!children && (
-        <View style={[styles.body, !icon && { paddingLeft: 0 }]}>{children}</View>
+        <View style={flush ? null : [styles.body, !icon && { paddingLeft: 0 }]}>{children}</View>
       )}
     </View>
   );
