@@ -11,16 +11,20 @@ import {
   type RestPeriod,
   type Snapshot,
 } from './model';
+import { clockFromMinutes, lessonOn, lessonTime, minutesOf } from './schedule';
 import { settingsOf } from './settings';
 
 export type PlannedReminder = {
   /** Стабильный идентификатор: меняется, только если меняется смысл или время. */
   id: string;
-  kind: 'task' | 'habit' | 'review';
+  kind: 'task' | 'habit' | 'review' | 'lesson';
   subjectId: string;
   /** название задачи/привычки (для итога дня — пусто) — текст уведомления собирает сервис */
   title: string;
   at: Date;
+  /** занятие: время начала и где (текст уведомления собирает сервис) */
+  start?: string;
+  place?: string;
 };
 
 /** iOS держит не больше 64 запланированных уведомлений на приложение. */
@@ -108,6 +112,34 @@ export function planReminders(snap: Snapshot, now: Date): PlannedReminder[] {
         title: '',
         at: when,
       });
+    }
+  }
+
+  // Занятия расписания: за `remindBefore` минут до начала, пока расписание включено.
+  const settings = settingsOf(snap);
+  if (settings.scheduleEnabled) {
+    for (const l of live(snap.lessons)) {
+      if (l.remindBefore === null) continue;
+      for (let i = 0; i < HABIT_HORIZON_DAYS; i++) {
+        const d = addDays(today, i);
+        if (!lessonOn(l, d, settings)) continue;
+        const { start } = lessonTime(l, settings.bells);
+        const startMin = minutesOf(start);
+        if (startMin === null) continue;
+        // Напоминание раньше полуночи того же дня не переносим на вчера — ставим в 00:00.
+        const ring = clockFromMinutes(startMin - l.remindBefore);
+        const when = at(d, ring);
+        if (when <= now) continue;
+        out.push({
+          id: `${REMINDER_ID_PREFIX}l:${l.id}:${d}:${ring}`,
+          kind: 'lesson',
+          subjectId: l.id,
+          title: l.title,
+          at: when,
+          start,
+          place: l.place,
+        });
+      }
     }
   }
 

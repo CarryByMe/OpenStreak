@@ -5,6 +5,7 @@
 import { habitColor } from '../../core/colors';
 import React, { useMemo } from 'react';
 import { ReviewCard } from './ReviewCard';
+import { ScheduleToday } from '../schedule/ScheduleToday';
 import { HabitTodayRow, TaskTodayRow } from './TodayRows';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,9 +43,15 @@ type Props = {
   onOpenSettings: () => void;
   onOpenReview: () => void;
   onOpenHistory: () => void;
+  onOpenSchedule: () => void;
 };
 
-export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Props) {
+export function TodayScreen({
+  onOpenSettings,
+  onOpenReview,
+  onOpenHistory,
+  onOpenSchedule,
+}: Props) {
   const p = usePalette();
   const t = useT();
   const insets = useSafeAreaInsets();
@@ -174,6 +181,8 @@ export function TodayScreen({ onOpenSettings, onOpenReview, onOpenHistory }: Pro
         label={t(soft ? 'today.addTask' : 'common.addPrompt')}
         onPress={() => showNew('task')}
       />
+
+      <ScheduleToday onOpen={onOpenSchedule} />
 
       {plain && <ReviewCard onOpenReview={onOpenReview} onOpenHistory={onOpenHistory} />}
 

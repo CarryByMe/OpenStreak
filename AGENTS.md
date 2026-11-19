@@ -16,6 +16,10 @@ so versions match `expo/bundledNativeModules.json`; never bump `expo` to another
   inside the task: each item syncs on its own. Pure helpers in `core/subtasks.ts`; changes only through
   `actions.saveSubtasks` / `toggleSubtask` (the last checked item closes the task, undo restores both).
   `deleteTask` / `restoreTask` cascade to the items. Points are for the task only.
+- Schedule («Расписание»: пары, зал, работа) is the collection `lessons` — repeating by weekday, not a task:
+  no marks, points or debts. Off by default (`settings.scheduleEnabled`); bells and odd/even weeks live in
+  settings too. Pure helpers in `core/schedule.ts` (time by bell number, week parity, day timeline); screens in
+  `features/schedule`.
 - Reminders are planned by `core/reminders.ts` (pure) and synced to the OS by
   `services/notifications.ts`; never fire reminders from timers in JS.
 - Home-screen widget («Сегодня», M и L): `core/widget.ts` (pure model) → `widgets/view.ts` (texts, colours of

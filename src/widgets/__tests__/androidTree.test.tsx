@@ -41,6 +41,10 @@ function snap(design: 'normal' | 'minimal' | 'auf', tasks: Task[]): Snapshot {
     locale: 'ru',
     weekStart: 1,
     reviewAt: '21:30',
+    scheduleEnabled: false,
+    bells: [],
+    weekParity: false,
+    parityFrom: null,
   };
   for (const t of tasks) s.tasks[t.id] = t;
   return s;

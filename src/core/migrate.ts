@@ -10,6 +10,7 @@
  */
 import { newId } from './ids';
 import { DEFAULT_SETTINGS, designOf } from './settings';
+import { MAX_BELLS } from './schedule';
 import { MAX_SUBTASK_TITLE } from './subtasks';
 import {
   COLLECTIONS,
@@ -20,8 +21,10 @@ import {
   type DayReview,
   type Goal,
   type Habit,
+  type Bell,
   type HabitCheck,
   type ISODate,
+  type Lesson,
   type Place,
   type Priority,
   type RecordMeta,
@@ -224,6 +227,53 @@ export function cleanPlace(x: unknown, now: number): Place | null {
   return { ...m, name, latitude: lat, longitude: lng, radius: radius && radius > 0 ? radius : 150 };
 }
 
+const LESSON_TITLE_MAX = 200;
+
+export function cleanLesson(x: unknown, now: number): Lesson | null {
+  if (!isObj(x)) return null;
+  const m = meta(x, now);
+  const title = nonEmpty(x.title)?.trim().slice(0, LESSON_TITLE_MAX);
+  const days = Array.isArray(x.days)
+    ? [...new Set(x.days.filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6))]
+    : [];
+  if (!m || !title || days.length === 0) return null;
+  const pair = num(x.pair);
+  const validPair = pair !== null && Number.isInteger(pair) && pair >= 1 && pair <= MAX_BELLS;
+  let start = time(x.start);
+  let end = time(x.end);
+  // Без пары нужно своё время; начало позже конца — меняем местами.
+  if (!validPair && (!start || !end)) return null;
+  if (start && end && end < start) [start, end] = [end, start];
+  const remind = num(x.remindBefore);
+  return {
+    ...m,
+    title,
+    kind: x.kind === 'pair' || x.kind === 'gym' || x.kind === 'work' ? x.kind : 'custom',
+    note: str(x.note).trim().slice(0, LESSON_TITLE_MAX),
+    days: days.sort(),
+    pair: validPair ? pair : null,
+    pairSpan: x.pairSpan === 2 ? 2 : 1,
+    start,
+    end,
+    weeks: x.weeks === 'even' || x.weeks === 'odd' ? x.weeks : 'all',
+    place: str(x.place).trim().slice(0, LESSON_TITLE_MAX),
+    remindBefore: remind !== null && remind > 0 && remind <= 24 * 60 ? Math.round(remind) : null,
+    areaId: idOrNull(x.areaId),
+    habitId: idOrNull(x.habitId),
+  };
+}
+
+/** Звонки из бэкапа: только корректные пары «начало < конец», по порядку; пусто — по умолчанию. */
+function bells(v: unknown, def: Bell[]): Bell[] {
+  if (!Array.isArray(v)) return def;
+  return v
+    .filter(isObj)
+    .map((b) => ({ start: time(b.start), end: time(b.end) }))
+    .filter((b) => b.start && b.end && b.start < b.end)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .slice(0, MAX_BELLS);
+}
+
 export function cleanSettings(x: unknown, now: number): Settings | null {
   if (!isObj(x)) return null;
   const m = meta({ ...x, id: SETTINGS_ID }, now)!;
@@ -238,6 +288,10 @@ export function cleanSettings(x: unknown, now: number): Settings | null {
     locale: x.locale === 'ru' || x.locale === 'en' || x.locale === 'es' ? x.locale : d.locale,
     weekStart: x.weekStart === 0 ? 0 : x.weekStart === 1 ? 1 : d.weekStart,
     reviewAt: typeof x.reviewAt === 'string' ? time(x.reviewAt) : d.reviewAt,
+    scheduleEnabled: typeof x.scheduleEnabled === 'boolean' ? x.scheduleEnabled : d.scheduleEnabled,
+    bells: bells(x.bells, d.bells),
+    weekParity: typeof x.weekParity === 'boolean' ? x.weekParity : d.weekParity,
+    parityFrom: date(x.parityFrom),
   };
 }
 
@@ -410,6 +464,7 @@ export function fromExportV5(raw: unknown, now: number, today: ISODate): Snapsho
   for (const x of list('goals')) put(snap.goals, cleanGoal(x, now));
   for (const x of list('reviews')) put(snap.reviews, cleanReview(x, now));
   for (const x of list('places')) put(snap.places, cleanPlace(x, now));
+  for (const x of list('lessons')) put(snap.lessons, cleanLesson(x, now));
   for (const x of list('settings')) put(snap.settings, cleanSettings(x, now));
   return snap;
 }

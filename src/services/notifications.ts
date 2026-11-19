@@ -59,7 +59,8 @@ export async function askNotificationPermission(): Promise<boolean> {
 
 function content(r: PlannedReminder): Notifications.NotificationContentInput {
   const { locale, tone } = usePrefsStore.getState();
-  const t = (key: MessageKey) => translate(locale, tone, key);
+  const t = (key: MessageKey, vars?: Record<string, string | number>) =>
+    translate(locale, tone, key, vars);
   const data = { kind: r.kind, id: r.subjectId };
   switch (r.kind) {
     case 'task':
@@ -68,6 +69,14 @@ function content(r: PlannedReminder): Notifications.NotificationContentInput {
       return { title: r.title, body: t('notify.habit'), data };
     case 'review':
       return { title: t('notify.reviewTitle'), body: t('notify.reviewBody'), data };
+    case 'lesson':
+      return {
+        title: r.title,
+        body: r.place
+          ? t('notify.lessonAt', { time: r.start ?? '', place: r.place })
+          : t('notify.lesson', { time: r.start ?? '' }),
+        data,
+      };
   }
 }
 

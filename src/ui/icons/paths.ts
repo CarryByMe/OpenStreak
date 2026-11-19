@@ -137,3 +137,5 @@ export const HABIT_ICONS = {
 
 export type UiIconName = keyof typeof UI_ICONS;
 export type HabitIconName = keyof typeof HABIT_ICONS;
+/** Любой значок набора: интерфейса или привычки (у расписания — «книга», «гантель», «часы»). */
+export type IconName = UiIconName | HabitIconName;

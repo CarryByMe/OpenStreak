@@ -137,6 +137,42 @@ export type Place = RecordMeta & {
   radius: number;
 };
 
+/** Шаблон занятия: подставляет значок и длительность; пара берёт время из звонков. */
+export type LessonKind = 'pair' | 'gym' | 'work' | 'custom';
+/** По каким неделям идёт занятие (при чётной/нечётной неделе в настройках). */
+export type WeekParity = 'all' | 'even' | 'odd';
+
+/**
+ * Занятие расписания: повторяется по дням недели (пары, зал, работа). Не дело — его не отмечают,
+ * очков и долгов нет. Время — по номеру пары из звонков (`pair`) или своё (`start`–`end`).
+ */
+export type Lesson = RecordMeta & {
+  title: string;
+  kind: LessonKind;
+  /** вид: «лекция», «практика»; '' — не задан */
+  note: string;
+  /** дни недели 0–6 (0 — воскресенье), по возрастанию, хотя бы один */
+  days: number[];
+  /** номер пары из звонков (1…); null — своё время */
+  pair: number | null;
+  /** сколько пар подряд (сдвоенная — 2) */
+  pairSpan: number;
+  /** своё время; у пары — запасное, если пары с таким номером в звонках нет */
+  start: ClockTime;
+  end: ClockTime;
+  weeks: WeekParity;
+  /** где: аудитория, зал — свободный текст */
+  place: string;
+  /** за сколько минут напомнить; null — не напоминать */
+  remindBefore: number | null;
+  areaId: string | null;
+  /** привычка, которую можно отметить после занятия (зал → «Спорт»); null — нет */
+  habitId: string | null;
+};
+
+/** Звонок: начало и конец пары. */
+export type Bell = { start: ClockTime; end: ClockTime };
+
 export type ThemeChoice = 'dark' | 'light' | 'system';
 export type ToneChoice = 'plain' | 'bro';
 /** Оформление: «Обычный» (монолит), «Минималистичный» (строгий) или «АУФ» (мульт с волком). */
@@ -162,6 +198,14 @@ export type Settings = RecordMeta & {
   weekStart: 0 | 1;
   /** время напоминания об итоге дня; '' — не напоминать */
   reviewAt: ClockTime;
+  /** расписание (пары, зал) включено; по умолчанию выключено */
+  scheduleEnabled: boolean;
+  /** звонки: время пар по порядку (1 пара, 2 пара…) */
+  bells: Bell[];
+  /** чётная и нечётная неделя */
+  weekParity: boolean;
+  /** с какой даты считать недели (первая — нечётная); null — с 1 сентября учебного года */
+  parityFrom: ISODate | null;
 };
 
 export const SETTINGS_ID = 'me';
@@ -176,6 +220,7 @@ export type Collections = {
   goals: Goal;
   reviews: DayReview;
   places: Place;
+  lessons: Lesson;
   settings: Settings;
 };
 
@@ -192,6 +237,7 @@ export const COLLECTIONS: readonly CollectionName[] = [
   'goals',
   'reviews',
   'places',
+  'lessons',
   'settings',
 ] as const;
 
@@ -216,6 +262,7 @@ export function emptySnapshot(startedAt: ISODate): Snapshot {
     goals: {},
     reviews: {},
     places: {},
+    lessons: {},
     settings: {},
     profile: { startedAt },
   };

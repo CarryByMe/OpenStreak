@@ -19,6 +19,9 @@ import { PlacesScreen } from '../features/places/PlacesScreen';
 import { ClosedScreen } from '../features/review/ClosedScreen';
 import { ReviewHistoryScreen } from '../features/review/ReviewHistoryScreen';
 import { ReviewScreen } from '../features/review/ReviewScreen';
+import { BellsScreen } from '../features/schedule/BellsScreen';
+import { ScheduleScreen } from '../features/schedule/ScheduleScreen';
+import { WeekScreen } from '../features/schedule/WeekScreen';
 import { SettingsScreen } from '../features/settings/SettingsScreen';
 import { TasksScreen } from '../features/tasks/TasksScreen';
 import { TodayScreen } from '../features/today/TodayScreen';
@@ -32,6 +35,9 @@ export type RootStack = {
   settings: undefined;
   places: undefined;
   areas: undefined;
+  schedule: undefined;
+  scheduleWeek: undefined;
+  bells: undefined;
   habit: { id: string };
   review: { date?: string } | undefined;
   reviewHistory: undefined;
@@ -80,6 +86,7 @@ function Tabs({ navigation }: NativeStackScreenProps<RootStack, 'tabs'>) {
             onOpenSettings={() => navigation.navigate('settings')}
             onOpenReview={() => navigation.navigate('review')}
             onOpenHistory={() => navigation.navigate('reviewHistory')}
+            onOpenSchedule={() => navigation.navigate('schedule')}
           />
         )}
       </Tab.Screen>
@@ -144,6 +151,7 @@ export function RootNavigator() {
             onBack={() => navigation.goBack()}
             onOpenPlaces={() => navigation.navigate('places')}
             onOpenAreas={() => navigation.navigate('areas')}
+            onOpenSchedule={() => navigation.navigate('schedule')}
           />
         )}
       </Stack.Screen>
@@ -152,6 +160,21 @@ export function RootNavigator() {
       </Stack.Screen>
       <Stack.Screen name="places">
         {({ navigation }) => <PlacesScreen onBack={() => navigation.goBack()} />}
+      </Stack.Screen>
+      <Stack.Screen name="schedule">
+        {({ navigation }) => (
+          <ScheduleScreen
+            onBack={() => navigation.goBack()}
+            onOpenWeek={() => navigation.navigate('scheduleWeek')}
+            onOpenBells={() => navigation.navigate('bells')}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="scheduleWeek">
+        {({ navigation }) => <WeekScreen onBack={() => navigation.goBack()} />}
+      </Stack.Screen>
+      <Stack.Screen name="bells">
+        {({ navigation }) => <BellsScreen onBack={() => navigation.goBack()} />}
       </Stack.Screen>
     </Stack.Navigator>
   );

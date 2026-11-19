@@ -8,11 +8,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useDesign, usePalette } from '../store/themeStore';
 import { SPACE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
-import { Icon, type UiIconName } from './icons';
+import { Icon, type IconName } from './icons';
 
 type Props = {
   /** значок слева; без него строка начинается с названия (настройки) */
-  icon?: UiIconName;
+  icon?: IconName;
   label: string;
   value: string;
   /** вместо текста значения — картинка (значок привычки); `value` остаётся подписью для чтения с экрана */

@@ -23,7 +23,7 @@ import { ensureContrast } from '../theme/readable';
 import { SPACE } from '../theme/metrics';
 import { TYPE } from '../theme/type';
 import { FormRow } from './FormRow';
-import { Icon, type UiIconName } from './icons';
+import { Icon, type IconName } from './icons';
 
 export type SelectOption<T> = {
   value: T;
@@ -31,11 +31,11 @@ export type SelectOption<T> = {
   /** цвет кружка; без него — пустое кольцо */
   dot?: string;
   /** значок вместо кружка (варианты даты) */
-  icon?: UiIconName;
+  icon?: IconName;
 };
 
 type Props<T> = {
-  icon?: UiIconName;
+  icon?: IconName;
   label: string;
   value: T;
   options: readonly SelectOption<T>[];

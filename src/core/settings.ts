@@ -1,9 +1,22 @@
 /** Настройки по умолчанию и чтение настроек из снимка. */
-import { SETTINGS_ID, type DesignChoice, type Settings, type Snapshot } from './model';
+import { SETTINGS_ID, type Bell, type DesignChoice, type Settings, type Snapshot } from './model';
 
 export type SettingsFields = Omit<Settings, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>;
 
-/** Тема как в системе, оформление «Обычный»; тон, цитаты и звания (для «АУФ») включены. */
+/** Звонки по умолчанию: шесть пар по 90 минут с переменой 10 минут, первая в 08:30. */
+export const DEFAULT_BELLS: Bell[] = [
+  { start: '08:30', end: '10:00' },
+  { start: '10:10', end: '11:40' },
+  { start: '11:50', end: '13:20' },
+  { start: '13:30', end: '15:00' },
+  { start: '15:10', end: '16:40' },
+  { start: '16:50', end: '18:20' },
+];
+
+/**
+ * Тема как в системе, оформление «Обычный»; тон, цитаты и звания (для «АУФ») включены.
+ * Расписание выключено — включается в настройках.
+ */
 export const DEFAULT_SETTINGS: SettingsFields = {
   theme: 'system',
   design: 'normal',
@@ -13,6 +26,10 @@ export const DEFAULT_SETTINGS: SettingsFields = {
   locale: 'ru',
   weekStart: 1,
   reviewAt: '21:30',
+  scheduleEnabled: false,
+  bells: DEFAULT_BELLS,
+  weekParity: false,
+  parityFrom: null,
 };
 
 /**

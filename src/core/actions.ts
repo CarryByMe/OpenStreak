@@ -7,6 +7,7 @@ import { fullValue, liveCheck } from './habits';
 import { newId } from './ids';
 import { clampRadius, isValidCoords } from './places';
 import { MAX_SUBTASKS, MAX_SUBTASK_TITLE, subtasksOf } from './subtasks';
+import { MAX_BELLS, minutesOf } from './schedule';
 import {
   SETTINGS_ID,
   checkId,
@@ -14,7 +15,9 @@ import {
   type HabitKind,
   type HabitMeasure,
   type HabitUnit,
+  type Bell,
   type ISODate,
+  type Lesson,
   type PlaceTrigger,
   type Priority,
 } from './model';
@@ -313,6 +316,9 @@ export function deleteArea(id: string): void {
       ...live(d.habits)
         .filter((h) => h.areaId === id)
         .map((h) => draftPatch('habits', h.id, { areaId: null })),
+      ...live(d.lessons)
+        .filter((l) => l.areaId === id)
+        .map((l) => draftPatch('lessons', l.id, { areaId: null })),
     ])
   );
 }
@@ -544,6 +550,9 @@ export function deleteHabit(id: string): void {
       ...live(d.rests)
         .filter((r) => r.habitId === id)
         .map((r) => draftDelete('rests', r.id)),
+      ...live(d.lessons)
+        .filter((l) => l.habitId === id)
+        .map((l) => draftPatch('lessons', l.id, { habitId: null })),
     ])
   );
 }
@@ -623,6 +632,56 @@ export function saveReview(date: ISODate, mood: number, note: string): void {
       note: note.trim(),
     }),
   ]);
+}
+
+// ── Расписание ───────────────────────────────────────────────────────────────
+
+export type LessonInput = Omit<Lesson, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>;
+
+/** Поля занятия в порядке: дни без повторов, время по порядку, длина сдвоенной 1–2. */
+function lessonFields(input: LessonInput): LessonInput {
+  const days = [...new Set(input.days.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6))];
+  const s = minutesOf(input.start);
+  const e = minutesOf(input.end);
+  const swap = s !== null && e !== null && e < s;
+  return {
+    ...input,
+    title: input.title.trim(),
+    note: input.note.trim(),
+    place: input.place.trim(),
+    days: days.sort(),
+    pair: input.pair !== null && input.pair >= 1 && input.pair <= MAX_BELLS ? input.pair : null,
+    pairSpan: input.pairSpan === 2 ? 2 : 1,
+    start: swap ? input.end : input.start,
+    end: swap ? input.start : input.end,
+    remindBefore: input.remindBefore !== null && input.remindBefore > 0 ? input.remindBefore : null,
+  };
+}
+
+export function createLesson(input: LessonInput, id: string = newId()): string {
+  commit([draftCreate('lessons', id, lessonFields(input))]);
+  return id;
+}
+
+export function updateLesson(id: string, input: LessonInput): void {
+  commit(compact([draftPatch('lessons', id, lessonFields(input))]));
+}
+
+export function deleteLesson(id: string): void {
+  commit(compact([draftDelete('lessons', id)]));
+}
+
+export function restoreLesson(id: string): void {
+  commit(compact([draftRestore('lessons', id)]));
+}
+
+/** Звонки: время по порядку, не больше `MAX_BELLS`; пары без времени отбрасываются. */
+export function saveBells(bells: Bell[]): void {
+  const clean = bells
+    .filter((b) => minutesOf(b.start) !== null && minutesOf(b.end) !== null && b.start < b.end)
+    .sort((a, b) => a.start.localeCompare(b.start))
+    .slice(0, MAX_BELLS);
+  updateSettings({ bells: clean });
 }
 
 // ── Настройки ────────────────────────────────────────────────────────────────

@@ -66,6 +66,10 @@ function snap(settings: Record<string, unknown> = {}, tasks: Task[] = [], habits
     locale: 'ru',
     weekStart: 1,
     reviewAt: '21:30',
+    scheduleEnabled: false,
+    bells: [],
+    weekParity: false,
+    parityFrom: null,
     ...settings,
   };
   for (const t of tasks) s.tasks[t.id] = t;

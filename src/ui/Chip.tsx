@@ -8,7 +8,7 @@ import { usePalette, usePlain, useSoft } from '../store/themeStore';
 import { RADIUS, STROKE } from '../theme/metrics';
 import { hardShadow } from '../theme/sticker';
 import { TYPE } from '../theme/type';
-import { Icon, type UiIconName } from './icons';
+import { Icon, type IconName } from './icons';
 import { useTint } from './useTint';
 
 type Props = {
@@ -19,7 +19,7 @@ type Props = {
   size?: 'sm' | 'md';
   dashed?: boolean;
   /** значок слева от подписи: «действие», а не вариант выбора */
-  icon?: UiIconName;
+  icon?: IconName;
   /** toggle — можно выбрать несколько; radio — один из группы */
   role?: 'toggle' | 'radio';
   /** цвет сферы: в «Обычном» перед подписью рисуется точка этого цвета */

@@ -6,7 +6,7 @@ import { RADIUS, STROKE } from '../../theme/metrics';
 import type { Design, Palette } from '../../theme/palette';
 import { readableOn } from '../../theme/readable';
 import { useTint } from '../useTint';
-import { HABIT_ICONS, UI_ICONS, type IconSpec, type UiIconName } from './paths';
+import { HABIT_ICONS, UI_ICONS, type IconName, type IconSpec } from './paths';
 
 /** Цвет иконки: на фоне экрана или поверх цветной подложки (`on*`). */
 export type IconTone = 'text' | 'muted' | 'red' | 'teal' | 'onSun' | 'onTeal' | 'onToast';
@@ -66,8 +66,12 @@ function Glyph({ spec, size = 24, tone = 'text', color: own, label }: Props & { 
   );
 }
 
-export function Icon({ name, ...rest }: Props & { name: UiIconName }) {
-  return <Glyph spec={UI_ICONS[name]} {...rest} />;
+export function Icon({ name, ...rest }: Props & { name: IconName }) {
+  const spec =
+    name in UI_ICONS
+      ? UI_ICONS[name as keyof typeof UI_ICONS]
+      : HABIT_ICONS[name as keyof typeof HABIT_ICONS];
+  return <Glyph spec={spec} {...rest} />;
 }
 
 /** Иконка привычки или сферы по ключу из `Habit.icon`; незнакомый ключ — общая «привычки». */

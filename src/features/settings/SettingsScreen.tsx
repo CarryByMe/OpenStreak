@@ -54,10 +54,12 @@ export function SettingsScreen({
   onBack,
   onOpenPlaces,
   onOpenAreas,
+  onOpenSchedule,
 }: {
   onBack: () => void;
   onOpenPlaces: () => void;
   onOpenAreas: () => void;
+  onOpenSchedule: () => void;
 }) {
   const p = usePalette();
   const t = useT();
@@ -312,8 +314,22 @@ export function SettingsScreen({
             hint={t('settings.placesHint')}
             value={String(placeCount)}
             onPress={onOpenPlaces}
-            last
           />
+          <SettingRow
+            label={t('settings.schedule')}
+            hint={t('settings.scheduleHint')}
+            value={s.scheduleEnabled}
+            onChange={(on) => A.updateSettings({ scheduleEnabled: on })}
+            last={!s.scheduleEnabled}
+          />
+          {s.scheduleEnabled && (
+            <SettingRow
+              label={t('settings.lessons')}
+              value={String(live(data.lessons).length)}
+              onPress={onOpenSchedule}
+              last
+            />
+          )}
         </Card>
       </View>
 
