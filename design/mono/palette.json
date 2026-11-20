@@ -1,0 +1,36 @@
+{
+  "_": "Токены «Моно» (концепт). В src/theme/palettes.json пока не добавлены: ключи monoLight / monoDark и пары в checks появятся при реализации.",
+  "themes": {
+    "monoLight": {
+      "bg": "#FFFFFF",
+      "surface": "#F3F3F3",
+      "surface2": "#E7E7E7",
+      "text": "#0A0A0A",
+      "muted": "#595959",
+      "line": "#0A0A0A",
+      "ink": "#0A0A0A",
+      "onInk": "#FFFFFF",
+      "mark": "#808080",
+      "track": "#E2E2E2",
+      "divider": "#D9D9D9",
+      "scrim": "#000000"
+    },
+    "monoDark": {
+      "bg": "#000000",
+      "surface": "#141414",
+      "surface2": "#222222",
+      "text": "#FAFAFA",
+      "muted": "#A6A6A6",
+      "line": "#FAFAFA",
+      "ink": "#FAFAFA",
+      "onInk": "#000000",
+      "mark": "#7A7A7A",
+      "track": "#2E2E2E",
+      "divider": "#2E2E2E",
+      "scrim": "#000000"
+    }
+  },
+  "radius": { "tile": 16, "field": 20, "card": 28, "sheet": 36, "pill": 999, "mark": 999 },
+  "stroke": { "outline": 2, "mark": 2.5, "ring": 12 },
+  "font": { "family": "Nunito", "weights": [600, 700, 800, 900] }
+}
